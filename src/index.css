@@ -1,3 +1,5 @@
+@import './styles/variables.module.css';
+
 *,
 *::before,
 *::after {
@@ -10,6 +12,7 @@ html{
   font-size: 62.5%;
   font-family: 'Roboto', system-ui, sans-serif;
   font-weight: 400;
+  letter-spacing: 2%;
   background: #EDEEF0;
   color: #000000;
   width: 100%;
