@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/common/Toast';
 import ConfirmModal from '../components/ConfirmModal';
 import Avatar from '../components/Avatar';
 import * as storage from '../services/storage';

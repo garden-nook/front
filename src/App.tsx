@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { ToastProvider } from './components/Toast';
-import ProtectedRoute from './components/ProtectedRoute';
+import { ToastProvider } from './components/common/Toast';
+import ProtectedRoute from './components/common/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
 import Catalog from './pages/Catalog';
 import Tasks from './pages/Tasks';
