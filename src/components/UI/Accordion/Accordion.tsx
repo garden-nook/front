@@ -15,23 +15,13 @@ const Accordion: React.FC<AccordionProps> = ({
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className={`${styles.accordion} ${styles[variant]}`}>
+    <div className={`${styles.accordion} ${styles[variant]} ${isOpen ? styles.open : ''}`}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={styles.header}
+        className={`${styles.header} ${isOpen ? styles.headerOpen : ''}`}
       >
         <span>{title}</span>
-        <svg
-          className={`${styles.icon} ${isOpen ? styles.open : ''}`}
-          width="16"
-          height="16"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
       </button>
       {isOpen && <div className={styles.content}>{content}</div>}
     </div>

@@ -1,17 +1,19 @@
 .logo {
-  font-size: 20px;
-  font-weight: bold;
-  color: #1F2937;
-  text-decoration: none;
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.logo:hover {
-  color: #22C55E;
+  text-decoration: none;
+  color: var(--gray-700);
+  font-weight: 600;
+  font-size: 16px;
+  white-space: nowrap; 
 }
 
 .icon {
-  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.text {
+  white-space: nowrap;
 }

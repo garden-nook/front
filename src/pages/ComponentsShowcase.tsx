@@ -21,19 +21,11 @@ export default function ComponentsShowcase() {
   const samplePlots = [
     {
       id: '1',
-      name: 'Тётя Зина',
+      name: 'Пример',
       width: 30,
       height: 30,
       bedsCount: 5,
       cropsCount: 7,
-    },
-    {
-      id: '2',
-      name: 'Дача',
-      width: 40,
-      height: 50,
-      bedsCount: 12,
-      cropsCount: 15,
     },
   ];
 
@@ -48,22 +40,18 @@ export default function ComponentsShowcase() {
       lightNeeds: 'Полутень',
       description: 'Популярная овощная культура',
     },
-    {
-      id: '2',
-      name: 'Огурец',
-      family: 'Тыквенные',
-      group: 'Овощные',
-      vegetationDays: 60,
-      soilNeeds: 'Чернозем',
-      lightNeeds: 'Полное солнце',
-      description: 'Теплолюбивая культура',
-    },
   ];
 
   const selectOptions = [
     { value: '1', label: 'Опция 1' },
     { value: '2', label: 'Опция 2' },
     { value: '3', label: 'Опция 3' },
+  ];
+
+  // Навигационные ссылки (для компонента Nav)
+  const navLinks = [
+    { label: 'Мои участки', to: '/' },
+    { label: 'Каталог культур', to: '/catalog' }
   ];
 
   return (
@@ -93,10 +81,8 @@ export default function ComponentsShowcase() {
 
           <div>
             <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '12px' }}>Навигация:</p>
-            <Nav links={[
-                { label: 'Мои участки', to: '/' },
-                { label: 'Каталог культур', to: '/catalog' }
-            ]} />
+            {/* Используем компонент Nav с переданными ссылками */}
+            <Nav links={navLinks} />
           </div>
         </section>
 
@@ -131,8 +117,8 @@ export default function ComponentsShowcase() {
             </h3>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <ActionButton icon="edit" color="greenLight" shape="square" onClick={() => handleActionClick('edit square light')} />
-              <ActionButton icon="edit" color="greenDark" shape="square" onClick={() => handleActionClick('edit square dark')} />
               <ActionButton icon="delete" color="red" shape="square" onClick={() => handleActionClick('delete square')} />
+              <ActionButton icon="cancel" color="red" shape="square" onClick={() => handleActionClick('cancel square')} />
             </div>
           </div>
 
@@ -142,7 +128,6 @@ export default function ComponentsShowcase() {
               Круглые (circle)
             </h3>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <ActionButton icon="add" color="greenLight" shape="circle" onClick={() => handleActionClick('add circle light')} />
               <ActionButton icon="add" color="greenDark" shape="circle" onClick={() => handleActionClick('add circle dark')} />
             </div>
           </div>
@@ -153,10 +138,9 @@ export default function ComponentsShowcase() {
               Текстовые (text)
             </h3>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-              <ActionButton title="Удалить" color="greenLight" shape="text" onClick={() => handleActionClick('delete text light')} />
               <ActionButton title="Удалить" color="red" shape="text" onClick={() => handleActionClick('delete text red')} />
-              <ActionButton title="Сохранить" color="greenDark" shape="text" onClick={() => handleActionClick('save text')} />
-              <ActionButton title="Отмена" color="red" shape="text" onClick={() => handleActionClick('cancel text')} />
+              <ActionButton title="Сохранить" color="greenLight" shape="text" onClick={() => handleActionClick('save text')} />
+              <ActionButton title="Отмена" shape="text" onClick={() => handleActionClick('cancel text')} />
             </div>
           </div>
         </section>
@@ -209,16 +193,6 @@ export default function ComponentsShowcase() {
                   onChange={(e) => setSelectValue(e.target.value)}
                   options={selectOptions}
                 />
-                <Select 
-                  value=""
-                  onChange={() => {}}
-                  options={selectOptions}
-                />
-                <Select 
-                  value=""
-                  onChange={() => {}}
-                  options={selectOptions}
-                />
               </div>
             </div>
           </div>
@@ -234,16 +208,6 @@ export default function ComponentsShowcase() {
                 onChange={setSearchValue}
                 placeholder="Поиск участков"
               />
-              <SearchBar 
-                value=""
-                onChange={() => {}}
-                placeholder="Поиск культур"
-              />
-              <SearchBar 
-                value=""
-                onChange={() => {}}
-                placeholder="Поиск задач"
-              />
             </div>
           </div>
 
@@ -257,16 +221,6 @@ export default function ComponentsShowcase() {
                 title="Предшественники (хорошие)"
                 content="Томат, Огурец, Капуста, Кабачок"
                 variant="success"
-              />
-              <Accordion
-                title="Предшественники (плохие)"
-                content="Картофель, Баклажан, Перец"
-                variant="danger"
-              />
-              <Accordion
-                title="Соседи (хорошие)"
-                content="Морковь, Свекла, Лук, Чеснок"
-                variant="default"
               />
             </div>
           </div>

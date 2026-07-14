@@ -2,13 +2,8 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styles from './Nav.module.css';
 
-interface NavLink {
-  label: string;
-  to: string;
-}
-
 interface NavProps {
-  links: NavLink[];
+  links: { label: string; to: string }[];
 }
 
 const Nav: React.FC<NavProps> = ({ links }) => {

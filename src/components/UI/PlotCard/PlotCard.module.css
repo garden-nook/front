@@ -50,7 +50,7 @@
 .editBtn {
   width: 36px;
   height: 36px;
-  border-radius: 6px;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
   display: flex;

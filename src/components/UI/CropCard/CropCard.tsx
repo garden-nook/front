@@ -27,6 +27,11 @@ const CropCard: React.FC<CropCardProps> = ({
 }) => {
   return (
     <Link to={`/crop/${id}`} className={styles.card}>
+      {/* Название культуры — теперь сверху */}
+      <div className={styles.header}>
+        <h3 className={styles.title}>{name}</h3>
+      </div>
+      
       <div className={styles.imageWrapper}>
         {image ? (
           <img src={image} alt={name} className={styles.image} />
@@ -34,11 +39,12 @@ const CropCard: React.FC<CropCardProps> = ({
           <div className={styles.imagePlaceholder} />
         )}
       </div>
-      <div className={styles.content}>
-        <h3 className={styles.title}>{name}</h3>
+      
+      {/* Остальной контент */}
         <p className={styles.family}>
           {family} · {group}
         </p>
+      <div className={styles.content}>
         <div className={styles.specs}>
           <div className={styles.spec}>
             <span className={styles.specLabel}>Вегетация:</span>
@@ -53,7 +59,6 @@ const CropCard: React.FC<CropCardProps> = ({
             <span className={styles.specValue}>{lightNeeds}</span>
           </div>
         </div>
-        <p className={styles.description}>{description}</p>
       </div>
     </Link>
   );
