@@ -30,52 +30,60 @@
   height: 4.2rem;
 }
 
-.circle{
+.circle {
   width: 6.4rem;
   height: 6.4rem;
   border-radius: 3.2rem;
 }
 
-.text{
+.text {
   width: 15rem;
   height: 3.2rem;
   border-radius: 2rem;
   font-size: 1.6rem;
 }
 
-.greenDark{
-  background: var(--color-green-cucumber)
+.iconType {
+  /* Для кнопок с иконками */
 }
 
-.greenDark:hover{
-  background: var(--color-green-cucumber-1)
+.withText {
+  /* Для текстовых кнопок */
 }
 
-.greenDark:active{
-  background: var(--color-green-cucumber-2)
+.greenDark {
+  background: var(--color-green-cucumber);
 }
 
-.greenLight{
+.greenDark:hover {
+  background: var(--color-green-cucumber-1);
+}
+
+.greenDark:active {
+  background: var(--color-green-cucumber-2);
+}
+
+.greenLight {
   background: var(--color-green-light-1);
 }
 
-.greenLight:hover{
+.greenLight:hover {
   background: var(--color-green-light-2);
 }
 
-.greenLight:active{
+.greenLight:active {
   background: var(--color-green-light-3);
 }
 
-.red{
+.red {
   background: var(--color-red-tomato-light-1);
 }
 
-.red:hover{
+.red:hover {
   background: var(--color-red-tomato-light-2);
 }
 
-.red:active{
+.red:active {
   background: var(--color-red-tomato-light-3);
 }
 
@@ -99,4 +107,8 @@
 .icon_circle {
   width: 4.2rem;
   height: 4.2rem;
+}
+
+.buttonText {
+  white-space: nowrap;
 }

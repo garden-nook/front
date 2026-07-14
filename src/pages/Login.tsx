@@ -6,7 +6,7 @@ type AuthMode = 'login' | 'register' | 'reset';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, register, resetPassword } = useAuth();
+  const { login, register } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -79,13 +79,6 @@ export default function Login() {
       return;
     }
 
-    const success = resetPassword(resetEmail);
-    if (success) {
-      setSuccess('Инструкция по восстановлению пароля отправлена на ваш email');
-      setTimeout(() => setMode('login'), 3000);
-    } else {
-      setError('Пользователь с таким email не найден');
-    }
   };
 
   const inputStyle = {

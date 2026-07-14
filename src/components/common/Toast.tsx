@@ -17,15 +17,17 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function useToast() {
   const context = useContext(ToastContext);
-  if (!context) throw new Error('useToast must be used within ToastProvider');
+  if (!context) {
+    throw new Error('useToast must be used within ToastProvider');
+  }
   return context;
 }
 
 const icons: Record<ToastType, string> = {
   success: '✓',
-  error: '',
+  error: '✕',
   warning: '⚠',
-  info: 'ℹ',
+  info: '',
 };
 
 const colors: Record<ToastType, { bg: string; border: string; text: string; icon: string }> = {
@@ -54,53 +56,27 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      {/* Контейнер уведомлений — ЛЕВЫЙ НИЖНИЙ УГОЛ */}
-      <div style={{
-        position: 'fixed',
-        bottom: '20px',
-        left: '20px',
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-        maxWidth: '380px',
-      }}>
+      {/* Контейнер уведомлений */}
+      <div className="fixed bottom-5 left-5 z-9999 flex flex-col gap-2 max-w-sm">
         {toasts.map(toast => {
           const c = colors[toast.type];
           return (
             <div
               key={toast.id}
+              onClick={() => removeToast(toast.id)}
+              className="flex items-center gap-2.5 p-3 rounded-lg border shadow-lg cursor-pointer min-w-[280px] animate-slideIn"
               style={{
                 backgroundColor: c.bg,
-                border: `1px solid ${c.border}`,
-                borderRadius: '8px',
-                padding: '12px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                animation: 'slideIn 0.3s ease-out',
-                cursor: 'pointer',
-                minWidth: '280px',
+                borderColor: c.border,
               }}
-              onClick={() => removeToast(toast.id)}
             >
-              <span style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                backgroundColor: c.icon,
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '13px',
-                fontWeight: 700,
-                flexShrink: 0,
-              }}>
+              <div
+                className="w-6 h-6 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                style={{ backgroundColor: c.icon }}
+              >
                 {icons[toast.type]}
-              </span>
-              <span style={{ fontSize: '13px', color: c.text, flex: 1 }}>
+              </div>
+              <span className="text-sm flex-1" style={{ color: c.text }}>
                 {toast.message}
               </span>
             </div>
@@ -111,6 +87,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         @keyframes slideIn {
           from { transform: translateX(-100%); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slideIn {
+          animation: slideIn 0.3s ease-out;
         }
       `}</style>
     </ToastContext.Provider>

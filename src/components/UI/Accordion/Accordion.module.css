@@ -1,0 +1,50 @@
+.accordion {
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.default {
+  background-color: #F3F4F6;
+}
+
+.success {
+  background-color: #F0FDF4;
+  border-color: #86EFAC;
+}
+
+.danger {
+  background-color: #FEF2F2;
+  border-color: #FCA5A5;
+}
+
+.header {
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: inherit;
+  font-size: 14px;
+  color: #1F2937;
+}
+
+.icon {
+  transition: transform 0.2s;
+  color: #6B7280;
+}
+
+.icon.open {
+  transform: rotate(180deg);
+}
+
+.content {
+  padding: 12px 16px;
+  border-top: 1px solid #E5E7EB;
+  font-size: 13px;
+  color: #4B5563;
+  line-height: 1.5;
+}

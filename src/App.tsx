@@ -10,6 +10,7 @@ import PlotEditor from './pages/PlotEditor';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import CropDetail from './pages/CropDetail';
+import ComponentsShowcase from './pages/ComponentsShowcase';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
               <Route path="/plot/:id" element={<ProtectedRoute><PlotEditor /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/crop/:id" element={<ProtectedRoute><CropDetail /></ProtectedRoute>} />
+              <Route path="/components" element={<ComponentsShowcase />} />
             </Routes>
           </ToastProvider>
         </ThemeProvider>
