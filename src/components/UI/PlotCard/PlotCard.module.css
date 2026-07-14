@@ -1,18 +1,26 @@
 .card {
   background-color: white;
-  border-radius: 8px;
-  padding: 20px 24px;
+  border-radius: 20px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E5E7EB;
+  transition: all 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #22C55E;
 }
 
 .imagePlaceholder {
-  width: 96px;
-  height: 96px;
-  background-color: #E5E7EB;
-  border-radius: 4px;
+  width: 80px;
+  height: 80px;
+  background-color: #F3F4F6;
+  border-radius: 12px;
   flex-shrink: 0;
 }
 
@@ -43,38 +51,6 @@
 
 .actions {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.editBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  display: flex;
   align-items: center;
-  justify-content: center;
-  background-color: #DCFCE7;
-}
-
-.editBtn:hover {
-  background-color: #BBF7D0;
-}
-
-.deleteBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #FEE2E2;
-}
-
-.deleteBtn:hover {
-  background-color: #FECACA;
+  gap: 8px; 
 }
