@@ -15,7 +15,7 @@
 .input {
   padding: 8px 12px; /* Уменьшаем отступы */
   border: 1px solid #E5E7EB;
-  border-radius: 50px;
+  border-radius: 10px;
   font-size: 13px; /* Уменьшаем шрифт */
   font-family: inherit;
   outline: none;

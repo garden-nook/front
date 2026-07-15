@@ -11,7 +11,7 @@ interface CropCardProps {
   soilNeeds: string;
   lightNeeds: string;
   image?: string;
-  description: string;
+  onClick?: () => void;
 }
 
 const CropCard: React.FC<CropCardProps> = ({
@@ -23,11 +23,10 @@ const CropCard: React.FC<CropCardProps> = ({
   soilNeeds,
   lightNeeds,
   image,
-  description
+  onClick,
 }) => {
   return (
-    <Link to={`/crop/${id}`} className={styles.card}>
-      {/* Название культуры — теперь сверху */}
+    <div className={styles.card} onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
       <div className={styles.header}>
         <h3 className={styles.title}>{name}</h3>
       </div>
@@ -40,10 +39,10 @@ const CropCard: React.FC<CropCardProps> = ({
         )}
       </div>
       
-      {/* Остальной контент */}
-        <p className={styles.family}>
-          {family} · {group}
-        </p>
+      <p className={styles.family}>
+        {family} · {group}
+      </p>
+      
       <div className={styles.content}>
         <div className={styles.specs}>
           <div className={styles.spec}>
@@ -60,7 +59,7 @@ const CropCard: React.FC<CropCardProps> = ({
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 };
 
