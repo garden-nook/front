@@ -1,0 +1,91 @@
+.accordion {
+  border: 1px solid #E5E7EB;
+  border-radius: 10px; /* Умеренные скругления */
+  overflow: hidden;
+  background-color: #FFFFFF;
+  transition: background-color 0.2s ease;
+}
+
+/* Все варианты одинаковые */
+.default,
+.success,
+.danger {
+  background-color: #FFFFFF;
+  border-color: #E5E7EB;
+}
+
+/* Когда аккордеон открыт — серый фон */
+.default.open,
+.success.open,
+.danger.open {
+  background-color: #F3F4F6;
+  border-color: #E5E7EB;
+}
+
+.header {
+  width: 100%;
+  padding: 14px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: inherit;
+  font-size: 14px;
+  color: #1F2937;
+  transition: background-color 0.2s ease;
+  background-color: #FFFFFF;
+  border-radius: 16px; /* Соответствует скруглению аккордеона */
+}
+
+.title {
+  flex: 1;
+  text-align: left;
+}
+
+/* Стрелка */
+.arrow {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+  color: #6B7280;
+}
+
+/* Стрелка при открытии — поворачивается вверх */
+.arrowOpen {
+  transform: rotate(180deg);
+}
+
+/* При наведении на закрытый — светло-серый фон */
+.header:hover {
+  background-color: #F3F4F6;
+}
+
+/* При нажатии на закрытый — серый фон */
+.header:active {
+  background-color: #E5E7EB;
+}
+
+/* Когда аккордеон открыт — заголовок серый */
+.headerOpen {
+  background-color: #F3F4F6 !important;
+}
+
+/* При наведении на открытый заголовок — чуть темнее */
+.headerOpen:hover {
+  background-color: #E5E7EB !important;
+}
+
+/* При нажатии на открытый заголовок — ещё темнее */
+.headerOpen:active {
+  background-color: #D1D5DB !important;
+}
+
+.content {
+  padding: 12px 20px 16px 20px;
+  border-top: 1px solid #E5E7EB;
+  font-size: 13px;
+  color: #4B5563;
+  line-height: 1.5;
+  background-color: #F3F4F6;
+}

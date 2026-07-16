@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';       
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './components/common/Toast';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import Header from './components/UI/Header/Header';
 import Dashboard from './pages/Dashboard';
 import Catalog from './pages/Catalog';
 import Tasks from './pages/Tasks';
@@ -10,6 +11,8 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import CropDetail from './pages/CropDetail';
 import { Test } from './pages/Test';
+import ComponentsShowcase from './pages/ComponentsShowcase';
+
 
 function App() {
   return (
@@ -24,6 +27,8 @@ function App() {
               <Route path="/plot/:id" element={<ProtectedRoute><PlotEditor /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/crop/:id" element={<ProtectedRoute><CropDetail /></ProtectedRoute>} />
+              
+              <Route path="/components" element={<ComponentsShowcase />} />
 
               <Route path="/test" element={<Test />} />
 

@@ -1,0 +1,224 @@
+/* ============================================================
+   ЗАТЕМНЕНИЕ (BACKDROP)
+   ============================================================ */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+/* ============================================================
+   МОДАЛЬНОЕ ОКНО
+   ============================================================ */
+.modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 36px;
+  gap: 32px;
+  position: relative;
+  width: 600px;
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #FFFFFF;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ============================================================
+   КНОПКА ЗАКРЫТИЯ
+   ============================================================ */
+.closeBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6B7280;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.closeBtn:hover {
+  background-color: #F3F4F6;
+  color: #1F2937;
+}
+
+/* ============================================================
+   ЗАГОЛОВОК
+   ============================================================ */
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0;
+  text-align: center;
+}
+
+/* ============================================================
+   ОСНОВНОЙ БЛОК (ФОТО + ОПИСАНИЕ)
+   ============================================================ */
+.mainRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.imageWrapper {
+  width: 100%;
+  height: 200px;
+  background-color: #F3F4F6;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  background-color: #E5E7EB;
+}
+
+.description {
+  font-size: 15px;
+  color: #4B5563;
+  line-height: 1.6;
+  margin: 0;
+  text-align: center;
+}
+
+/* ============================================================
+   ХАРАКТЕРИСТИКИ — ОДНА КОЛОНКА, СЛЕВА НАЗВАНИЕ, СПРАВА ЗНАЧЕНИЕ
+   ============================================================ */
+.specsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 0;
+  border-top: 1px solid #E5E7EB;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+/* Одна строка характеристики */
+.specRow {
+  display: flex;
+  justify-content: space-between;  /* Название слева, значение справа */
+  align-items: baseline;
+  gap: 20px;
+}
+
+/* Название характеристики (маленькое, серое, слева) */
+.specLabel {
+  font-size: 14px;
+  color: #6B7280;
+  font-weight: 400;
+  flex-shrink: 0;  /* Не сжимается */
+  min-width: 140px; /* Фиксированная ширина, чтобы значения были ровно */
+}
+
+/* Значение характеристики (крупное, тёмное, справа) */
+.specValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2937;
+  text-align: right;
+  flex: 1;
+}
+
+/* ============================================================
+   АККОРДЕОНЫ
+   ============================================================ */
+.accordions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.accordionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.accordionRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.accordionLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
+  min-width: 80px;
+}
+
+.accordionValue {
+  font-size: 14px;
+  color: #4B5563;
+}
+
+/* ============================================================
+   АДАПТИВ ДЛЯ МАЛЫХ ЭКРАНОВ
+   ============================================================ */
+@media (max-width: 640px) {
+  .modal {
+    padding: 20px;
+    gap: 24px;
+  }
+  
+  .specRow {
+    flex-direction: column;  /* На мобилке — название сверху, значение снизу */
+    align-items: flex-start;
+    gap: 2px;
+  }
+  
+  .specLabel {
+    min-width: auto;
+  }
+  
+  .specValue {
+    text-align: left;
+  }
+  
+  .title {
+    font-size: 24px;
+  }
+  
+  .imageWrapper {
+    height: 160px;
+  }
+}
