@@ -1,6 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
 import { ToastProvider } from './components/common/Toast';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
@@ -10,12 +9,12 @@ import PlotEditor from './pages/PlotEditor';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import CropDetail from './pages/CropDetail';
+import { Test } from './pages/Test';
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ThemeProvider>
           <ToastProvider>
             <Routes>
               <Route path="/login" element={<Login />} />
@@ -25,11 +24,17 @@ function App() {
               <Route path="/plot/:id" element={<ProtectedRoute><PlotEditor /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/crop/:id" element={<ProtectedRoute><CropDetail /></ProtectedRoute>} />
+
+              <Route path="/test" element={<Test />} />
+
+              <Route path="*" element={<Navigate to="/" replace />} />
+
             </Routes>
           </ToastProvider>
-        </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
+
+    
   );
 }
 
