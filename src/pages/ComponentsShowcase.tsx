@@ -276,7 +276,6 @@ export default function ComponentsShowcase() {
                   vegetationDays={crop.vegetationDays}
                   soilNeeds={crop.soilNeeds}
                   lightNeeds={crop.lightNeeds}
-                  description={crop.description}
                 />
               ))}
             </div>

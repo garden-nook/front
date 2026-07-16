@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styles from './CropDetailModal.module.css';
 import Accordion from '../Accordion/Accordion';
 import type { Crop } from '../../../types/crop';
@@ -9,13 +9,33 @@ interface CropDetailModalProps {
 }
 
 const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
+  // Блокируем прокрутку и скрываем ползунок страницы
+  useEffect(() => {
+    // Сохраняем текущие стили body
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    
+    // Получаем ширину ползунка, чтобы страница не дёргалась
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    
+    // Блокируем прокрутку и добавляем отступ, чтобы контент не прыгал
+    document.body.style.overflow = 'hidden';
+    document.body.style.paddingRight = `${scrollbarWidth}px`;
+    
+    // Возвращаем всё как было при закрытии
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+    };
+  }, []);
+
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
@@ -58,7 +78,7 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
           <p className={styles.description}>{crop.description || 'Описание отсутствует'}</p>
         </div>
 
-        {/* Характеристики — одна колонка, слева название, справа значение */}
+        {/* Характеристики */}
         <div className={styles.specsList}>
           {specs.map((spec, index) => (
             <div key={index} className={styles.specRow}>
