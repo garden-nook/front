@@ -1,3 +1,4 @@
+// src/api/client.ts
 import axios, {
   AxiosError,
   type AxiosInstance,
@@ -6,11 +7,9 @@ import axios, {
 
 // Конфигурация
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  "https://api.dev.192-144-12-78.nip.io/api/v1/";
+  import.meta.env.VITE_API_URL || "https://api.dev.192-144-12-78.nip.io";
 const API_TIMEOUT = 10000; // 10 секунд
 
-// Создаем экземпляр axios
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,
@@ -19,7 +18,7 @@ export const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Интерцептор для добавления токена
+// ===== ИНТЕРЦЕПТОР ЗАПРОСА =====
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -31,23 +30,58 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// Интерцептор для обработки ошибок
+// ===== ИНТЕРЦЕПТОР ОТВЕТА =====
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error: AxiosError) => {
-    // Обработка ошибок
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      // Перенаправление на логин
-      window.location.href = "/login";
+    // ✅ Базовый объект ошибки
+    const errorResponse = {
+      success: false,
+      status: 0,
+      message: "Неизвестная ошибка",
+      // ❌ Убираем поле data — оно не нужно
+    };
+
+    if (error.response) {
+      const { status, data } = error.response;
+
+      errorResponse.status = status;
+
+      // ✅ Извлекаем сообщение из разных форматов
+      if (data && typeof data === "object") {
+        const dataObj = data as Record<string, any>;
+
+        // ✅ Только сообщение, без дублирования данных
+        errorResponse.message =
+          dataObj.error ||
+          dataObj.message ||
+          dataObj.data?.error ||
+          `Ошибка ${status}`;
+
+        // ❌ НЕ сохраняем dataObj
+      } else if (typeof data === "string") {
+        errorResponse.message = data;
+      } else {
+        errorResponse.message = `Ошибка ${status}`;
+      }
+
+      // ✅ Обработка 401
+      if (status === 401) {
+        localStorage.removeItem("token");
+        if (!window.location.pathname.includes("/login")) {
+          window.location.href = "/login";
+        }
+      }
+    } else {
+      // ✅ Ошибка сети
+      errorResponse.message = error.message || "Ошибка сети";
     }
 
-    // Пробрасываем ошибку дальше
-    return Promise.reject(error);
+    return Promise.reject(errorResponse);
   },
 );
 
-// Типизированные методы
+// ===== ТИПИЗИРОВАННЫЕ МЕТОДЫ =====
 export const api = {
   get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> =>
     apiClient.get<T, T>(url, config),

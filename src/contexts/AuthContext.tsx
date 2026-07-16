@@ -1,133 +1,115 @@
-import { createContext, useContext, useState, useEffect} from 'react';
-import type { ReactNode } from 'react';
+// src/context/AuthContext.tsx
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { authApi, type MeResponse } from '../api';
 
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  avatarUrl?: string;
-}
+// ===== ТИПЫ =====
 
 interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => User | null;
+  // Состояние
+  user: MeResponse | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  
+  // Методы
+  login: (email: string, password: string) => Promise<void>;
+  register: (displayName: string, email: string, password: string) => Promise<void>;
   logout: () => void;
-  updateUser: (updatedUser: User) => void;
-  register: (email: string, password: string, firstName: string, lastName: string) => boolean;
 }
+
+// ===== КОНТЕКСТ =====
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window !== 'undefined') {
-      const savedUser = localStorage.getItem('currentUser');
-      return savedUser ? JSON.parse(savedUser) : null;
-    }
-    return null;
-  });
+// ===== ПРОВАЙДЕР =====
 
-  // Создаем демо-пользователя при первом запуске
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<MeResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // ===== ИНИЦИАЛИЗАЦИЯ =====
   useEffect(() => {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    if (users.length === 0) {
-      const demoUser = {
-        id: 'demo-1',
-        email: 'demo@ogorod.ru',
-        password: '123456',
-        firstName: 'Демо',
-        lastName: 'Пользователь',
-        avatarUrl: '',
-      };
-      localStorage.setItem('users', JSON.stringify([demoUser]));
-      console.log('✅ Демо-пользователь создан: demo@ogorod.ru / 123456');
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      
+      if (token) {
+        try {
+          const response = await authApi.getMe();
+          if (response.success && response.data) {
+            setUser(response.data);
+          } else {
+            // Токен невалидный
+            localStorage.removeItem('token');
+          }
+        } catch {
+          localStorage.removeItem('token');
+        }
+      }
+      
+      setIsLoading(false);
+    };
+
+    initAuth();
+  }, []);
+
+  // ===== МЕТОДЫ =====
+
+  const login = useCallback(async (email: string, password: string) => {
+    const response = await authApi.login({ email, password });
+    
+    if (!response.success || !response.data?.access_token) {
+      throw new Error(response.error || 'Ошибка входа');
+    }
+
+    // Сохраняем токен
+    localStorage.setItem('token', response.data.access_token);
+
+    // Получаем профиль
+    const meResponse = await authApi.getMe();
+    if (meResponse.success && meResponse.data) {
+      setUser(meResponse.data);
+    } else {
+      throw new Error(meResponse.error || 'Не удалось получить профиль');
     }
   }, []);
 
-  const register = (email: string, password: string, firstName: string, lastName: string): boolean => {
-    try {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      
-      if (users.some((u: any) => u.email === email)) {
-        console.error('❌ Пользователь с таким email уже существует');
-        return false;
-      }
+  const register = useCallback(async (displayName: string, email: string, password: string) => {
+    const response = await authApi.register({
+      display_name: displayName,
+      email,
+      password,
+    });
 
-      const newUser = {
-        id: Date.now().toString(),
-        email,
-        password,
-        firstName,
-        lastName,
-        avatarUrl: '',
-      };
-
-      users.push(newUser);
-      localStorage.setItem('users', JSON.stringify(users));
-      console.log('✅ Регистрация успешна:', email);
-      return true;
-    } catch (error) {
-      console.error('❌ Ошибка регистрации:', error);
-      return false;
+    if (!response.success || !response.data?.user_id) {
+      throw new Error(response.error || 'Ошибка регистрации');
     }
-  };
 
-  const login = (email: string, password: string): User | null => {
-    try {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      console.log('🔍 Ищем пользователя:', email);
-      console.log('Все пользователи:', users);
-      
-      const foundUser = users.find((u: any) => 
-        u.email === email && u.password === password
-      );
+    // После регистрации автоматически входим
+    await login(email, password);
+  }, [login]);
 
-      if (foundUser) {
-        const { password: _, ...userWithoutPassword } = foundUser;
-        setUser(userWithoutPassword);
-        localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-        console.log('✅ Вход успешен:', userWithoutPassword);
-        return userWithoutPassword;
-      }
-
-      console.error('❌ Неверный email или пароль');
-      return null;
-    } catch (error) {
-      console.error(' Ошибка входа:', error);
-      return null;
-    }
-  };
-
-  const logout = () => {
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
     setUser(null);
-    localStorage.removeItem('currentUser');
-    console.log(' Выход выполнен');
+  }, []);
+
+  const value = {
+    user,
+    isLoading,
+    isAuthenticated: !!user && !!localStorage.getItem('token'),
+    login,
+    register,
+    logout,
   };
 
-  const updateUser = (updatedUser: User) => {
-    setUser(updatedUser);
-    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-    
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const updatedUsers = users.map((u: any) => 
-      u.id === updatedUser.id ? { ...u, ...updatedUser } : u
-    );
-    localStorage.setItem('users', JSON.stringify(updatedUsers));
-    console.log('✅ Профиль обновлен');
-  };
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
 
-  return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser, register }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+// ===== ХУК =====
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
-}
+};
