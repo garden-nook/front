@@ -78,8 +78,11 @@ export const GardenCanvas: React.FC<GardenCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  
+  // ===== ФИКСИРОВАННЫЙ МАСШТАБ =====
+  const scale = 1;
+  const offset = { x: 0, y: 0 };
+
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [selectionStart, setSelectionStart] = useState<GridPosition | null>(null);
@@ -87,6 +90,7 @@ export const GardenCanvas: React.FC<GardenCanvasProps> = ({
 
   const hasData = plotSize && plotSize.start && plotSize.end;
 
+// ===== КОНВЕРТАЦИЯ КООРДИНАТ =====
 // ===== КОНВЕРТАЦИЯ КООРДИНАТ =====
 const gridToCanvas = useCallback((row: number, col: number) => {
   const cellSize = 20 * scale;
@@ -100,96 +104,23 @@ const getCellFromMouse = useCallback((mouseX: number, mouseY: number) => {
   if (!hasData) return null;
   
   const cellSize = 20 * scale;
-  const col = Math.floor((mouseX - offset.x) / cellSize);
-  const row = Math.floor((mouseY - offset.y) / cellSize);
   
-  // Добавляем проверку границ участка
-  if (row < plotSize.start.row || row > plotSize.end.row ||
-      col < plotSize.start.col || col > plotSize.end.col) {
+  // ✅ Простое обратное преобразование
+  const col = (mouseX - offset.x) / cellSize;
+  const row = (mouseY - offset.y) / cellSize;
+  
+  // ✅ Округляем до ближайшей клетки
+  const roundedCol = Math.round(col);
+  const roundedRow = Math.round(row);
+  
+  // ✅ Проверяем границы участка
+  if (roundedRow < plotSize.start.row || roundedRow > plotSize.end.row ||
+      roundedCol < plotSize.start.col || roundedCol > plotSize.end.col) {
     return null;
   }
   
-  return { row, col };
+  return { row: roundedRow, col: roundedCol };
 }, [plotSize, scale, offset, hasData]);
-
-  // ===== ЦЕНТРИРОВАНИЕ =====
-const centerPlot = useCallback(() => {
-  if (!containerRef.current || !hasData) return;
-
-  const containerRect = containerRef.current.getBoundingClientRect();
-  if (containerRect.width === 0 || containerRect.height === 0) return;
-
-  const rows = plotSize.end.row - plotSize.start.row + 1;
-  const cols = plotSize.end.col - plotSize.start.col + 1;
-  const padding = 40;
-
-  const scaleX = (containerRect.width - padding * 2) / (cols * 20);
-  const scaleY = (containerRect.height - padding * 2) / (rows * 20);
-  const newScale = Math.min(Math.max(scaleX, scaleY, 0.3), 1);
-
-  // ✅ Проверяем, что масштаб изменился
-  if (Math.abs(newScale - scale) > 0.001) {
-    setScale(newScale);
-  }
-
-  const cellSize = 20 * newScale;
-  const totalWidth = cols * cellSize;
-  const totalHeight = rows * cellSize;
-  const offsetX = (containerRect.width - totalWidth) / 2;
-  const offsetY = (containerRect.height - totalHeight) / 2;
-
-  setOffset({ x: offsetX, y: offsetY });
-  
-  console.log('🔧 Центрирование:', { newScale, offsetX, offsetY });
-}, [hasData, plotSize, scale]);
-
-  // ===== ЦЕНТРИРОВАНИЕ ПРИ МОНТАЖЕ =====
-  useEffect(() => {
-    if (!containerRef.current || !hasData) return;
-    const containerRect = containerRef.current.getBoundingClientRect();
-    if (containerRect.width === 0 || containerRect.height === 0) return;
-    centerPlot();
-  }, [hasData, plotSize, centerPlot]);
-
-  // ===== ЗУМ КОЛЕСИКОМ =====
-  const handleWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    const worldX = (mouseX - offset.x) / (20 * scale);
-    const worldY = (mouseY - offset.y) / (20 * scale);
-
-    const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    const newScale = Math.max(0.3, Math.min(3, scale + delta));
-
-    const newCellSize = 20 * newScale;
-    const newOffsetX = mouseX - worldX * newCellSize;
-    const newOffsetY = mouseY - worldY * newCellSize;
-
-    setScale(newScale);
-    setOffset({ x: newOffsetX, y: newOffsetY });
-  }, [scale, offset]);
-
-  // ===== КНОПКИ ZOOM =====
-  const handleZoomIn = useCallback(() => {
-    const newScale = Math.min(3, scale + 0.1);
-    setScale(newScale);
-  }, [scale]);
-
-  const handleZoomOut = useCallback(() => {
-    const newScale = Math.max(0.3, scale - 0.1);
-    setScale(newScale);
-  }, [scale]);
-
-  const handleZoomReset = useCallback(() => {
-    centerPlot();
-  }, [centerPlot]);
 
   // ===== ОТРИСОВКА =====
   const render = useCallback(() => {
@@ -205,6 +136,7 @@ const centerPlot = useCallback(() => {
     
     if (rect.width === 0 || rect.height === 0) return;
     
+    // ✅ Очищаем с учетом dpr
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.scale(dpr, dpr);
 
@@ -341,47 +273,27 @@ const centerPlot = useCallback(() => {
     });
 
     // ===== 5. ВЫДЕЛЕНИЕ (селекшн) =====
-if (selectionMode && selectionStart && selectionEnd) {
-  const startRow = Math.min(selectionStart.row, selectionEnd.row);
-  const startCol = Math.min(selectionStart.col, selectionEnd.col);
-  const endRow = Math.max(selectionStart.row, selectionEnd.row);
-  const endCol = Math.max(selectionStart.col, selectionEnd.col);
-  
-  // ✅ Проверка, что координаты в пределах участка
-  if (startRow < plotSize.start.row || endRow > plotSize.end.row ||
-      startCol < plotSize.start.col || endCol > plotSize.end.col) {
-    console.warn('⚠️ Выделение выходит за пределы участка');
-    return;
-  }
-  
-  // Конвертируем координаты
-  const start = gridToCanvas(startRow, startCol);
-  const end = gridToCanvas(endRow + 1, endCol + 1);
-  
-  console.log('🔍 Отрисовка выделения:', {
-    startRow, startCol, endRow, endCol,
-    startCanvas: start,
-    endCanvas: end,
-    scale,
-    offset,
-    cellSize: 20 * scale
-  });
-
+    if (selectionMode && selectionStart && selectionEnd) {
+      const startRow = Math.min(selectionStart.row, selectionEnd.row);
+      const startCol = Math.min(selectionStart.col, selectionEnd.col);
+      const endRow = Math.max(selectionStart.row, selectionEnd.row);
+      const endCol = Math.max(selectionStart.col, selectionEnd.col);
+      
+      const start = gridToCanvas(startRow, startCol);
+      const end = gridToCanvas(endRow + 1, endCol + 1);
+      
       const width = end.x - start.x;
       const height = end.y - start.y;
 
-      // ✅ Заливка
       ctx.fillStyle = 'rgba(34, 197, 94, 0.15)';
       ctx.fillRect(start.x, start.y, width, height);
       
-      // ✅ Рамка
       ctx.strokeStyle = '#22c55e';
       ctx.lineWidth = 2;
       ctx.setLineDash([6, 4]);
       ctx.strokeRect(start.x, start.y, width, height);
       ctx.setLineDash([]);
       
-      // ✅ Размеры выделения
       const rowsCount = endRow - startRow + 1;
       const colsCount = endCol - startCol + 1;
       ctx.fillStyle = '#22c55e';
@@ -443,7 +355,6 @@ if (selectionMode && selectionStart && selectionEnd) {
     const cell = getCellFromMouse(x, y);
     if (!cell) return;
 
-    // Если включен режим выделения
     if (selectionMode && (mode === 'edit')) {
       console.log('🖱️ MouseDown - cell:', cell);
       setSelectionStart(cell);
@@ -456,7 +367,6 @@ if (selectionMode && selectionStart && selectionEnd) {
   }, [getCellFromMouse, selectionMode, mode]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    // Если идет процесс выделения
     if (selectionMode && selectionStart && (mode === 'edit')) {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
@@ -483,23 +393,22 @@ if (selectionMode && selectionStart && selectionEnd) {
 
     if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
       setIsPanning(true);
-      if (mode === 'view' || e.buttons === 2 || mode === 'edit') {
-        setOffset(prev => ({
-          x: prev.x + dx,
-          y: prev.y + dy,
-        }));
-        setDragStart({ x, y });
-      }
+      // ❌ Отключаем панорамирование для теста
+      // if (mode === 'view' || e.buttons === 2 || mode === 'edit') {
+      //   setOffset(prev => ({
+      //     x: prev.x + dx,
+      //     y: prev.y + dy,
+      //   }));
+      //   setDragStart({ x, y });
+      // }
     }
   }, [dragStart, mode, selectionMode, selectionStart, getCellFromMouse]);
 
   const handleMouseUp = useCallback((e: React.MouseEvent) => {
-    // Если завершили выделение
     if (selectionMode && selectionStart && selectionEnd && (mode === 'edit')) {
       console.log('🖱️ MouseUp - selectionStart:', selectionStart);
       console.log('🖱️ MouseUp - selectionEnd:', selectionEnd);
       
-      // ✅ Всегда используем правильный порядок координат
       const start = {
         row: Math.min(selectionStart.row, selectionEnd.row),
         col: Math.min(selectionStart.col, selectionEnd.col),
@@ -512,7 +421,6 @@ if (selectionMode && selectionStart && selectionEnd) {
       console.log('🖱️ MouseUp - final start:', start);
       console.log('🖱️ MouseUp - final end:', end);
       
-      // ✅ Проверяем, что выделение не нулевое
       if (start.row !== end.row || start.col !== end.col) {
         onRectSelect({ start, end });
       }
@@ -565,6 +473,13 @@ if (selectionMode && selectionStart && selectionEnd) {
     render();
   }, [render]);
 
+  // ❌ Отключаем зум колесиком
+  const handleWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Ничего не делаем
+  }, []);
+
   const cursorClass = selectionMode ? 'cursorCrosshair' : (mode === 'edit' ? 'cursorCrosshair' : 'cursorPointer');
 
   return (
@@ -582,22 +497,21 @@ if (selectionMode && selectionStart && selectionEnd) {
         className={styles.canvas}
       />
 
-      {/* ===== ZOOM CONTROLS ===== */}
-      <div className={styles.zoomControls}>
+      {/* ❌ Отключаем ZoomControls */}
+      {/* <div className={styles.zoomControls}>
         <ZoomControls
           scale={scale}
-          onZoomIn={handleZoomIn}
-          onZoomOut={handleZoomOut}
-          onReset={handleZoomReset}
+          onZoomIn={() => {}}
+          onZoomOut={() => {}}
+          onReset={() => {}}
           minScale={0.3}
           maxScale={3}
         />
-      </div>
+      </div> */}
 
-      {/* ===== ПОДСКАЗКИ ===== */}
       <div className={styles.tooltip}>
         {selectionMode && '📐 Выделите область на участке'}
-        {!selectionMode && mode === 'view' && '👆 Кликните на грядку для просмотра истории • 🖱️ Перетаскивайте для перемещения • 🔄 Колесико для зума'}
+        {!selectionMode && mode === 'view' && '👆 Кликните на грядку для просмотра истории • 🖱️ Перетаскивайте для перемещения • 🔄 Колесико для зума (отключен)'}
         {!selectionMode && mode === 'planting' && '🌱 Выберите культуру и кликните на клетку'}
         {!selectionMode && mode === 'edit' && '✏️ Выберите инструмент в панели снизу'}
       </div>
