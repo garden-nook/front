@@ -1,0 +1,118 @@
+/* src/components/plot/Toolbar/Toolbar.module.css */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 4px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.toolbar button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  user-select: none;
+  position: relative;
+}
+
+.toolbar button:hover:not(.active) {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.toolbar button:active:not(.active) {
+  transform: scale(0.96);
+}
+
+.toolbar button.active {
+  background: white;
+  color: #166534;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  border: 1px solid #22c55e;
+}
+
+.toolbar button .tooltip {
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.toolbar .hint {
+  font-size: 12px;
+  color: #64748b;
+  margin-left: 8px;
+  padding: 4px 12px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ===== АДАПТИВНОСТЬ ===== */
+@media (max-width: 768px) {
+  .toolbar button {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .toolbar .hint {
+    font-size: 11px;
+    padding: 2px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar {
+    gap: 4px;
+    padding: 3px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+  }
+
+  .toolbar button {
+    padding: 5px 10px;
+    font-size: 11px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+  }
+
+  .toolbar button.active {
+    background: white;
+    border-color: #22c55e;
+  }
+
+  .toolbar .hint {
+    display: none;
+  }
+}

@@ -1,0 +1,103 @@
+/* src/pages/PlotEditor/components/Canvas/ZoomControls.module.css */
+
+.zoomControls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  user-select: none;
+}
+
+.zoomButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #475569;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.zoomButton:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.zoomButton:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.zoomButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.zoomButton .icon {
+  line-height: 1;
+  font-size: 20px;
+}
+
+.zoomLevel {
+  min-width: 48px;
+  padding: 0 8px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.zoomLevel:hover {
+  background: #f1f5f9;
+}
+
+.zoomLevel:active {
+  transform: scale(0.95);
+}
+
+/* Анимация при изменении масштаба */
+.zoomLevel {
+  transition: all 0.2s ease;
+}
+
+/* Темная тема (опционально) */
+@media (prefers-color-scheme: dark) {
+  .zoomControls {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .zoomButton {
+    color: #94a3b8;
+  }
+
+  .zoomButton:hover:not(:disabled) {
+    background: #334155;
+    color: #e2e8f0;
+  }
+
+  .zoomLevel {
+    color: #e2e8f0;
+  }
+
+  .zoomLevel:hover {
+    background: #334155;
+  }
+}

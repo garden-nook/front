@@ -1,0 +1,31 @@
+/* src/pages/PlotEditor/components/Controls/ViewSwitch.module.css */
+.viewSwitch {
+  display: flex;
+  gap: 4px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.viewSwitch button {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.viewSwitch button:hover:not(.active) {
+  color: #374151;
+  background: #e5e7eb;
+}
+
+.viewSwitch button.active {
+  background: white;
+  color: #4a8f4a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
