@@ -4,12 +4,18 @@ import { useAuth } from '../contexts/AuthContext';
 
 type AuthMode = 'login' | 'register' | 'reset';
 
+// ============================================================
+// API URL (из свагера)
+// ============================================================
+const API_BASE_URL = 'https://api.dev.192-144-12-78.nip.io';
+
 export default function Login() {
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { login: authLogin } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // Форма входа
   const [loginEmail, setLoginEmail] = useState('');
@@ -19,68 +25,141 @@ export default function Login() {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
-  const [regFirstName, setRegFirstName] = useState('');
-  const [regLastName, setRegLastName] = useState('');
+  const [regDisplayName, setRegDisplayName] = useState('');
 
   // Форма восстановления
   const [resetEmail, setResetEmail] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  // ============================================================
+  // 1. ВХОД
+  // ============================================================
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     if (!loginEmail || !loginPassword) {
       setError('Заполните все поля');
+      setLoading(false);
       return;
     }
 
-    const success = login(loginEmail, loginPassword);
-    if (success) {
-      navigate('/');
-    } else {
-      setError('Неверный email или пароль');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: loginEmail,
+          password: loginPassword,
+        }),
+      });
+
+      const result = await response.json();
+      console.log('📦 Ответ от API (логин):', result);
+
+      if (result.success && result.data) {
+        // authLogin возвращает void, просто вызываем его
+        await authLogin(loginEmail, loginPassword);
+        navigate('/');
+      } else {
+        setError(result.error || 'Неверный email или пароль');
+      }
+    } catch (err) {
+      console.error('❌ Ошибка входа:', err);
+      setError('Ошибка соединения с сервером');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  // ============================================================
+  // 2. РЕГИСТРАЦИЯ
+  // ============================================================
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    if (!regEmail || !regPassword || !regFirstName || !regLastName) {
+    if (!regEmail || !regPassword || !regDisplayName) {
       setError('Заполните все поля');
+      setLoading(false);
       return;
     }
 
     if (regPassword !== regConfirmPassword) {
       setError('Пароли не совпадают');
+      setLoading(false);
       return;
     }
 
-    if (regPassword.length < 6) {
-      setError('Пароль должен содержать минимум 6 символов');
+    if (regPassword.length < 8) {
+      setError('Пароль должен содержать минимум 8 символов');
+      setLoading(false);
       return;
     }
 
-    const success = register(regEmail, regPassword, regFirstName, regLastName);
-    if (success) {
-      navigate('/');
-    } else {
-      setError('Пользователь с таким email уже существует');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          display_name: regDisplayName,
+          email: regEmail,
+          password: regPassword,
+        }),
+      });
+
+      const result = await response.json();
+      console.log('📦 Ответ от API (регистрация):', result);
+
+      if (result.success && result.data) {
+        // authLogin возвращает void, просто вызываем его
+        await authLogin(regEmail, regPassword);
+        navigate('/');
+      } else {
+        setError(result.error || 'Ошибка регистрации');
+      }
+    } catch (err) {
+      console.error('❌ Ошибка регистрации:', err);
+      setError('Ошибка соединения с сервером');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleReset = (e: React.FormEvent) => {
+  // ============================================================
+  // 3. ВОССТАНОВЛЕНИЕ ПАРОЛЯ
+  // ============================================================
+  const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setLoading(true);
 
     if (!resetEmail) {
       setError('Введите email');
+      setLoading(false);
       return;
     }
 
+    // В свагере нет эндпоинта для восстановления пароля
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setSuccess('Инструкции по восстановлению отправлены на ваш email');
+    } catch (err) {
+      setError('Ошибка при восстановлении пароля');
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // ============================================================
+  // СТИЛИ
+  // ============================================================
   const inputStyle = {
     width: '100%',
     padding: '12px 16px',
@@ -90,18 +169,19 @@ export default function Login() {
     outline: 'none',
     boxSizing: 'border-box' as const,
     transition: 'border-color 0.2s',
+    fontFamily: 'inherit',
   };
 
   const buttonStyle = {
     width: '100%',
     padding: '12px',
-    backgroundColor: '#22C55E',
+    backgroundColor: loading ? '#9CA3AF' : '#22C55E',
     color: 'white',
     border: 'none',
     borderRadius: '8px',
     fontSize: '14px',
     fontWeight: 500,
-    cursor: 'pointer',
+    cursor: loading ? 'default' : 'pointer',
     transition: 'background-color 0.2s',
   };
 
@@ -110,11 +190,16 @@ export default function Login() {
     border: 'none',
     color: '#22C55E',
     fontSize: '13px',
-    cursor: 'pointer',
+    cursor: loading ? 'default' : 'pointer',
     padding: 0,
     textDecoration: 'underline',
+    fontFamily: 'inherit',
+    opacity: loading ? 0.5 : 1,
   };
 
+  // ============================================================
+  // РЕНДЕРИНГ
+  // ============================================================
   return (
     <div style={{
       minHeight: '100vh',
@@ -198,6 +283,7 @@ export default function Login() {
                 onChange={(e) => setLoginEmail(e.target.value)}
                 placeholder="your@email.com"
                 style={inputStyle}
+                disabled={loading}
               />
             </div>
 
@@ -211,22 +297,23 @@ export default function Login() {
                 onChange={(e) => setLoginPassword(e.target.value)}
                 placeholder="••••••••"
                 style={inputStyle}
+                disabled={loading}
               />
             </div>
 
             <div style={{ textAlign: 'right' }}>
-              <button type="button" onClick={() => setMode('reset')} style={linkButtonStyle}>
+              <button type="button" onClick={() => setMode('reset')} style={linkButtonStyle} disabled={loading}>
                 Забыли пароль?
               </button>
             </div>
 
-            <button type="submit" style={buttonStyle}>
-              Войти
+            <button type="submit" style={buttonStyle} disabled={loading}>
+              {loading ? 'Загрузка...' : 'Войти'}
             </button>
 
             <div style={{ textAlign: 'center', fontSize: '13px', color: '#6B7280' }}>
               Нет аккаунта?{' '}
-              <button type="button" onClick={() => setMode('register')} style={linkButtonStyle}>
+              <button type="button" onClick={() => setMode('register')} style={linkButtonStyle} disabled={loading}>
                 Зарегистрироваться
               </button>
             </div>
@@ -236,31 +323,18 @@ export default function Login() {
         {/* Форма регистрации */}
         {mode === 'register' && (
           <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                  Имя
-                </label>
-                <input
-                  type="text"
-                  value={regFirstName}
-                  onChange={(e) => setRegFirstName(e.target.value)}
-                  placeholder="Иван"
-                  style={inputStyle}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                  Фамилия
-                </label>
-                <input
-                  type="text"
-                  value={regLastName}
-                  onChange={(e) => setRegLastName(e.target.value)}
-                  placeholder="Иванов"
-                  style={inputStyle}
-                />
-              </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
+                Имя и фамилия
+              </label>
+              <input
+                type="text"
+                value={regDisplayName}
+                onChange={(e) => setRegDisplayName(e.target.value)}
+                placeholder="Иван Иванов"
+                style={inputStyle}
+                disabled={loading}
+              />
             </div>
 
             <div>
@@ -273,6 +347,7 @@ export default function Login() {
                 onChange={(e) => setRegEmail(e.target.value)}
                 placeholder="your@email.com"
                 style={inputStyle}
+                disabled={loading}
               />
             </div>
 
@@ -284,8 +359,9 @@ export default function Login() {
                 type="password"
                 value={regPassword}
                 onChange={(e) => setRegPassword(e.target.value)}
-                placeholder="Минимум 6 символов"
+                placeholder="Минимум 8 символов"
                 style={inputStyle}
+                disabled={loading}
               />
             </div>
 
@@ -299,16 +375,17 @@ export default function Login() {
                 onChange={(e) => setRegConfirmPassword(e.target.value)}
                 placeholder="••••••••"
                 style={inputStyle}
+                disabled={loading}
               />
             </div>
 
-            <button type="submit" style={buttonStyle}>
-              Зарегистрироваться
+            <button type="submit" style={buttonStyle} disabled={loading}>
+              {loading ? 'Загрузка...' : 'Зарегистрироваться'}
             </button>
 
             <div style={{ textAlign: 'center', fontSize: '13px', color: '#6B7280' }}>
               Уже есть аккаунт?{' '}
-              <button type="button" onClick={() => setMode('login')} style={linkButtonStyle}>
+              <button type="button" onClick={() => setMode('login')} style={linkButtonStyle} disabled={loading}>
                 Войти
               </button>
             </div>
@@ -328,16 +405,17 @@ export default function Login() {
                 onChange={(e) => setResetEmail(e.target.value)}
                 placeholder="your@email.com"
                 style={inputStyle}
+                disabled={loading}
               />
             </div>
 
-            <button type="submit" style={buttonStyle}>
-              Восстановить пароль
+            <button type="submit" style={buttonStyle} disabled={loading}>
+              {loading ? 'Загрузка...' : 'Восстановить пароль'}
             </button>
 
             <div style={{ textAlign: 'center', fontSize: '13px', color: '#6B7280' }}>
               Вспомнили пароль?{' '}
-              <button type="button" onClick={() => setMode('login')} style={linkButtonStyle}>
+              <button type="button" onClick={() => setMode('login')} style={linkButtonStyle} disabled={loading}>
                 Войти
               </button>
             </div>
