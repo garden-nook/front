@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/common/Toast';
 import ConfirmModal from '../components/ConfirmModal';
+import Header from '../components/UI/Header/Header';
 import PlotCard from '../components/UI/PlotCard/PlotCard';
 
 // ============================================================
@@ -50,7 +51,7 @@ const savePlotsToStorage = (plots: Plot[]) => {
 // ============================================================
 export default function PlotsList() {
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const { showToast } = useToast(); // ✅ Toast уже подключён
   const [plots, setPlots] = useState<Plot[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -347,7 +348,8 @@ export default function PlotsList() {
 
   return (
     <div style={pageStyles.page}>
-      {/* Хедер — вынесен в App.tsx, здесь не нужен */}
+      {/* ✅ Хедер */}
+      <Header userId={userId} firstName={displayName} />
 
       <main style={pageStyles.main}>
         <h1 style={pageStyles.headerTitle}>Список участков</h1>
@@ -378,12 +380,14 @@ export default function PlotsList() {
         )}
       </main>
 
+      {/* FAB кнопка "+" */}
       <button type="button" onClick={openCreateModal} style={pageStyles.fab}>
         <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
       </button>
 
+      {/* Модалка */}
       {isModalOpen && (
         <div style={pageStyles.modalOverlay} onClick={closeModal}>
           <div style={pageStyles.modal} onClick={(e) => e.stopPropagation()}>
