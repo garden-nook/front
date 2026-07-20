@@ -1,5 +1,5 @@
+// src/components/UI/CropCard/CropCard.tsx
 import React from 'react';
-import { Link } from 'react-router-dom';
 import styles from './CropCard.module.css';
 
 interface CropCardProps {
@@ -11,11 +11,13 @@ interface CropCardProps {
   soilNeeds: string;
   lightNeeds: string;
   image?: string;
+  description?: string;
   onClick?: () => void;
 }
 
 const CropCard: React.FC<CropCardProps> = ({
-  id,
+  // id можно использовать для key или ссылки, но если не используется — можно убрать
+  // если он нужен для onClick или ссылки — оставляем
   name,
   family,
   group,
@@ -23,13 +25,13 @@ const CropCard: React.FC<CropCardProps> = ({
   soilNeeds,
   lightNeeds,
   image,
+  // description не используется в карточке — убираем
   onClick,
 }) => {
   return (
     <div className={styles.card} onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
-      <div className={styles.header}>
-        <h3 className={styles.title}>{name}</h3>
-      </div>
+      <h3 className={styles.title}>{name.toUpperCase()}</h3>
+      <p className={styles.family}>{family} - {group}</p>
       
       <div className={styles.imageWrapper}>
         {image ? (
@@ -39,24 +41,18 @@ const CropCard: React.FC<CropCardProps> = ({
         )}
       </div>
       
-      <p className={styles.family}>
-        {family} · {group}
-      </p>
-      
-      <div className={styles.content}>
-        <div className={styles.specs}>
-          <div className={styles.spec}>
-            <span className={styles.specLabel}>Вегетация:</span>
-            <span className={styles.specValue}>{vegetationDays} дн.</span>
-          </div>
-          <div className={styles.spec}>
-            <span className={styles.specLabel}>Почва:</span>
-            <span className={styles.specValue}>{soilNeeds}</span>
-          </div>
-          <div className={styles.spec}>
-            <span className={styles.specLabel}>Свет:</span>
-            <span className={styles.specValue}>{lightNeeds}</span>
-          </div>
+      <div className={styles.specs}>
+        <div className={styles.spec}>
+          <span className={styles.specLabel}>Вегетация:</span>
+          <span className={styles.specValue}>{vegetationDays} дн.</span>
+        </div>
+        <div className={styles.spec}>
+          <span className={styles.specLabel}>Почва:</span>
+          <span className={styles.specValue}>{soilNeeds}</span>
+        </div>
+        <div className={styles.spec}>
+          <span className={styles.specLabel}>Свет:</span>
+          <span className={styles.specValue}>{lightNeeds}</span>
         </div>
       </div>
     </div>

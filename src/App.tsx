@@ -8,7 +8,6 @@ import Tasks from './pages/Tasks';
 import PlotEditor from './pages/PlotEditor';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
-import CropDetail from './pages/CropDetail';
 import { Test } from './pages/Test';
 import ComponentsShowcase from './pages/ComponentsShowcase';
 
@@ -25,7 +24,6 @@ function App() {
               <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
               <Route path="/plot/:id" element={<ProtectedRoute><PlotEditor /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/crop/:id" element={<ProtectedRoute><CropDetail /></ProtectedRoute>} />
               
               <Route path="/components" element={<ComponentsShowcase />} />
 

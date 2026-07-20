@@ -1,41 +1,42 @@
-import React, { useEffect } from 'react';
+// src/components/UI/CropDetailModal/CropDetailModal.tsx
+import React from 'react';
 import styles from './CropDetailModal.module.css';
 import Accordion from '../Accordion/Accordion';
-import type { Crop } from '../../../types/crop';
 
 interface CropDetailModalProps {
-  crop: Crop;
+  crop: {
+    id: string;
+    name: string;
+    family_name: string;
+    vegetation_days_avg: number;
+    soil_name: string;
+    sun_needs: number;
+    image?: string;
+    description?: string;
+    predecessors?: { good: string[]; bad: string[] };
+    neighbors?: { good: string[]; bad: string[] };
+    following?: string[];
+  };
   onClose: () => void;
 }
 
-const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
-  // Блокируем прокрутку и скрываем ползунок страницы
-  useEffect(() => {
-    // Сохраняем текущие стили body
-    const originalOverflow = document.body.style.overflow;
-    const originalPaddingRight = document.body.style.paddingRight;
-    
-    // Получаем ширину ползунка, чтобы страница не дёргалась
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    
-    // Блокируем прокрутку и добавляем отступ, чтобы контент не прыгал
-    document.body.style.overflow = 'hidden';
-    document.body.style.paddingRight = `${scrollbarWidth}px`;
-    
-    // Возвращаем всё как было при закрытии
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      document.body.style.paddingRight = originalPaddingRight;
-    };
-  }, []);
+function mapSunNeeds(value: number): string {
+  switch (value) {
+    case 1: return 'Солнце';
+    case 2: return 'Полутень';
+    case 3: return 'Тень';
+    default: return 'Не указано';
+  }
+}
 
+const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
@@ -43,30 +44,24 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
 
-  // Собираем характеристики в массив для отображения
   const specs = [
-    { label: 'Семейство', value: crop.family },
-    { label: 'Срок вегетации', value: `${crop.vegetationDays} дн.` },
-    { label: 'Вид почвы', value: crop.soilNeeds },
-    { label: 'Освещённость', value: crop.lightNeeds },
-    ...(crop.feeding ? [{ label: 'Питание', value: crop.feeding }] : []),
-    ...(crop.enrichment ? [{ label: 'Обогащение почвы', value: crop.enrichment }] : []),
+    { label: 'Семейство', value: crop.family_name || 'Не указано' },
+    { label: 'Срок вегетации', value: `${crop.vegetation_days_avg} дн.` },
+    { label: 'Вид почвы', value: crop.soil_name || 'Не указано' },
+    { label: 'Освещённость', value: mapSunNeeds(crop.sun_needs) },
   ];
 
   return (
     <div className={styles.backdrop} onClick={handleBackdropClick}>
       <div className={styles.modal}>
-        {/* Кнопка закрытия */}
         <button className={styles.closeBtn} onClick={onClose}>
           <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        {/* Заголовок — название культуры */}
         <h2 className={styles.title}>{crop.name}</h2>
 
-        {/* Основной блок: фото + описание */}
         <div className={styles.mainRow}>
           <div className={styles.imageWrapper}>
             {crop.image ? (
@@ -78,7 +73,6 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
           <p className={styles.description}>{crop.description || 'Описание отсутствует'}</p>
         </div>
 
-        {/* Характеристики */}
         <div className={styles.specsList}>
           {specs.map((spec, index) => (
             <div key={index} className={styles.specRow}>
@@ -88,14 +82,13 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
           ))}
         </div>
 
-        {/* Аккордеоны */}
         <div className={styles.accordions}>
-          {crop.predecessors && (
+          {(crop.predecessors?.good?.length || crop.predecessors?.bad?.length) && (
             <Accordion
               title="Предшественники"
               content={
                 <div className={styles.accordionContent}>
-                  {crop.predecessors.good.length > 0 && (
+                  {crop.predecessors?.good?.length > 0 && (
                     <div className={styles.accordionRow}>
                       <span className={styles.accordionLabel}>Хорошие:</span>
                       <span className={styles.accordionValue}>
@@ -103,7 +96,7 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
                       </span>
                     </div>
                   )}
-                  {crop.predecessors.bad.length > 0 && (
+                  {crop.predecessors?.bad?.length > 0 && (
                     <div className={styles.accordionRow}>
                       <span className={styles.accordionLabel}>Плохие:</span>
                       <span className={styles.accordionValue}>
@@ -115,12 +108,13 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
               }
             />
           )}
-          {crop.neighbors && (
+
+          {(crop.neighbors?.good?.length || crop.neighbors?.bad?.length) && (
             <Accordion
               title="Соседи"
               content={
                 <div className={styles.accordionContent}>
-                  {crop.neighbors.good.length > 0 && (
+                  {crop.neighbors?.good?.length > 0 && (
                     <div className={styles.accordionRow}>
                       <span className={styles.accordionLabel}>Хорошие:</span>
                       <span className={styles.accordionValue}>
@@ -128,7 +122,7 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
                       </span>
                     </div>
                   )}
-                  {crop.neighbors.bad.length > 0 && (
+                  {crop.neighbors?.bad?.length > 0 && (
                     <div className={styles.accordionRow}>
                       <span className={styles.accordionLabel}>Плохие:</span>
                       <span className={styles.accordionValue}>
@@ -140,6 +134,7 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
               }
             />
           )}
+
           {crop.following && crop.following.length > 0 && (
             <Accordion
               title="Последующие культуры"

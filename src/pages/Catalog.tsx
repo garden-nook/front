@@ -1,11 +1,13 @@
+// src/pages/Catalog.tsx
 import React, { useState, useEffect } from 'react';
 import Header from '../components/UI/Header/Header';
 import SearchBar from '../components/UI/SearchBar/SearchBar';
 import CropCard from '../components/UI/CropCard/CropCard';
 import CropDetailModal from '../components/UI/CropDetailModal/CropDetailModal';
-import { getCrops, getCropById, type Crop } from '../api/crops';
-import type { Crop as CropType } from '../types/crop';
+import { getCrops, getCropById } from '../api/endpoints/crops';
+import { mapSunNeeds, type Crop } from '../api/types/crops.types';
 
+// Стили страницы
 const pageStyles: { [key: string]: React.CSSProperties } = {
   page: {
     minHeight: '100vh',
@@ -31,9 +33,9 @@ const pageStyles: { [key: string]: React.CSSProperties } = {
   },
   emptyWrapper: {
     display: 'flex',
-    justifyContent: 'center',     // ← Центрирование по горизонтали
-    alignItems: 'center',         // ← Центрирование по вертикали
-    minHeight: '100px',           // ← Высота, чтобы текст был заметен
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '300px',
     width: '100%',
   },
   empty: {
@@ -55,14 +57,25 @@ const Catalog: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [crops, setCrops] = useState<Crop[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCropDetail, setSelectedCropDetail] = useState<CropType | null>(null);
+  // ✅ Убираем CropType, используем локальный интерфейс
+  const [selectedCropDetail, setSelectedCropDetail] = useState<{
+    id: string;
+    name: string;
+    family_name: string;
+    vegetation_days_avg: number;
+    soil_name: string;
+    sun_needs: number;
+    description?: string;
+    predecessors?: { good: string[]; bad: string[] };
+    neighbors?: { good: string[]; bad: string[] };
+    following?: string[];
+  } | null>(null);
 
   const loadCrops = async (search?: string) => {
     try {
       setLoading(true);
       const data = await getCrops({
         search: search || undefined,
-        limit: 50,
       });
       setCrops(data);
     } catch (error) {
@@ -77,29 +90,28 @@ const Catalog: React.FC = () => {
     try {
       const data = await getCropById(id);
       if (data) {
-        const cropData: CropType = {
-          id: String(data.id),
-          name: data.name || 'Без названия',
-          family: data.family_name || 'Неизвестное семейство',
-          group: 'Овощные',
-          vegetationDays: data.vegetation_days_avg || 0,
-          soilNeeds: 'Не указано',
-          lightNeeds: mapSunNeeds(data.sun_needs),
-          description: '',
-        };
-        setSelectedCropDetail(cropData);
+        // ✅ Используем правильные имена полей из API
+        setSelectedCropDetail({
+          id: String(data.crop.id),
+          name: data.crop.name,
+          family_name: data.crop.family_name,
+          vegetation_days_avg: data.crop.vegetation_days_avg,
+          soil_name: data.crop.soil_name || 'Не указано',
+          sun_needs: data.crop.sun_needs,
+          description: data.crop.description || '',
+          predecessors: {
+            good: data.crop_relations.good_predecessors.map((r: any) => r.crop_name),
+            bad: data.crop_relations.bad_predecessors.map((r: any) => r.crop_name),
+          },
+          neighbors: {
+            good: data.crop_relations.good_companions.map((r: any) => r.crop_name),
+            bad: data.crop_relations.bad_companions.map((r: any) => r.crop_name),
+          },
+          following: data.crop_relations.good_successors.map((r: any) => r.crop_name),
+        });
       }
     } catch (error) {
       console.error('❌ Ошибка загрузки деталей:', error);
-    }
-  };
-
-  const mapSunNeeds = (value: number): string => {
-    switch (value) {
-      case 1: return 'Тень';
-      case 2: return 'Полутень';
-      case 3: return 'Солнце';
-      default: return 'Не указано';
     }
   };
 
@@ -122,13 +134,15 @@ const Catalog: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  const displayName = 'Алексей';
+  const userId = 'user-123';
+
   return (
     <div style={pageStyles.page}>
-      <Header userId="user-123" firstName="Алексей" />
-      
+      <Header userId={userId} firstName={displayName} />
+
       <main style={pageStyles.main}>
         <div style={pageStyles.container}>
-          
           <div style={pageStyles.searchWrapper}>
             <SearchBar
               value={searchTerm}
@@ -136,7 +150,7 @@ const Catalog: React.FC = () => {
               placeholder="Поиск культур по названию или семейству"
             />
           </div>
-          
+
           {loading ? (
             <p style={pageStyles.loading}>Загрузка...</p>
           ) : crops.length > 0 ? (
@@ -145,11 +159,11 @@ const Catalog: React.FC = () => {
                 <CropCard
                   key={crop.id}
                   id={String(crop.id)}
-                  name={crop.name || 'Без названия'}
-                  family={crop.family_name || 'Неизвестное семейство'}
+                  name={crop.name}
+                  family={crop.family_name}
                   group="Овощные"
-                  vegetationDays={crop.vegetation_days_avg || 0}
-                  soilNeeds="Не указано"
+                  vegetationDays={crop.vegetation_days_avg}
+                  soilNeeds={crop.soil_name || 'Не указано'}
                   lightNeeds={mapSunNeeds(crop.sun_needs)}
                   onClick={() => handleCropClick(crop)}
                 />
@@ -164,7 +178,7 @@ const Catalog: React.FC = () => {
           )}
         </div>
       </main>
-      
+
       {selectedCropDetail && (
         <CropDetailModal
           crop={selectedCropDetail}

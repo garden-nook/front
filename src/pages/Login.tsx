@@ -1,20 +1,17 @@
+// src/pages/Login.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext'; // 
+import { api } from '../api/client'; // 
+import logoIcon from '../assets/logo.svg';
 
-type AuthMode = 'login' | 'register' | 'reset';
-
-// ============================================================
-// API URL (из свагера)
-// ============================================================
-const API_BASE_URL = 'https://api.dev.192-144-12-78.nip.io';
+type AuthMode = 'login' | 'register';
 
 export default function Login() {
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Форма входа
@@ -26,9 +23,6 @@ export default function Login() {
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [regDisplayName, setRegDisplayName] = useState('');
-
-  // Форма восстановления
-  const [resetEmail, setResetEmail] = useState('');
 
   // ============================================================
   // 1. ВХОД
@@ -45,30 +39,24 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: loginEmail,
-          password: loginPassword,
-        }),
+      // ✅ Используем api (не apiClient)
+      const response = await api.post('/api/v1/auth/login', {
+        email: loginEmail,
+        password: loginPassword,
       });
 
-      const result = await response.json();
+      const result = response.data;
       console.log('📦 Ответ от API (логин):', result);
 
       if (result.success && result.data) {
-        // authLogin возвращает void, просто вызываем его
         await authLogin(loginEmail, loginPassword);
         navigate('/');
       } else {
         setError(result.error || 'Неверный email или пароль');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('❌ Ошибка входа:', err);
-      setError('Ошибка соединения с сервером');
+      setError(err.response?.data?.error || 'Ошибка соединения с сервером');
     } finally {
       setLoading(false);
     }
@@ -101,57 +89,25 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          display_name: regDisplayName,
-          email: regEmail,
-          password: regPassword,
-        }),
+      // ✅ Используем api (не apiClient)
+      const response = await api.post('/api/v1/auth/register', {
+        display_name: regDisplayName,
+        email: regEmail,
+        password: regPassword,
       });
 
-      const result = await response.json();
+      const result = response.data;
       console.log('📦 Ответ от API (регистрация):', result);
 
       if (result.success && result.data) {
-        // authLogin возвращает void, просто вызываем его
         await authLogin(regEmail, regPassword);
         navigate('/');
       } else {
         setError(result.error || 'Ошибка регистрации');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('❌ Ошибка регистрации:', err);
-      setError('Ошибка соединения с сервером');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ============================================================
-  // 3. ВОССТАНОВЛЕНИЕ ПАРОЛЯ
-  // ============================================================
-  const handleReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-    setLoading(true);
-
-    if (!resetEmail) {
-      setError('Введите email');
-      setLoading(false);
-      return;
-    }
-
-    // В свагере нет эндпоинта для восстановления пароля
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setSuccess('Инструкции по восстановлению отправлены на ваш email');
-    } catch (err) {
-      setError('Ошибка при восстановлении пароля');
+      setError(err.response?.data?.error || 'Ошибка соединения с сервером');
     } finally {
       setLoading(false);
     }
@@ -220,30 +176,33 @@ export default function Login() {
         {/* Логотип */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{
-            width: '64px',
-            height: '64px',
-            backgroundColor: '#DCFCE7',
-            borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 16px',
+            gap: '10px',
+            marginBottom: '8px',
           }}>
-            <svg width="32" height="32" fill="none" stroke="#22C55E" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
+            <img
+              src={logoIcon}
+              alt="Огородный уголок"
+              style={{
+                width: '24px',
+                height: '24px',
+                display: 'block',
+                flexShrink: 0,
+              }}
+            />
+            <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1F2937', margin: 0, lineHeight: 1 }}>
+              Огородный уголок
+            </h1>
           </div>
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1F2937', margin: '0 0 8px 0' }}>
-            Огородный уголок
-          </h1>
           <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>
             {mode === 'login' && 'Войдите в свой аккаунт'}
             {mode === 'register' && 'Создайте новый аккаунт'}
-            {mode === 'reset' && 'Восстановление пароля'}
           </p>
         </div>
 
-        {/* Сообщения об ошибках и успехе */}
+        {/* Ошибки */}
         {error && (
           <div style={{
             backgroundColor: '#FEE2E2',
@@ -254,19 +213,6 @@ export default function Login() {
             marginBottom: '16px',
           }}>
             {error}
-          </div>
-        )}
-
-        {success && (
-          <div style={{
-            backgroundColor: '#DCFCE7',
-            color: '#16A34A',
-            padding: '12px',
-            borderRadius: '8px',
-            fontSize: '13px',
-            marginBottom: '16px',
-          }}>
-            {success}
           </div>
         )}
 
@@ -299,12 +245,6 @@ export default function Login() {
                 style={inputStyle}
                 disabled={loading}
               />
-            </div>
-
-            <div style={{ textAlign: 'right' }}>
-              <button type="button" onClick={() => setMode('reset')} style={linkButtonStyle} disabled={loading}>
-                Забыли пароль?
-              </button>
             </div>
 
             <button type="submit" style={buttonStyle} disabled={loading}>
@@ -385,36 +325,6 @@ export default function Login() {
 
             <div style={{ textAlign: 'center', fontSize: '13px', color: '#6B7280' }}>
               Уже есть аккаунт?{' '}
-              <button type="button" onClick={() => setMode('login')} style={linkButtonStyle} disabled={loading}>
-                Войти
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Форма восстановления пароля */}
-        {mode === 'reset' && (
-          <form onSubmit={handleReset} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                Email
-              </label>
-              <input
-                type="email"
-                value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
-                placeholder="your@email.com"
-                style={inputStyle}
-                disabled={loading}
-              />
-            </div>
-
-            <button type="submit" style={buttonStyle} disabled={loading}>
-              {loading ? 'Загрузка...' : 'Восстановить пароль'}
-            </button>
-
-            <div style={{ textAlign: 'center', fontSize: '13px', color: '#6B7280' }}>
-              Вспомнили пароль?{' '}
               <button type="button" onClick={() => setMode('login')} style={linkButtonStyle} disabled={loading}>
                 Войти
               </button>

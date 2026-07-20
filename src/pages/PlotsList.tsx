@@ -1,58 +1,62 @@
+// src/pages/PlotsList.tsx
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/common/Toast';
 import ConfirmModal from '../components/ConfirmModal';
 import Header from '../components/UI/Header/Header';
 import PlotCard from '../components/UI/PlotCard/PlotCard';
+import Input from '../components/UI/Input/Input';
+import Select from '../components/UI/Select/Select';
+import ActionButton from '../components/UI/ActionButton';
+import { getPlots, createPlot, updatePlot, deletePlot } from '../api/endpoints/plots';
+import { getSoilTypes } from '../api/endpoints/soil-types';
+import type { Plot } from '../api/types/plots.types';
+import type { SoilType } from '../api/types/crops.types';
 
 // ============================================================
-// ТИПЫ
+// МОКОВЫЕ ДАННЫЕ ДЛЯ УЧАСТКОВ (пока сервер не готов)
 // ============================================================
-interface Plot {
-  id: string;
-  name: string;
-  width: number;
-  height: number;
-  bedsCount: number;
-  cropsCount: number;
-  soilType?: string;
-}
-
-// ============================================================
-// КЛЮЧ ДЛЯ LOCALSTORAGE
-// ============================================================
-const STORAGE_KEY = 'garden_plots';
-
-// ============================================================
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-// ============================================================
-const loadPlotsFromStorage = (): Plot[] => {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (data) {
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Ошибка загрузки участков:', error);
-  }
-  return [];
-};
-
-const savePlotsToStorage = (plots: Plot[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(plots));
-  } catch (error) {
-    console.error('Ошибка сохранения участков:', error);
-  }
-};
+const MOCK_PLOTS: Plot[] = [
+  {
+    plot_id: 'mock-1',
+    name: 'Мой первый участок',
+    area_sq_m: 900,
+    grid_rows: 30,
+    grid_cols: 30,
+    grid_cell_size: 1,
+    soil_type: 1,
+    soil_name: 'Чернозем',
+  },
+  {
+    plot_id: 'mock-2',
+    name: 'Огород за домом',
+    area_sq_m: 1200,
+    grid_rows: 40,
+    grid_cols: 30,
+    grid_cell_size: 1,
+    soil_type: 2,
+    soil_name: 'Суглинок',
+  },
+  {
+    plot_id: 'mock-3',
+    name: 'Теплица',
+    area_sq_m: 600,
+    grid_rows: 20,
+    grid_cols: 30,
+    grid_cell_size: 1,
+    soil_type: 3,
+    soil_name: 'Песчаная',
+  },
+];
 
 // ============================================================
 // КОМПОНЕНТ
 // ============================================================
 export default function PlotsList() {
   const { user } = useAuth();
-  const { showToast } = useToast(); // ✅ Toast уже подключён
+  const { showToast } = useToast();
   const [plots, setPlots] = useState<Plot[]>([]);
+  const [soilTypes, setSoilTypes] = useState<SoilType[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlotId, setEditingPlotId] = useState<string | null>(null);
@@ -60,44 +64,71 @@ export default function PlotsList() {
     name: '',
     width: '',
     height: '',
-    soilType: '',
+    soilTypeId: '',
   });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [useMockData, setUseMockData] = useState(true);
 
   // ============================================================
-  // ЗАГРУЗКА ПРИ МОНТИРОВАНИИ
+  // ЗАГРУЗКА ДАННЫХ
   // ============================================================
-  useEffect(() => {
-    const loaded = loadPlotsFromStorage();
-    setPlots(loaded);
-    setLoading(false);
-  }, []);
+  const loadData = async () => {
+    try {
+      setLoading(true);
 
-  // ============================================================
-  // СОХРАНЕНИЕ ПРИ ИЗМЕНЕНИИ
-  // ============================================================
-  useEffect(() => {
-    if (!loading) {
-      savePlotsToStorage(plots);
+      try {
+        const soilTypesData = await getSoilTypes();
+        setSoilTypes(soilTypesData || []);
+        console.log('📦 Типы почвы загружены:', soilTypesData);
+      } catch (error) {
+        console.error('❌ Ошибка загрузки типов почвы:', error);
+        setSoilTypes([]);
+      }
+
+      try {
+        const plotsData = await getPlots();
+        if (plotsData && plotsData.length > 0) {
+          setPlots(plotsData);
+          setUseMockData(false);
+        } else {
+          setPlots(MOCK_PLOTS);
+          setUseMockData(true);
+          showToast('Используются тестовые данные участков', 'info');
+        }
+      } catch (error) {
+        console.warn('⚠️ API участков не работает, используем моки');
+        setPlots(MOCK_PLOTS);
+        setUseMockData(true);
+      }
+      
+    } catch (error) {
+      console.error('❌ Общая ошибка:', error);
+      setPlots(MOCK_PLOTS);
+    } finally {
+      setLoading(false);
     }
-  }, [plots, loading]);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   // ============================================================
   // ОБРАБОТЧИКИ
   // ============================================================
   const openCreateModal = () => {
     setEditingPlotId(null);
-    setFormData({ name: '', width: '', height: '', soilType: '' });
+    setFormData({ name: '', width: '', height: '', soilTypeId: '' });
     setIsModalOpen(true);
   };
 
   const openEditModal = (plot: Plot) => {
-    setEditingPlotId(plot.id);
+    setEditingPlotId(plot.plot_id);
     setFormData({
       name: plot.name,
-      width: String(plot.width),
-      height: String(plot.height),
-      soilType: plot.soilType || '',
+      width: String(plot.grid_cols || 0),
+      height: String(plot.grid_rows || 0),
+      soilTypeId: String(plot.soil_type || ''),
     });
     setIsModalOpen(true);
   };
@@ -105,10 +136,10 @@ export default function PlotsList() {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingPlotId(null);
-    setFormData({ name: '', width: '', height: '', soilType: '' });
+    setFormData({ name: '', width: '', height: '', soilTypeId: '' });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.name.trim() || !formData.width || !formData.height) {
       showToast('Пожалуйста, заполните все обязательные поля', 'error');
       return;
@@ -122,48 +153,91 @@ export default function PlotsList() {
       return;
     }
 
-    const soilType = formData.soilType || undefined;
+    try {
+      const soilTypeId = formData.soilTypeId ? Number(formData.soilTypeId) : undefined;
+      const soilName = soilTypeId 
+        ? soilTypes.find(t => t.id === soilTypeId)?.name || 'Не указан'
+        : 'Не указан';
 
-    if (editingPlotId) {
-      setPlots((prev) =>
-        prev.map((plot) =>
-          plot.id === editingPlotId
-            ? {
-                ...plot,
-                name: formData.name.trim(),
-                width: widthNum,
-                height: heightNum,
-                soilType: soilType,
-              }
-            : plot
-        )
-      );
-      showToast('Участок успешно обновлён', 'success');
-    } else {
-      const newPlot: Plot = {
-        id: Date.now().toString(),
-        name: formData.name.trim(),
-        width: widthNum,
-        height: heightNum,
-        bedsCount: 0,
-        cropsCount: 0,
-        soilType: soilType,
-      };
-      setPlots((prev) => [newPlot, ...prev]);
-      showToast('Участок успешно создан', 'success');
+      if (editingPlotId) {
+        if (useMockData || editingPlotId.startsWith('mock-')) {
+          setPlots(prev => prev.map(p => 
+            p.plot_id === editingPlotId 
+              ? { 
+                  ...p, 
+                  name: formData.name.trim(),
+                  grid_cols: widthNum,
+                  grid_rows: heightNum,
+                  soil_type: soilTypeId || p.soil_type,
+                  soil_name: soilName,
+                }
+              : p
+          ));
+          showToast('Участок успешно обновлён (тестовые данные)', 'success');
+        } else {
+          await updatePlot(editingPlotId, {
+            name: formData.name.trim(),
+            soilTypeID: soilTypeId,
+          });
+          showToast('Участок успешно обновлён', 'success');
+          await loadData();
+        }
+      } else {
+        if (useMockData) {
+          const newPlot: Plot = {
+            plot_id: `mock-${Date.now()}`,
+            name: formData.name.trim(),
+            area_sq_m: widthNum * heightNum,
+            grid_rows: heightNum,
+            grid_cols: widthNum,
+            grid_cell_size: 1,
+            soil_type: soilTypeId || 1,
+            soil_name: soilName,
+          };
+          setPlots(prev => [newPlot, ...prev]);
+          showToast('Участок успешно создан (тестовые данные)', 'success');
+        } else {
+          const payload = {
+            name: formData.name.trim(),
+            widthMeters: widthNum,
+            heightMeters: heightNum,
+            soilTypeID: soilTypeId,
+          };
+          const newPlotId = await createPlot(payload);
+          console.log('✅ Участок создан с ID:', newPlotId);
+          showToast('Участок успешно создан', 'success');
+          await loadData();
+        }
+      }
+      
+      closeModal();
+      
+    } catch (error: any) {
+      console.error('❌ Ошибка сохранения:', error);
+      showToast('Ошибка сохранения участка', 'error');
     }
-
-    closeModal();
   };
 
   const handleDelete = (id: string) => {
     setDeleteConfirm(id);
   };
 
-  const confirmDelete = () => {
-    if (deleteConfirm) {
-      setPlots((prev) => prev.filter((plot) => plot.id !== deleteConfirm));
-      showToast('Участок успешно удалён', 'success');
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
+    
+    try {
+      if (useMockData || deleteConfirm.startsWith('mock-')) {
+        setPlots(prev => prev.filter(p => p.plot_id !== deleteConfirm));
+        showToast('Участок успешно удалён (тестовые данные)', 'success');
+      } else {
+        await deletePlot(deleteConfirm);
+        showToast('Участок успешно удалён', 'success');
+        await loadData();
+      }
+    } catch (error) {
+      console.error('❌ Ошибка удаления:', error);
+      showToast('Ошибка удаления участка', 'error');
+    } finally {
       setDeleteConfirm(null);
     }
   };
@@ -233,108 +307,78 @@ export default function PlotsList() {
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 1000,
+      padding: '20px',
     },
     modal: {
       backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '24px',
+      borderRadius: '16px',
+      padding: '24px 28px',
       width: '100%',
-      maxWidth: '440px',
-      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+      maxWidth: '400px',
+      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+      maxHeight: '90vh',
+      overflowY: 'auto' as const,
     },
     modalHeader: {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: '20px',
+      marginBottom: '16px',
     },
     modalTitle: {
-      fontSize: '20px',
+      fontSize: '18px',
       fontWeight: 600,
       color: '#1F2937',
       margin: 0,
     },
-    closeBtn: {
-      width: '32px',
-      height: '32px',
-      borderRadius: '50%',
-      backgroundColor: '#FEE2E2',
-      border: 'none',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    inputGroup: {
+    modalBody: {
       display: 'flex',
       flexDirection: 'column' as const,
       gap: '16px',
     },
-    label: {
-      display: 'block',
-      fontSize: '14px',
-      color: '#6B7280',
-      marginBottom: '6px',
-    },
-    input: {
+    fieldGroup: {
+      display: 'flex',
+      flexDirection: 'column' as const,
+      gap: '4px',
       width: '100%',
-      padding: '10px 12px',
-      border: '1px solid #E5E7EB',
-      borderRadius: '6px',
+    },
+    label: {
       fontSize: '14px',
-      outline: 'none',
-      boxSizing: 'border-box' as const,
+      fontWeight: 500,
+      color: '#374151',
+      marginBottom: '2px',
     },
     sizeRow: {
       display: 'flex',
       gap: '8px',
       alignItems: 'center',
-    },
-    sizeInput: {
-      flex: 1,
-      padding: '10px 12px',
-      border: '1px solid #E5E7EB',
-      borderRadius: '6px',
-      fontSize: '14px',
-      outline: 'none',
+      width: '100%',
     },
     sizeSeparator: {
       color: '#6B7280',
-    },
-    select: {
-      width: '100%',
-      padding: '10px 12px',
-      border: '1px solid #E5E7EB',
-      borderRadius: '6px',
-      fontSize: '14px',
-      outline: 'none',
-      backgroundColor: 'white',
-      boxSizing: 'border-box' as const,
+      fontSize: '16px',
+      fontWeight: 600,
+      flexShrink: 0,
     },
     modalActions: {
       display: 'flex',
       gap: '12px',
-      marginTop: '8px',
+      marginTop: '4px',
     },
-    cancelBtn: {
-      flex: 1,
-      padding: '10px',
-      backgroundColor: 'white',
-      border: '1px solid #E5E7EB',
-      borderRadius: '6px',
-      fontSize: '14px',
-      color: '#374151',
-      cursor: 'pointer',
+    loadingText: {
+      textAlign: 'center' as const,
+      color: '#6B7280',
+      fontSize: '16px',
+      padding: '40px 0',
     },
-    submitBtn: {
-      flex: 1,
-      padding: '10px',
-      backgroundColor: '#22C55E',
-      border: 'none',
-      borderRadius: '6px',
-      fontSize: '14px',
-      color: 'white',
-      cursor: 'pointer',
+    mockBanner: {
+      backgroundColor: '#FEF3C7',
+      color: '#92400E',
+      padding: '8px 16px',
+      borderRadius: '8px',
+      fontSize: '13px',
+      marginBottom: '16px',
+      border: '1px solid #FDE68A',
     },
   };
 
@@ -346,16 +390,30 @@ export default function PlotsList() {
   const displayName = user.display_name || 'Пользователь';
   const userId = user.id || 'user';
 
+  const soilOptions = soilTypes.map((type) => ({
+    value: String(type.id),
+    label: type.name,
+  }));
+
+  const isMock = useMockData || plots.some(p => p.plot_id.startsWith('mock-'));
+
   return (
     <div style={pageStyles.page}>
-      {/* ✅ Хедер */}
       <Header userId={userId} firstName={displayName} />
 
       <main style={pageStyles.main}>
-        <h1 style={pageStyles.headerTitle}>Список участков</h1>
+        {isMock && plots.length > 0 && (
+          <div style={pageStyles.mockBanner}>
+            ⚡ Тестовые данные (сервер временно недоступен)
+          </div>
+        )}
+
+        {plots.length > 0 && (
+          <h1 style={pageStyles.headerTitle}>Список участков</h1>
+        )}
 
         {loading ? (
-          <p style={{ textAlign: 'center', color: '#6B7280' }}>Загрузка...</p>
+          <p style={pageStyles.loadingText}>Загрузка...</p>
         ) : plots.length === 0 ? (
           <div style={pageStyles.empty}>
             <p style={pageStyles.emptyTitle}>У вас пока нет участков</p>
@@ -365,15 +423,15 @@ export default function PlotsList() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {plots.map((plot) => (
               <PlotCard
-                key={plot.id}
-                id={plot.id}
+                key={plot.plot_id}
+                id={plot.plot_id}
                 name={plot.name}
-                width={plot.width}
-                height={plot.height}
-                bedsCount={plot.bedsCount || 0}
-                cropsCount={plot.cropsCount || 0}
+                width={plot.grid_cols || 0}
+                height={plot.grid_rows || 0}
+                bedsCount={0}
+                cropsCount={0}
                 onEdit={() => openEditModal(plot)}
-                onDelete={() => handleDelete(plot.id)}
+                onDelete={() => handleDelete(plot.plot_id)}
               />
             ))}
           </div>
@@ -387,7 +445,9 @@ export default function PlotsList() {
         </svg>
       </button>
 
-      {/* Модалка */}
+      {/* ============================================================
+          МОДАЛКА
+          ============================================================ */}
       {isModalOpen && (
         <div style={pageStyles.modalOverlay} onClick={closeModal}>
           <div style={pageStyles.modal} onClick={(e) => e.stopPropagation()}>
@@ -395,68 +455,72 @@ export default function PlotsList() {
               <h2 style={pageStyles.modalTitle}>
                 {editingPlotId ? 'Изменить участок' : 'Создать участок'}
               </h2>
-              <button type="button" onClick={closeModal} style={pageStyles.closeBtn}>
-                <svg width="16" height="16" fill="none" stroke="#DC2626" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <ActionButton
+                icon="cancel"
+                shape="littleSquare"
+                color="red"
+                onClick={closeModal}
+                title="Закрыть"
+              />
             </div>
 
-            <div style={pageStyles.inputGroup}>
-              <div>
+            <div style={pageStyles.modalBody}>
+              {/* Название */}
+              <div style={pageStyles.fieldGroup}>
                 <label style={pageStyles.label}>Название</label>
-                <input
-                  type="text"
+                <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Введите название"
-                  style={pageStyles.input}
                 />
               </div>
 
-              <div>
-                <label style={pageStyles.label}>Размер (в метрах)</label>
-                <div style={pageStyles.sizeRow}>
-                  <input
-                    type="number"
-                    value={formData.width}
-                    onChange={(e) => setFormData({ ...formData, width: e.target.value })}
-                    placeholder="Длина"
-                    style={pageStyles.sizeInput}
-                  />
-                  <span style={pageStyles.sizeSeparator}>×</span>
-                  <input
-                    type="number"
-                    value={formData.height}
-                    onChange={(e) => setFormData({ ...formData, height: e.target.value })}
-                    placeholder="Ширина"
-                    style={pageStyles.sizeInput}
-                  />
+              {/* ✅ Размер — ТОЛЬКО при создании */}
+              {!editingPlotId && (
+                <div style={pageStyles.fieldGroup}>
+                  <label style={pageStyles.label}>Размер (в метрах)</label>
+                  <div style={pageStyles.sizeRow}>
+                    <Input
+                      value={formData.width}
+                      onChange={(e) => setFormData({ ...formData, width: e.target.value })}
+                      placeholder="Длина"
+                    />
+                    <span style={pageStyles.sizeSeparator}>×</span>
+                    <Input
+                      value={formData.height}
+                      onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                      placeholder="Ширина"
+                    />
+                  </div>
                 </div>
+              )}
+
+              {/* Тип грунта */}
+              <div style={pageStyles.fieldGroup}>
+                <label style={pageStyles.label}>Тип грунта</label>
+                <Select
+                  value={formData.soilTypeId}
+                  onChange={(e) => setFormData({ ...formData, soilTypeId: e.target.value })}
+                  options={[
+                    { value: '', label: 'Выберите тип' },
+                    ...soilOptions,
+                  ]}
+                />
               </div>
 
-              <div>
-                <label style={pageStyles.label}>Тип почвы</label>
-                <select
-                  value={formData.soilType}
-                  onChange={(e) => setFormData({ ...formData, soilType: e.target.value })}
-                  style={pageStyles.select}
-                >
-                  <option value="">Выберите тип</option>
-                  <option value="chernozem">Чернозем</option>
-                  <option value="loam">Суглинок</option>
-                  <option value="sand">Песчаная</option>
-                  <option value="clay">Глинистая</option>
-                </select>
-              </div>
-
+              {/* Кнопки */}
               <div style={pageStyles.modalActions}>
-                <button type="button" onClick={closeModal} style={pageStyles.cancelBtn}>
-                  Отмена
-                </button>
-                <button type="button" onClick={handleSubmit} style={pageStyles.submitBtn}>
-                  {editingPlotId ? 'Сохранить' : 'Создать'}
-                </button>
+                <ActionButton
+                  title="Отмена"
+                  shape="text"
+                  onClick={closeModal}
+                />
+                <ActionButton
+                  title={editingPlotId ? 'Сохранить' : 'Создать'}
+                  color="greenLight"
+                  shape="text"
+                  onClick={handleSubmit}
+                />
               </div>
             </div>
           </div>
