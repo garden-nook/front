@@ -16,8 +16,9 @@ interface CropCardProps {
 }
 
 const CropCard: React.FC<CropCardProps> = ({
-  // id можно использовать для key или ссылки, но если не используется — можно убрать
-  // если он нужен для onClick или ссылки — оставляем
+  // id не используется в JSX, но может понадобиться для key
+  // оставляем с префиксом _, чтобы избежать ошибки
+  id: _id,
   name,
   family,
   group,
@@ -25,13 +26,18 @@ const CropCard: React.FC<CropCardProps> = ({
   soilNeeds,
   lightNeeds,
   image,
-  // description не используется в карточке — убираем
+  // description не используется в карточке
+  // оставляем с префиксом _
+  description: _description,
   onClick,
 }) => {
   return (
-    <div className={styles.card} onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
+    <div 
+      className={styles.card} 
+      onClick={onClick} 
+      style={{ cursor: onClick ? 'pointer' : 'default' }}
+    >
       <h3 className={styles.title}>{name.toUpperCase()}</h3>
-      <p className={styles.family}>{family} - {group}</p>
       
       <div className={styles.imageWrapper}>
         {image ? (
@@ -40,6 +46,8 @@ const CropCard: React.FC<CropCardProps> = ({
           <div className={styles.imagePlaceholder} />
         )}
       </div>
+      
+      <p className={styles.family}>{family} - {group}</p>
       
       <div className={styles.specs}>
         <div className={styles.spec}>

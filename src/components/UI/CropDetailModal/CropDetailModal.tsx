@@ -20,13 +20,11 @@ interface CropDetailModalProps {
   onClose: () => void;
 }
 
-function mapSunNeeds(value: number): string {
-  switch (value) {
-    case 1: return 'Солнце';
-    case 2: return 'Полутень';
-    case 3: return 'Тень';
-    default: return 'Не указано';
-  }
+function mapSunNeeds(value: number): string | null {
+  if (value === 1) return 'Солнце';
+  if (value === 2) return 'Полутень';
+  if (value === 3) return 'Тень';
+  return null;
 }
 
 const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
@@ -44,12 +42,39 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
 
-  const specs = [
-    { label: 'Семейство', value: crop.family_name || 'Не указано' },
-    { label: 'Срок вегетации', value: `${crop.vegetation_days_avg} дн.` },
-    { label: 'Вид почвы', value: crop.soil_name || 'Не указано' },
-    { label: 'Освещённость', value: mapSunNeeds(crop.sun_needs) },
-  ];
+  // ✅ Формируем характеристики
+  const getSpecs = () => {
+    const result: { label: string; value: string }[] = [];
+
+    const addSpec = (label: string, value: any) => {
+      if (value === null || value === undefined) return;
+      if (typeof value === 'string' && value.trim() === '') return;
+      if (value === '00') return;
+      if (value === '0') return;
+      if (value === 0) return;
+      if (value === 'Не указано') return;
+      if (value === '') return;
+      result.push({ label, value: String(value) });
+    };
+
+    addSpec('Семейство', crop.family_name);
+    addSpec('Срок вегетации', crop.vegetation_days_avg ? `${crop.vegetation_days_avg} дн.` : null);
+    addSpec('Вид почвы', crop.soil_name);
+    addSpec('Освещённость', mapSunNeeds(crop.sun_needs));
+
+    return result;
+  };
+
+  const specs = getSpecs();
+
+  // ✅ Проверяем, есть ли данные для аккордеонов
+  const hasPredecessors = (crop.predecessors?.good?.length || 0) > 0 || (crop.predecessors?.bad?.length || 0) > 0;
+  const hasNeighbors = (crop.neighbors?.good?.length || 0) > 0 || (crop.neighbors?.bad?.length || 0) > 0;
+  const hasFollowing = (crop.following?.length || 0) > 0;
+  const hasAccordions = hasPredecessors || hasNeighbors || hasFollowing;
+
+  // ✅ Проверяем, есть ли описание
+  const hasDescription = crop.description && crop.description.trim() !== '';
 
   return (
     <div className={styles.backdrop} onClick={handleBackdropClick}>
@@ -70,86 +95,93 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
               <div className={styles.imagePlaceholder} />
             )}
           </div>
-          <p className={styles.description}>{crop.description || 'Описание отсутствует'}</p>
+          {/* ✅ Показываем описание только если оно есть */}
+          {hasDescription && (
+            <p className={styles.description}>{crop.description}</p>
+          )}
         </div>
 
-        <div className={styles.specsList}>
-          {specs.map((spec, index) => (
-            <div key={index} className={styles.specRow}>
-              <span className={styles.specLabel}>{spec.label}</span>
-              <span className={styles.specValue}>{spec.value}</span>
-            </div>
-          ))}
-        </div>
+        {specs.length > 0 && (
+          <div className={styles.specsList}>
+            {specs.map((spec, index) => (
+              <div key={index} className={styles.specRow}>
+                <span className={styles.specLabel}>{spec.label}</span>
+                <span className={styles.specValue}>{spec.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
-        <div className={styles.accordions}>
-          {(crop.predecessors?.good?.length || crop.predecessors?.bad?.length) && (
-            <Accordion
-              title="Предшественники"
-              content={
-                <div className={styles.accordionContent}>
-                  {crop.predecessors?.good?.length > 0 && (
-                    <div className={styles.accordionRow}>
-                      <span className={styles.accordionLabel}>Хорошие:</span>
-                      <span className={styles.accordionValue}>
-                        {crop.predecessors.good.join(', ')}
-                      </span>
-                    </div>
-                  )}
-                  {crop.predecessors?.bad?.length > 0 && (
-                    <div className={styles.accordionRow}>
-                      <span className={styles.accordionLabel}>Плохие:</span>
-                      <span className={styles.accordionValue}>
-                        {crop.predecessors.bad.join(', ')}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              }
-            />
-          )}
-
-          {(crop.neighbors?.good?.length || crop.neighbors?.bad?.length) && (
-            <Accordion
-              title="Соседи"
-              content={
-                <div className={styles.accordionContent}>
-                  {crop.neighbors?.good?.length > 0 && (
-                    <div className={styles.accordionRow}>
-                      <span className={styles.accordionLabel}>Хорошие:</span>
-                      <span className={styles.accordionValue}>
-                        {crop.neighbors.good.join(', ')}
-                      </span>
-                    </div>
-                  )}
-                  {crop.neighbors?.bad?.length > 0 && (
-                    <div className={styles.accordionRow}>
-                      <span className={styles.accordionLabel}>Плохие:</span>
-                      <span className={styles.accordionValue}>
-                        {crop.neighbors.bad.join(', ')}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              }
-            />
-          )}
-
-          {crop.following && crop.following.length > 0 && (
-            <Accordion
-              title="Последующие культуры"
-              content={
-                <div className={styles.accordionContent}>
-                  <div className={styles.accordionRow}>
-                    <span className={styles.accordionValue}>
-                      {crop.following.join(', ')}
-                    </span>
+        {hasAccordions && (
+          <div className={styles.accordions}>
+            {hasPredecessors && (
+              <Accordion
+                title="Предшественники"
+                content={
+                  <div className={styles.accordionContent}>
+                    {crop.predecessors?.good && crop.predecessors.good.length > 0 && (
+                      <div className={styles.accordionRow}>
+                        <span className={styles.accordionLabel}>Хорошие:</span>
+                        <span className={styles.accordionValue}>
+                          {crop.predecessors.good.join(', ')}
+                        </span>
+                      </div>
+                    )}
+                    {crop.predecessors?.bad && crop.predecessors.bad.length > 0 && (
+                      <div className={styles.accordionRow}>
+                        <span className={styles.accordionLabel}>Плохие:</span>
+                        <span className={styles.accordionValue}>
+                          {crop.predecessors.bad.join(', ')}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                </div>
-              }
-            />
-          )}
-        </div>
+                }
+              />
+            )}
+
+            {hasNeighbors && (
+              <Accordion
+                title="Соседи"
+                content={
+                  <div className={styles.accordionContent}>
+                    {crop.neighbors?.good && crop.neighbors.good.length > 0 && (
+                      <div className={styles.accordionRow}>
+                        <span className={styles.accordionLabel}>Хорошие:</span>
+                        <span className={styles.accordionValue}>
+                          {crop.neighbors.good.join(', ')}
+                        </span>
+                      </div>
+                    )}
+                    {crop.neighbors?.bad && crop.neighbors.bad.length > 0 && (
+                      <div className={styles.accordionRow}>
+                        <span className={styles.accordionLabel}>Плохие:</span>
+                        <span className={styles.accordionValue}>
+                          {crop.neighbors.bad.join(', ')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                }
+              />
+            )}
+
+            {hasFollowing && (
+              <Accordion
+                title="Последующие культуры"
+                content={
+                  <div className={styles.accordionContent}>
+                    <div className={styles.accordionRow}>
+                      <span className={styles.accordionValue}>
+                        {crop.following?.join(', ') || ''}
+                      </span>
+                    </div>
+                  </div>
+                }
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

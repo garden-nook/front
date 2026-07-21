@@ -14,42 +14,6 @@ import type { Plot } from '../api/types/plots.types';
 import type { SoilType } from '../api/types/crops.types';
 
 // ============================================================
-// МОКОВЫЕ ДАННЫЕ ДЛЯ УЧАСТКОВ (пока сервер не готов)
-// ============================================================
-const MOCK_PLOTS: Plot[] = [
-  {
-    plot_id: 'mock-1',
-    name: 'Мой первый участок',
-    area_sq_m: 900,
-    grid_rows: 30,
-    grid_cols: 30,
-    grid_cell_size: 1,
-    soil_type: 1,
-    soil_name: 'Чернозем',
-  },
-  {
-    plot_id: 'mock-2',
-    name: 'Огород за домом',
-    area_sq_m: 1200,
-    grid_rows: 40,
-    grid_cols: 30,
-    grid_cell_size: 1,
-    soil_type: 2,
-    soil_name: 'Суглинок',
-  },
-  {
-    plot_id: 'mock-3',
-    name: 'Теплица',
-    area_sq_m: 600,
-    grid_rows: 20,
-    grid_cols: 30,
-    grid_cell_size: 1,
-    soil_type: 3,
-    soil_name: 'Песчаная',
-  },
-];
-
-// ============================================================
 // КОМПОНЕНТ
 // ============================================================
 export default function PlotsList() {
@@ -67,43 +31,37 @@ export default function PlotsList() {
     soilTypeId: '',
   });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [useMockData, setUseMockData] = useState(true);
 
   // ============================================================
-  // ЗАГРУЗКА ДАННЫХ
+  // ЗАГРУЗКА ДАННЫХ ИЗ API
   // ============================================================
   const loadData = async () => {
     try {
       setLoading(true);
 
+      // Загружаем типы почвы
       try {
         const soilTypesData = await getSoilTypes();
         setSoilTypes(soilTypesData || []);
         console.log('📦 Типы почвы загружены:', soilTypesData);
       } catch (error) {
         console.error('❌ Ошибка загрузки типов почвы:', error);
+        showToast('Ошибка загрузки типов почвы', 'error');
         setSoilTypes([]);
       }
 
+      // Загружаем участки
       try {
         const plotsData = await getPlots();
-        if (plotsData && plotsData.length > 0) {
-          setPlots(plotsData);
-          setUseMockData(false);
-        } else {
-          setPlots(MOCK_PLOTS);
-          setUseMockData(true);
-          showToast('Используются тестовые данные участков', 'info');
-        }
+        setPlots(plotsData || []);
+        console.log('📦 Участки загружены:', plotsData);
       } catch (error) {
-        console.warn('⚠️ API участков не работает, используем моки');
-        setPlots(MOCK_PLOTS);
-        setUseMockData(true);
+        console.error('❌ Ошибка загрузки участков:', error);
+        showToast('Ошибка загрузки участков', 'error');
+        setPlots([]);
       }
-      
     } catch (error) {
       console.error('❌ Общая ошибка:', error);
-      setPlots(MOCK_PLOTS);
     } finally {
       setLoading(false);
     }
@@ -155,66 +113,28 @@ export default function PlotsList() {
 
     try {
       const soilTypeId = formData.soilTypeId ? Number(formData.soilTypeId) : undefined;
-      const soilName = soilTypeId 
-        ? soilTypes.find(t => t.id === soilTypeId)?.name || 'Не указан'
-        : 'Не указан';
 
       if (editingPlotId) {
-        if (useMockData || editingPlotId.startsWith('mock-')) {
-          setPlots(prev => prev.map(p => 
-            p.plot_id === editingPlotId 
-              ? { 
-                  ...p, 
-                  name: formData.name.trim(),
-                  grid_cols: widthNum,
-                  grid_rows: heightNum,
-                  soil_type: soilTypeId || p.soil_type,
-                  soil_name: soilName,
-                }
-              : p
-          ));
-          showToast('Участок успешно обновлён (тестовые данные)', 'success');
-        } else {
-          await updatePlot(editingPlotId, {
-            name: formData.name.trim(),
-            soilTypeID: soilTypeId,
-          });
-          showToast('Участок успешно обновлён', 'success');
-          await loadData();
-        }
+        await updatePlot(editingPlotId, {
+          name: formData.name.trim(),
+          soilTypeID: soilTypeId,
+        });
+        showToast('Участок успешно обновлён', 'success');
       } else {
-        if (useMockData) {
-          const newPlot: Plot = {
-            plot_id: `mock-${Date.now()}`,
-            name: formData.name.trim(),
-            area_sq_m: widthNum * heightNum,
-            grid_rows: heightNum,
-            grid_cols: widthNum,
-            grid_cell_size: 1,
-            soil_type: soilTypeId || 1,
-            soil_name: soilName,
-          };
-          setPlots(prev => [newPlot, ...prev]);
-          showToast('Участок успешно создан (тестовые данные)', 'success');
-        } else {
-          const payload = {
-            name: formData.name.trim(),
-            widthMeters: widthNum,
-            heightMeters: heightNum,
-            soilTypeID: soilTypeId,
-          };
-          const newPlotId = await createPlot(payload);
-          console.log('✅ Участок создан с ID:', newPlotId);
-          showToast('Участок успешно создан', 'success');
-          await loadData();
-        }
+        await createPlot({
+          name: formData.name.trim(),
+          widthMeters: widthNum,
+          heightMeters: heightNum,
+          soilTypeID: soilTypeId,
+        });
+        showToast('Участок успешно создан', 'success');
       }
-      
+
       closeModal();
-      
+      await loadData();
     } catch (error: any) {
       console.error('❌ Ошибка сохранения:', error);
-      showToast('Ошибка сохранения участка', 'error');
+      showToast(error?.response?.data?.error || 'Ошибка сохранения участка', 'error');
     }
   };
 
@@ -224,19 +144,14 @@ export default function PlotsList() {
 
   const confirmDelete = async () => {
     if (!deleteConfirm) return;
-    
+
     try {
-      if (useMockData || deleteConfirm.startsWith('mock-')) {
-        setPlots(prev => prev.filter(p => p.plot_id !== deleteConfirm));
-        showToast('Участок успешно удалён (тестовые данные)', 'success');
-      } else {
-        await deletePlot(deleteConfirm);
-        showToast('Участок успешно удалён', 'success');
-        await loadData();
-      }
-    } catch (error) {
+      await deletePlot(deleteConfirm);
+      showToast('Участок успешно удалён', 'success');
+      await loadData();
+    } catch (error: any) {
       console.error('❌ Ошибка удаления:', error);
-      showToast('Ошибка удаления участка', 'error');
+      showToast(error?.response?.data?.error || 'Ошибка удаления участка', 'error');
     } finally {
       setDeleteConfirm(null);
     }
@@ -371,15 +286,6 @@ export default function PlotsList() {
       fontSize: '16px',
       padding: '40px 0',
     },
-    mockBanner: {
-      backgroundColor: '#FEF3C7',
-      color: '#92400E',
-      padding: '8px 16px',
-      borderRadius: '8px',
-      fontSize: '13px',
-      marginBottom: '16px',
-      border: '1px solid #FDE68A',
-    },
   };
 
   // ============================================================
@@ -395,19 +301,11 @@ export default function PlotsList() {
     label: type.name,
   }));
 
-  const isMock = useMockData || plots.some(p => p.plot_id.startsWith('mock-'));
-
   return (
     <div style={pageStyles.page}>
       <Header userId={userId} firstName={displayName} />
 
       <main style={pageStyles.main}>
-        {isMock && plots.length > 0 && (
-          <div style={pageStyles.mockBanner}>
-            ⚡ Тестовые данные (сервер временно недоступен)
-          </div>
-        )}
-
         {plots.length > 0 && (
           <h1 style={pageStyles.headerTitle}>Список участков</h1>
         )}
@@ -438,16 +336,12 @@ export default function PlotsList() {
         )}
       </main>
 
-      {/* FAB кнопка "+" */}
       <button type="button" onClick={openCreateModal} style={pageStyles.fab}>
         <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
       </button>
 
-      {/* ============================================================
-          МОДАЛКА
-          ============================================================ */}
       {isModalOpen && (
         <div style={pageStyles.modalOverlay} onClick={closeModal}>
           <div style={pageStyles.modal} onClick={(e) => e.stopPropagation()}>
@@ -465,7 +359,6 @@ export default function PlotsList() {
             </div>
 
             <div style={pageStyles.modalBody}>
-              {/* Название */}
               <div style={pageStyles.fieldGroup}>
                 <label style={pageStyles.label}>Название</label>
                 <Input
@@ -475,7 +368,6 @@ export default function PlotsList() {
                 />
               </div>
 
-              {/* ✅ Размер — ТОЛЬКО при создании */}
               {!editingPlotId && (
                 <div style={pageStyles.fieldGroup}>
                   <label style={pageStyles.label}>Размер (в метрах)</label>
@@ -495,7 +387,6 @@ export default function PlotsList() {
                 </div>
               )}
 
-              {/* Тип грунта */}
               <div style={pageStyles.fieldGroup}>
                 <label style={pageStyles.label}>Тип грунта</label>
                 <Select
@@ -508,7 +399,6 @@ export default function PlotsList() {
                 />
               </div>
 
-              {/* Кнопки */}
               <div style={pageStyles.modalActions}>
                 <ActionButton
                   title="Отмена"

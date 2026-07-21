@@ -1,5 +1,5 @@
 // src/pages/Catalog.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from '../components/UI/Header/Header';
 import SearchBar from '../components/UI/SearchBar/SearchBar';
 import CropCard from '../components/UI/CropCard/CropCard';
@@ -7,7 +7,9 @@ import CropDetailModal from '../components/UI/CropDetailModal/CropDetailModal';
 import { getCrops, getCropById } from '../api/endpoints/crops';
 import { mapSunNeeds, type Crop } from '../api/types/crops.types';
 
-// Стили страницы
+// ============================================================
+// СТИЛИ
+// ============================================================
 const pageStyles: { [key: string]: React.CSSProperties } = {
   page: {
     minHeight: '100vh',
@@ -15,21 +17,23 @@ const pageStyles: { [key: string]: React.CSSProperties } = {
     paddingTop: '0px',
   },
   main: {
-    padding: '16px 20px 40px',
+    padding: '24px 20px 40px',
   },
   container: {
     maxWidth: '1200px',
     margin: '0 auto',
-    padding: '0 100px',
+    padding: '0 16px',
   },
   searchWrapper: {
-    width: '99%',
-    margin: '0 0 20px 0',
+    maxWidth: '600px',
+    margin: '0 auto 32px',
+    padding: '0 16px',
   },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: '25px',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+    gap: '24px',
+    padding: '0 16px',
   },
   emptyWrapper: {
     display: 'flex',
@@ -53,11 +57,13 @@ const pageStyles: { [key: string]: React.CSSProperties } = {
   },
 };
 
+// ============================================================
+// КОМПОНЕНТ
+// ============================================================
 const Catalog: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [crops, setCrops] = useState<Crop[]>([]);
   const [loading, setLoading] = useState(true);
-  // ✅ Убираем CropType, используем локальный интерфейс
   const [selectedCropDetail, setSelectedCropDetail] = useState<{
     id: string;
     name: string;
@@ -71,43 +77,95 @@ const Catalog: React.FC = () => {
     following?: string[];
   } | null>(null);
 
-  const loadCrops = async (search?: string) => {
-    try {
-      setLoading(true);
-      const data = await getCrops({
-        search: search || undefined,
-      });
-      setCrops(data);
-    } catch (error) {
-      console.error('❌ Ошибка загрузки:', error);
-      setCrops([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ✅ Флаг для поиска — сначала false, становится true после первого рендера
+  const isSearchEnabled = useRef(false);
 
+  // ============================================================
+  // ЗАГРУЗКА КУЛЬТУР (только один раз при монтировании)
+  // ============================================================
+  useEffect(() => {
+    const loadCrops = async () => {
+      try {
+        setLoading(true);
+        const data = await getCrops({});
+        console.log('📦 Культуры из API (первая загрузка):', data);
+        setCrops(data || []);
+      } catch (error) {
+        console.error('❌ Ошибка загрузки:', error);
+        setCrops([]);
+      } finally {
+        setLoading(false);
+        // ✅ После первой загрузки включаем поиск
+        isSearchEnabled.current = true;
+      }
+    };
+
+    loadCrops();
+  }, []); // ✅ Пустой массив — только один раз
+
+  // ============================================================
+  // ПОИСК (включается только после первой загрузки)
+  // ✅ Ищет по 1 букве
+  // ============================================================
+  useEffect(() => {
+    // ✅ Если поиск ещё не включён — ничего не делаем
+    if (!isSearchEnabled.current) return;
+
+    const timer = setTimeout(() => {
+      const doSearch = async () => {
+        try {
+          setLoading(true);
+          
+          // ✅ Если есть хоть один символ — ищем
+          const params: { search?: string } = {};
+          const trimmed = searchTerm.trim();
+          if (trimmed.length > 0) {
+            params.search = trimmed;
+          }
+          
+          const data = await getCrops(params);
+          console.log('📦 Результаты поиска:', data);
+          setCrops(data || []);
+        } catch (error) {
+          console.error('❌ Ошибка поиска:', error);
+          setCrops([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      doSearch();
+    }, 400); // ✅ Уменьшил задержку до 400ms
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // ============================================================
+  // ЗАГРУЗКА ДЕТАЛЕЙ
+  // ============================================================
   const loadCropDetail = async (id: number) => {
     try {
       const data = await getCropById(id);
       if (data) {
-        // ✅ Используем правильные имена полей из API
+        const relations = data.crop_relations || {};
+        
         setSelectedCropDetail({
           id: String(data.crop.id),
           name: data.crop.name,
           family_name: data.crop.family_name,
-          vegetation_days_avg: data.crop.vegetation_days_avg,
-          soil_name: data.crop.soil_name || 'Не указано',
-          sun_needs: data.crop.sun_needs,
+          vegetation_days_avg: data.crop.vegetation_days_avg || 0,
+          soil_name: data.crop.soil_name || '',
+          sun_needs: data.crop.sun_needs || 0,
           description: data.crop.description || '',
           predecessors: {
-            good: data.crop_relations.good_predecessors.map((r: any) => r.crop_name),
-            bad: data.crop_relations.bad_predecessors.map((r: any) => r.crop_name),
+            good: (relations.good_predecessors || []).map((r: any) => r.crop_name),
+            bad: (relations.bad_predecessors || []).map((r: any) => r.crop_name),
           },
           neighbors: {
-            good: data.crop_relations.good_companions.map((r: any) => r.crop_name),
-            bad: data.crop_relations.bad_companions.map((r: any) => r.crop_name),
+            good: (relations.good_companions || []).map((r: any) => r.crop_name),
+            bad: (relations.bad_companions || []).map((r: any) => r.crop_name),
           },
-          following: data.crop_relations.good_successors.map((r: any) => r.crop_name),
+          following: (relations.good_successors || []).map((r: any) => r.crop_name),
         });
       }
     } catch (error) {
@@ -116,6 +174,7 @@ const Catalog: React.FC = () => {
   };
 
   const handleCropClick = (crop: Crop) => {
+    console.log('🖱️ Клик по карточке:', crop.name);
     loadCropDetail(crop.id);
   };
 
@@ -123,17 +182,9 @@ const Catalog: React.FC = () => {
     setSelectedCropDetail(null);
   };
 
-  useEffect(() => {
-    loadCrops();
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      loadCrops(searchTerm);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
+  // ============================================================
+  // РЕНДЕРИНГ
+  // ============================================================
   const displayName = 'Алексей';
   const userId = 'user-123';
 
