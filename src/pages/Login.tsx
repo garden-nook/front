@@ -1,8 +1,9 @@
 // src/pages/Login.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext'; // 
-import { api } from '../api/client'; // 
+import { useAuth } from '../contexts/AuthContext';
+import { authApi } from '../api/endpoints/auth';
+import { loginStyles as styles } from '../PageStyles/Login.styles';
 import logoIcon from '../assets/logo.svg';
 
 type AuthMode = 'login' | 'register';
@@ -14,19 +15,14 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Форма входа
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // Форма регистрации
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [regDisplayName, setRegDisplayName] = useState('');
 
-  // ============================================================
-  // 1. ВХОД
-  // ============================================================
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -39,32 +35,26 @@ export default function Login() {
     }
 
     try {
-      // ✅ Используем api (не apiClient)
-      const response = await api.post('/api/v1/auth/login', {
+      const response = await authApi.login({
         email: loginEmail,
         password: loginPassword,
       });
 
-      const result = response.data;
-      console.log('📦 Ответ от API (логин):', result);
+      const data = response.data;
 
-      if (result.success && result.data) {
+      if (data.success && data.data?.access_token) {
         await authLogin(loginEmail, loginPassword);
         navigate('/');
       } else {
-        setError(result.error || 'Неверный email или пароль');
+        setError(data.error || 'Неверный email или пароль');
       }
     } catch (err: any) {
-      console.error('❌ Ошибка входа:', err);
       setError(err.response?.data?.error || 'Ошибка соединения с сервером');
     } finally {
       setLoading(false);
     }
   };
 
-  // ============================================================
-  // 2. РЕГИСТРАЦИЯ
-  // ============================================================
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -89,33 +79,27 @@ export default function Login() {
     }
 
     try {
-      // ✅ Используем api (не apiClient)
-      const response = await api.post('/api/v1/auth/register', {
+      const response = await authApi.register({
         display_name: regDisplayName,
         email: regEmail,
         password: regPassword,
       });
 
-      const result = response.data;
-      console.log('📦 Ответ от API (регистрация):', result);
+      const data = response.data;
 
-      if (result.success && result.data) {
+      if (data.success && data.data?.user_id) {
         await authLogin(regEmail, regPassword);
         navigate('/');
       } else {
-        setError(result.error || 'Ошибка регистрации');
+        setError(data.error || 'Ошибка регистрации');
       }
     } catch (err: any) {
-      console.error('❌ Ошибка регистрации:', err);
       setError(err.response?.data?.error || 'Ошибка соединения с сервером');
     } finally {
       setLoading(false);
     }
   };
 
-  // ============================================================
-  // СТИЛИ
-  // ============================================================
   const inputStyle = {
     width: '100%',
     padding: '12px 16px',
@@ -153,76 +137,34 @@ export default function Login() {
     opacity: loading ? 0.5 : 1,
   };
 
-  // ============================================================
-  // РЕНДЕРИНГ
-  // ============================================================
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#F8FAFC',
-      padding: '20px',
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '40px',
-        width: '100%',
-        maxWidth: '420px',
-        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-      }}>
-        {/* Логотип */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px',
-            marginBottom: '8px',
-          }}>
+    <div style={styles.container}>
+      <div style={styles.card}>
+        <div style={styles.logoWrapper}>
+          <div style={styles.logoRow}>
             <img
               src={logoIcon}
               alt="Огородный уголок"
-              style={{
-                width: '24px',
-                height: '24px',
-                display: 'block',
-                flexShrink: 0,
-              }}
+              style={styles.logoImage}
             />
-            <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1F2937', margin: 0, lineHeight: 1 }}>
-              Огородный уголок
-            </h1>
+            <h1 style={styles.title}>Огородный уголок</h1>
           </div>
-          <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>
+          <p style={styles.subtitle}>
             {mode === 'login' && 'Войдите в свой аккаунт'}
             {mode === 'register' && 'Создайте новый аккаунт'}
           </p>
         </div>
 
-        {/* Ошибки */}
         {error && (
-          <div style={{
-            backgroundColor: '#FEE2E2',
-            color: '#DC2626',
-            padding: '12px',
-            borderRadius: '8px',
-            fontSize: '13px',
-            marginBottom: '16px',
-          }}>
+          <div style={styles.errorBox}>
             {error}
           </div>
         )}
 
-        {/* Форма входа */}
         {mode === 'login' && (
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleLogin} style={styles.form}>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                Email
-              </label>
+              <label style={styles.label}>Email</label>
               <input
                 type="email"
                 value={loginEmail}
@@ -234,9 +176,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                Пароль
-              </label>
+              <label style={styles.label}>Пароль</label>
               <input
                 type="password"
                 value={loginPassword}
@@ -251,7 +191,7 @@ export default function Login() {
               {loading ? 'Загрузка...' : 'Войти'}
             </button>
 
-            <div style={{ textAlign: 'center', fontSize: '13px', color: '#6B7280' }}>
+            <div style={styles.switchMode}>
               Нет аккаунта?{' '}
               <button type="button" onClick={() => setMode('register')} style={linkButtonStyle} disabled={loading}>
                 Зарегистрироваться
@@ -260,13 +200,10 @@ export default function Login() {
           </form>
         )}
 
-        {/* Форма регистрации */}
         {mode === 'register' && (
-          <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleRegister} style={styles.form}>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                Имя и фамилия
-              </label>
+              <label style={styles.label}>Имя и фамилия</label>
               <input
                 type="text"
                 value={regDisplayName}
@@ -278,9 +215,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                Email
-              </label>
+              <label style={styles.label}>Email</label>
               <input
                 type="email"
                 value={regEmail}
@@ -292,9 +227,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                Пароль
-              </label>
+              <label style={styles.label}>Пароль</label>
               <input
                 type="password"
                 value={regPassword}
@@ -306,9 +239,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                Подтвердите пароль
-              </label>
+              <label style={styles.label}>Подтвердите пароль</label>
               <input
                 type="password"
                 value={regConfirmPassword}
@@ -323,7 +254,7 @@ export default function Login() {
               {loading ? 'Загрузка...' : 'Зарегистрироваться'}
             </button>
 
-            <div style={{ textAlign: 'center', fontSize: '13px', color: '#6B7280' }}>
+            <div style={styles.switchMode}>
               Уже есть аккаунт?{' '}
               <button type="button" onClick={() => setMode('login')} style={linkButtonStyle} disabled={loading}>
                 Войти

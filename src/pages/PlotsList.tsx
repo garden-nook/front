@@ -12,10 +12,8 @@ import { getPlots, createPlot, updatePlot, deletePlot } from '../api/endpoints/p
 import { getSoilTypes } from '../api/endpoints/soil-types';
 import type { Plot } from '../api/types/plots.types';
 import type { SoilType } from '../api/types/crops.types';
+import { plotsListStyles as styles } from '../PageStyles/PlotsList.styles';
 
-// ============================================================
-// КОМПОНЕНТ
-// ============================================================
 export default function PlotsList() {
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -32,36 +30,27 @@ export default function PlotsList() {
   });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
-  // ============================================================
-  // ЗАГРУЗКА ДАННЫХ ИЗ API
-  // ============================================================
   const loadData = async () => {
     try {
       setLoading(true);
 
-      // Загружаем типы почвы
       try {
         const soilTypesData = await getSoilTypes();
         setSoilTypes(soilTypesData || []);
-        console.log('📦 Типы почвы загружены:', soilTypesData);
       } catch (error) {
-        console.error('❌ Ошибка загрузки типов почвы:', error);
         showToast('Ошибка загрузки типов почвы', 'error');
         setSoilTypes([]);
       }
 
-      // Загружаем участки
       try {
         const plotsData = await getPlots();
         setPlots(plotsData || []);
-        console.log('📦 Участки загружены:', plotsData);
       } catch (error) {
-        console.error('❌ Ошибка загрузки участков:', error);
         showToast('Ошибка загрузки участков', 'error');
         setPlots([]);
       }
     } catch (error) {
-      console.error('❌ Общая ошибка:', error);
+      // Общая ошибка
     } finally {
       setLoading(false);
     }
@@ -71,9 +60,6 @@ export default function PlotsList() {
     loadData();
   }, []);
 
-  // ============================================================
-  // ОБРАБОТЧИКИ
-  // ============================================================
   const openCreateModal = () => {
     setEditingPlotId(null);
     setFormData({ name: '', width: '', height: '', soilTypeId: '' });
@@ -133,7 +119,6 @@ export default function PlotsList() {
       closeModal();
       await loadData();
     } catch (error: any) {
-      console.error('❌ Ошибка сохранения:', error);
       showToast(error?.response?.data?.error || 'Ошибка сохранения участка', 'error');
     }
   };
@@ -150,7 +135,6 @@ export default function PlotsList() {
       showToast('Участок успешно удалён', 'success');
       await loadData();
     } catch (error: any) {
-      console.error('❌ Ошибка удаления:', error);
       showToast(error?.response?.data?.error || 'Ошибка удаления участка', 'error');
     } finally {
       setDeleteConfirm(null);
@@ -161,136 +145,6 @@ export default function PlotsList() {
     setDeleteConfirm(null);
   };
 
-  // ============================================================
-  // СТИЛИ
-  // ============================================================
-  const pageStyles = {
-    page: {
-      minHeight: '100vh',
-      backgroundColor: '#F8FAFC',
-    },
-    main: {
-      maxWidth: '1400px',
-      margin: '0 auto',
-      padding: '32px 40px',
-      paddingBottom: '120px',
-    },
-    headerTitle: {
-      fontSize: '24px',
-      fontWeight: 700,
-      color: '#1F2937',
-      margin: '0 0 24px 0',
-    },
-    empty: {
-      textAlign: 'center' as const,
-      padding: '60px 20px',
-      color: '#6B7280',
-    },
-    emptyTitle: {
-      fontSize: '18px',
-      margin: '0 0 8px 0',
-    },
-    emptyText: {
-      fontSize: '14px',
-      margin: 0,
-    },
-    fab: {
-      position: 'fixed' as const,
-      bottom: '32px',
-      right: 'calc(50% - 700px + 40px)',
-      width: '56px',
-      height: '56px',
-      backgroundColor: '#22C55E',
-      color: 'white',
-      borderRadius: '50%',
-      border: 'none',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-      zIndex: 100,
-    },
-    modalOverlay: {
-      position: 'fixed' as const,
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '20px',
-    },
-    modal: {
-      backgroundColor: 'white',
-      borderRadius: '16px',
-      padding: '24px 28px',
-      width: '100%',
-      maxWidth: '400px',
-      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
-      maxHeight: '90vh',
-      overflowY: 'auto' as const,
-    },
-    modalHeader: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: '16px',
-    },
-    modalTitle: {
-      fontSize: '18px',
-      fontWeight: 600,
-      color: '#1F2937',
-      margin: 0,
-    },
-    modalBody: {
-      display: 'flex',
-      flexDirection: 'column' as const,
-      gap: '16px',
-    },
-    fieldGroup: {
-      display: 'flex',
-      flexDirection: 'column' as const,
-      gap: '4px',
-      width: '100%',
-    },
-    label: {
-      fontSize: '14px',
-      fontWeight: 500,
-      color: '#374151',
-      marginBottom: '2px',
-    },
-    sizeRow: {
-      display: 'flex',
-      gap: '8px',
-      alignItems: 'center',
-      width: '100%',
-    },
-    sizeSeparator: {
-      color: '#6B7280',
-      fontSize: '16px',
-      fontWeight: 600,
-      flexShrink: 0,
-    },
-    modalActions: {
-      display: 'flex',
-      gap: '12px',
-      marginTop: '4px',
-    },
-    loadingText: {
-      textAlign: 'center' as const,
-      color: '#6B7280',
-      fontSize: '16px',
-      padding: '40px 0',
-    },
-  };
-
-  // ============================================================
-  // РЕНДЕРИНГ
-  // ============================================================
   if (!user) return null;
 
   const displayName = user.display_name || 'Пользователь';
@@ -302,23 +156,23 @@ export default function PlotsList() {
   }));
 
   return (
-    <div style={pageStyles.page}>
+    <div style={styles.page}>
       <Header userId={userId} firstName={displayName} />
 
-      <main style={pageStyles.main}>
+      <main style={styles.main}>
         {plots.length > 0 && (
-          <h1 style={pageStyles.headerTitle}>Список участков</h1>
+          <h1 style={styles.headerTitle}>Список участков</h1>
         )}
 
         {loading ? (
-          <p style={pageStyles.loadingText}>Загрузка...</p>
+          <p style={styles.loadingText}>Загрузка...</p>
         ) : plots.length === 0 ? (
-          <div style={pageStyles.empty}>
-            <p style={pageStyles.emptyTitle}>У вас пока нет участков</p>
-            <p style={pageStyles.emptyText}>Нажмите на кнопку "+" чтобы создать первый участок</p>
+          <div style={styles.empty}>
+            <p style={styles.emptyTitle}>У вас пока нет участков</p>
+            <p style={styles.emptyText}>Нажмите на кнопку "+" чтобы создать первый участок</p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={styles.plotsContainer}>
             {plots.map((plot) => (
               <PlotCard
                 key={plot.plot_id}
@@ -336,17 +190,17 @@ export default function PlotsList() {
         )}
       </main>
 
-      <button type="button" onClick={openCreateModal} style={pageStyles.fab}>
+      <button type="button" onClick={openCreateModal} style={styles.fab}>
         <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
       </button>
 
       {isModalOpen && (
-        <div style={pageStyles.modalOverlay} onClick={closeModal}>
-          <div style={pageStyles.modal} onClick={(e) => e.stopPropagation()}>
-            <div style={pageStyles.modalHeader}>
-              <h2 style={pageStyles.modalTitle}>
+        <div style={styles.modalOverlay} onClick={closeModal}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h2 style={styles.modalTitle}>
                 {editingPlotId ? 'Изменить участок' : 'Создать участок'}
               </h2>
               <ActionButton
@@ -358,9 +212,9 @@ export default function PlotsList() {
               />
             </div>
 
-            <div style={pageStyles.modalBody}>
-              <div style={pageStyles.fieldGroup}>
-                <label style={pageStyles.label}>Название</label>
+            <div style={styles.modalBody}>
+              <div style={styles.fieldGroup}>
+                <label style={styles.label}>Название</label>
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -369,15 +223,15 @@ export default function PlotsList() {
               </div>
 
               {!editingPlotId && (
-                <div style={pageStyles.fieldGroup}>
-                  <label style={pageStyles.label}>Размер (в метрах)</label>
-                  <div style={pageStyles.sizeRow}>
+                <div style={styles.fieldGroup}>
+                  <label style={styles.label}>Размер (в метрах)</label>
+                  <div style={styles.sizeRow}>
                     <Input
                       value={formData.width}
                       onChange={(e) => setFormData({ ...formData, width: e.target.value })}
                       placeholder="Длина"
                     />
-                    <span style={pageStyles.sizeSeparator}>×</span>
+                    <span style={styles.sizeSeparator}>×</span>
                     <Input
                       value={formData.height}
                       onChange={(e) => setFormData({ ...formData, height: e.target.value })}
@@ -387,8 +241,8 @@ export default function PlotsList() {
                 </div>
               )}
 
-              <div style={pageStyles.fieldGroup}>
-                <label style={pageStyles.label}>Тип грунта</label>
+              <div style={styles.fieldGroup}>
+                <label style={styles.label}>Тип грунта</label>
                 <Select
                   value={formData.soilTypeId}
                   onChange={(e) => setFormData({ ...formData, soilTypeId: e.target.value })}
@@ -399,7 +253,7 @@ export default function PlotsList() {
                 />
               </div>
 
-              <div style={pageStyles.modalActions}>
+              <div style={styles.modalActions}>
                 <ActionButton
                   title="Отмена"
                   shape="text"

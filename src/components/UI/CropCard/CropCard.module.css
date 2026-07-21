@@ -1,4 +1,3 @@
-/* src/components/UI/CropCard/CropCard.module.css */
 .card {
   background-color: white;
   border-radius: 20px;
@@ -18,12 +17,11 @@
   border-color: #22C55E;
 }
 
-/* ✅ Название культуры — шрифт уменьшен */
 .title {
-  font-size: 15px; /* было 18px */
+  font-size: 15px;
   font-weight: 700;
   color: #1F2937;
-  margin: 0 0 8px 0; /* увеличил отступ снизу */
+  margin: 0 0 8px 0;
   letter-spacing: 0.5px;
   text-align: center;
 }
@@ -59,11 +57,10 @@
   border-radius: 12px;
 }
 
-/* ✅ Семейство — теперь под фото */
 .family {
   font-size: 14px;
   color: #6B7280;
-  margin: 8px 0 12px 0; /* добавил отступ сверху */
+  margin: 8px 0 12px 0;
   font-weight: 400;
   text-align: center;
 }

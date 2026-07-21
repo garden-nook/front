@@ -1,4 +1,3 @@
-// src/components/UI/CropCard/CropCard.tsx
 import React from 'react';
 import styles from './CropCard.module.css';
 
@@ -6,7 +5,6 @@ interface CropCardProps {
   id: string;
   name: string;
   family: string;
-  group: string;
   vegetationDays: number;
   soilNeeds: string;
   lightNeeds: string;
@@ -16,18 +14,13 @@ interface CropCardProps {
 }
 
 const CropCard: React.FC<CropCardProps> = ({
-  // id не используется в JSX, но может понадобиться для key
-  // оставляем с префиксом _, чтобы избежать ошибки
   id: _id,
   name,
   family,
-  group,
   vegetationDays,
   soilNeeds,
   lightNeeds,
   image,
-  // description не используется в карточке
-  // оставляем с префиксом _
   description: _description,
   onClick,
 }) => {
@@ -47,7 +40,7 @@ const CropCard: React.FC<CropCardProps> = ({
         )}
       </div>
       
-      <p className={styles.family}>{family} - {group}</p>
+      <p className={styles.family}>{family}</p>
       
       <div className={styles.specs}>
         <div className={styles.spec}>

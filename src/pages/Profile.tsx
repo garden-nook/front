@@ -1,10 +1,10 @@
-// src/pages/Profile.tsx
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/UI/Header/Header';
 import Input from '../components/UI/Input/Input';
 import ActionButton from '../components/UI/ActionButton';
+import { profileStyles as styles } from '../PageStyles/Profile.styles';
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -14,8 +14,6 @@ export default function Profile() {
   const [email] = useState(user?.email || '');
 
   const handleSave = () => {
-    // TODO: API для обновления профиля
-    console.log('Сохранить профиль:', { displayName, email });
   };
 
   const handleLogout = () => {
@@ -37,7 +35,6 @@ export default function Profile() {
           <h1 style={styles.title}>Профиль</h1>
 
           <div style={styles.card}>
-            {/* Email (только для чтения) */}
             <div style={styles.fieldGroup}>
               <label style={styles.label}>Email</label>
               <Input
@@ -48,7 +45,6 @@ export default function Profile() {
               />
             </div>
 
-            {/* Имя */}
             <div style={styles.fieldGroup}>
               <label style={styles.label}>Имя</label>
               <Input
@@ -58,7 +54,6 @@ export default function Profile() {
               />
             </div>
 
-            {/* Кнопки в одну строку */}
             <div style={styles.actionsRow}>
               <ActionButton
                 title="Отмена"
@@ -84,49 +79,3 @@ export default function Profile() {
     </div>
   );
 }
-
-const styles: { [key: string]: React.CSSProperties } = {
-  page: {
-    minHeight: '100vh',
-    backgroundColor: '#F8FAFC',
-  },
-  main: {
-    maxWidth: '600px',
-    margin: '0 auto',
-    padding: '40px 20px',
-  },
-  container: {
-    backgroundColor: 'white',
-    borderRadius: '16px',
-    padding: '32px',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-  },
-  title: {
-    fontSize: '24px',
-    fontWeight: 700,
-    color: '#1F2937',
-    margin: '0 0 24px 0',
-  },
-  card: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '20px',
-  },
-  fieldGroup: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '6px',
-  },
-  label: {
-    fontSize: '14px',
-    fontWeight: 500,
-    color: '#374151',
-  },
-  // ✅ Кнопки в одну строку
-  actionsRow: {
-    display: 'flex',
-    gap: '12px',
-    marginTop: '8px',
-    flexWrap: 'wrap' as const,
-  },
-};

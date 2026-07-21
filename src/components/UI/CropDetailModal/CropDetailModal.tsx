@@ -1,4 +1,3 @@
-// src/components/UI/CropDetailModal/CropDetailModal.tsx
 import React from 'react';
 import styles from './CropDetailModal.module.css';
 import Accordion from '../Accordion/Accordion';
@@ -42,7 +41,6 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
 
-  // ✅ Формируем характеристики
   const getSpecs = () => {
     const result: { label: string; value: string }[] = [];
 
@@ -67,13 +65,10 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
 
   const specs = getSpecs();
 
-  // ✅ Проверяем, есть ли данные для аккордеонов
   const hasPredecessors = (crop.predecessors?.good?.length || 0) > 0 || (crop.predecessors?.bad?.length || 0) > 0;
   const hasNeighbors = (crop.neighbors?.good?.length || 0) > 0 || (crop.neighbors?.bad?.length || 0) > 0;
   const hasFollowing = (crop.following?.length || 0) > 0;
   const hasAccordions = hasPredecessors || hasNeighbors || hasFollowing;
-
-  // ✅ Проверяем, есть ли описание
   const hasDescription = crop.description && crop.description.trim() !== '';
 
   return (
@@ -95,7 +90,6 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
               <div className={styles.imagePlaceholder} />
             )}
           </div>
-          {/* ✅ Показываем описание только если оно есть */}
           {hasDescription && (
             <p className={styles.description}>{crop.description}</p>
           )}

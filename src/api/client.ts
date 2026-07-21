@@ -1,9 +1,7 @@
-// src/api/client.ts
 import axios from 'axios';
 
 const API_BASE_URL = 'https://api.dev.192-144-12-78.nip.io';
 
-// ✅ Экспортируем как api
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
