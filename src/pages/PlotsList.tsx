@@ -33,24 +33,15 @@ export default function PlotsList() {
   const loadData = async () => {
     try {
       setLoading(true);
-
-      try {
-        const soilTypesData = await getSoilTypes();
-        setSoilTypes(soilTypesData || []);
-      } catch (error) {
-        showToast('Ошибка загрузки типов почвы', 'error');
-        setSoilTypes([]);
-      }
-
-      try {
-        const plotsData = await getPlots();
-        setPlots(plotsData || []);
-      } catch (error) {
-        showToast('Ошибка загрузки участков', 'error');
-        setPlots([]);
-      }
-    } catch (error) {
-      // Общая ошибка
+      const [plotsData, soilTypesData] = await Promise.all([
+        getPlots(),
+        getSoilTypes(),
+      ]);
+      setPlots(plotsData || []);
+      setSoilTypes(soilTypesData || []);
+    } catch {
+      setPlots([]);
+      setSoilTypes([]);
     } finally {
       setLoading(false);
     }
@@ -117,9 +108,9 @@ export default function PlotsList() {
       }
 
       closeModal();
-      await loadData();
-    } catch (error: any) {
-      showToast(error?.response?.data?.error || 'Ошибка сохранения участка', 'error');
+      loadData();
+    } catch {
+      showToast('Ошибка сохранения участка', 'error');
     }
   };
 
@@ -133,9 +124,9 @@ export default function PlotsList() {
     try {
       await deletePlot(deleteConfirm);
       showToast('Участок успешно удалён', 'success');
-      await loadData();
-    } catch (error: any) {
-      showToast(error?.response?.data?.error || 'Ошибка удаления участка', 'error');
+      loadData();
+    } catch {
+      showToast('Ошибка удаления участка', 'error');
     } finally {
       setDeleteConfirm(null);
     }
@@ -149,7 +140,6 @@ export default function PlotsList() {
 
   const displayName = user.display_name || 'Пользователь';
   const userId = user.id || 'user';
-
   const soilOptions = soilTypes.map((type) => ({
     value: String(type.id),
     label: type.name,
@@ -160,9 +150,7 @@ export default function PlotsList() {
       <Header userId={userId} firstName={displayName} />
 
       <main style={styles.main}>
-        {plots.length > 0 && (
-          <h1 style={styles.headerTitle}>Список участков</h1>
-        )}
+        {plots.length > 0 && <h1 style={styles.headerTitle}>Список участков</h1>}
 
         {loading ? (
           <p style={styles.loadingText}>Загрузка...</p>
