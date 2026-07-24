@@ -1,0 +1,561 @@
+/* src/pages/PlotEditor/PlotEditor.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--color-gray-1);
+  position: relative;
+}
+
+/* ===== ПАНЕЛЬ ИНСТРУМЕНТОВ (фиксированная сверху по центру) ===== */
+.toolbarWrapper {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.toolbarWrapper > * {
+  pointer-events: auto;
+}
+
+/* ===== ОСНОВНОЙ КОНТЕНТ ===== */
+.mainContent {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+/* ===== ЛЕВАЯ ПАНЕЛЬ ===== */
+.leftPanel {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 280px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  pointer-events: none;
+}
+
+.leftPanel > * {
+  pointer-events: auto;
+}
+
+.leftPanel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.leftPanel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.leftPanel::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+.leftPanel::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ===== ИНФОРМАЦИЯ ОБ УЧАСТКЕ ===== */
+.plotInfoWrapper {
+  flex-shrink: 0;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.plotInfo {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  cursor: default;
+  min-width: 180px;
+}
+
+.plotInfo.collapsed {
+  cursor: pointer;
+  padding: 8px 14px;
+  min-width: auto;
+}
+
+.plotInfo.collapsed:hover {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+}
+
+.plotInfoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.plotInfoCollapsed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.plotInfoTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-8);
+}
+
+.plotInfoCollapseBtn,
+.plotInfoExpandBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--color-gray-6);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.plotInfoCollapseBtn:hover,
+.plotInfoExpandBtn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--color-gray-8);
+}
+
+.plotInfoCollapseBtn:active,
+.plotInfoExpandBtn:active {
+  transform: scale(0.9);
+}
+
+.plotInfoContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.plotInfoRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 2px 0;
+}
+
+.plotInfoLabel {
+  color: var(--color-gray-6);
+}
+
+.plotInfoValue {
+  color: var(--color-gray-8);
+  font-weight: 500;
+}
+
+/* ===== ИНФОРМАЦИЯ О ГРЯДКЕ ===== */
+.bedInfoWrapper {
+  flex-shrink: 0;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.bedInfo {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-left: 4px solid #22c55e;
+}
+
+.bedInfoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.bedInfoTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-8);
+}
+
+.bedInfoCloseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--color-gray-6);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.bedInfoCloseBtn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--color-gray-8);
+}
+
+.bedInfoContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bedInfoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 2px 0;
+}
+
+.bedInfoLabel {
+  color: var(--color-gray-6);
+}
+
+.bedInfoValue {
+  color: var(--color-gray-8);
+  font-weight: 500;
+}
+
+.bedInfoColor {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* ===== ИСТОРИЯ ПОСАДОК ===== */
+.historyWrapper {
+  flex: 1;
+  min-height: 200px;
+  max-height: 400px;
+  animation: slideIn 0.3s ease;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.historyWrapper > * {
+  flex: 1;
+}
+
+/* ===== CANVAS ===== */
+.canvasWrapper {
+  flex: 1;
+  position: relative;
+  background: var(--color-white);
+  overflow: hidden;
+}
+
+/* ===== КНОПКА "ВЕРНУТЬСЯ К СПИСКУ" ===== */
+.backToListBtn {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 5;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  color: var(--color-gray-8);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.backToListBtn:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.backToListBtn:active {
+  transform: scale(0.97);
+}
+
+/* ===== ZOOM CONTROLS ===== */
+.zoomControlsWrapper {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10;
+}
+
+/* ===== АДАПТИВНОСТЬ ===== */
+@media (max-width: 768px) {
+  .toolbarWrapper {
+    top: 8px;
+  }
+
+  .mainContent {
+    padding-top: 70px;
+  }
+
+  .leftPanel {
+    left: 8px;
+    top: 80px;
+    max-width: 240px;
+    max-height: calc(100vh - 120px);
+    gap: 8px;
+  }
+
+  .plotInfo {
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  .plotInfoTitle {
+    font-size: 12px;
+  }
+
+  .plotInfoRow {
+    font-size: 12px;
+  }
+
+  .bedInfo {
+    padding: 10px 12px;
+  }
+
+  .bedInfoTitle {
+    font-size: 13px;
+  }
+
+  .bedInfoRow {
+    font-size: 12px;
+  }
+
+  .historyWrapper {
+    min-height: 150px;
+    max-height: 300px;
+  }
+
+  .backToListBtn {
+    bottom: 12px;
+    left: 12px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .zoomControlsWrapper {
+    bottom: 12px;
+    right: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbarWrapper {
+    top: 4px;
+  }
+
+  .mainContent {
+    padding-top: 60px;
+  }
+
+  .leftPanel {
+    left: 4px;
+    top: 70px;
+    max-width: 200px;
+    max-height: calc(100vh - 100px);
+    gap: 6px;
+  }
+
+  .plotInfo {
+    padding: 6px 10px;
+    border-radius: 8px;
+  }
+
+  .plotInfoRow {
+    font-size: 11px;
+  }
+
+  .plotInfoCollapseBtn,
+  .plotInfoExpandBtn {
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+  }
+
+  .bedInfo {
+    padding: 6px 10px;
+  }
+
+  .bedInfoTitle {
+    font-size: 12px;
+  }
+
+  .bedInfoRow {
+    font-size: 11px;
+  }
+
+  .bedInfoCloseBtn {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+
+  .historyWrapper {
+    min-height: 120px;
+    max-height: 200px;
+  }
+
+  .backToListBtn {
+    bottom: 8px;
+    left: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  .zoomControlsWrapper {
+    bottom: 8px;
+    right: 8px;
+  }
+}
+
+/* ===== ТЕМНАЯ ТЕМА ===== */
+@media (prefers-color-scheme: dark) {
+  .plotInfo,
+  .bedInfo,
+  .historyWrapper {
+    background: rgba(15, 23, 42, 0.95);
+    border-color: rgba(30, 41, 59, 0.5);
+  }
+
+  .plotInfoTitle,
+  .bedInfoTitle {
+    color: #e2e8f0;
+  }
+
+  .plotInfoLabel,
+  .bedInfoLabel {
+    color: #94a3b8;
+  }
+
+  .plotInfoValue,
+  .bedInfoValue {
+    color: #cbd5e1;
+  }
+
+  .plotInfoCollapseBtn,
+  .plotInfoExpandBtn,
+  .bedInfoCloseBtn {
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .plotInfoCollapseBtn:hover,
+  .plotInfoExpandBtn:hover,
+  .bedInfoCloseBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+  }
+
+  .backToListBtn {
+    background: rgba(15, 23, 42, 0.95);
+    color: #e2e8f0;
+    border-color: rgba(30, 41, 59, 0.5);
+  }
+
+  .backToListBtn:hover {
+    background: rgba(15, 23, 42, 1);
+  }
+}
+
+/* ===== КНОПКА ПОСАДИТЬ ===== */
+.plantBtn {
+  margin-top: 8px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #22c55e;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.plantBtn:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+.plantBtn:active {
+  transform: scale(0.97);
+}
+
+/* ===== ТЕМНАЯ ТЕМА ===== */
+@media (prefers-color-scheme: dark) {
+  .plantBtn {
+    background: #16a34a;
+  }
+
+  .plantBtn:hover {
+    background: #15803d;
+  }
+}

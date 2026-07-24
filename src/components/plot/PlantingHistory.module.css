@@ -1,0 +1,500 @@
+/* src/pages/PlotEditor/components/History/PlantingHistory.module.css */
+
+/* ===== КОНТЕЙНЕР ===== */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* ===== ПУСТОЕ СОСТОЯНИЕ ===== */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 32px 20px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: 16px;
+  font-weight: 500;
+  color: #475569;
+  margin: 0 0 4px 0;
+}
+
+.emptyHint {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* ===== ЗАГОЛОВОК ===== */
+.header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 4px 0;
+}
+
+.bedInfo {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* ===== ЛЕГЕНДА ===== */
+.legend {
+  padding: 12px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.legendLabel {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.legendColors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ===== СПИСОК ИСТОРИИ ===== */
+.historyList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.historyList::-webkit-scrollbar {
+  width: 4px;
+}
+
+.historyList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.historyList::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+.historyList::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ===== ГРУППА ПО ГОДАМ ===== */
+.yearGroup {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.yearGroup:last-child {
+  border-bottom: none;
+}
+
+.yearHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+  text-align: left;
+}
+
+.yearHeader:hover {
+  background: #f8fafc;
+}
+
+.yearIcon {
+  font-size: 10px;
+  color: #94a3b8;
+  transition: transform 0.2s;
+}
+
+.yearLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.yearCount {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-left: auto;
+}
+
+/* ===== СОДЕРЖИМОЕ ГОДА ===== */
+.yearContent {
+  padding: 0 20px 8px 20px;
+}
+
+/* ===== ГРУППА ПО КУЛЬТУРАМ ===== */
+.cropGroup {
+  margin-bottom: 8px;
+}
+
+.cropGroup:last-child {
+  margin-bottom: 0;
+}
+
+.cropHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.cropDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cropName {
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.cropCount {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-left: auto;
+}
+
+/* ===== СПИСОК ПОСАДОК ===== */
+.plantingList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 16px;
+}
+
+.plantingItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  transition: background 0.15s;
+}
+
+.plantingItem:hover {
+  background: #f8fafc;
+}
+
+.plantingInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.plantingDate {
+  color: #475569;
+}
+
+.plantingHarvest {
+  color: #22c55e;
+  font-weight: 500;
+}
+
+.plantingDays {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.plantingGrowing {
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.plantingCells {
+  font-size: 11px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+/* ===== КНОПКА "РАЗВЕРНУТЬ ВСЁ" ===== */
+.expandAll {
+  padding: 10px 20px;
+  margin: 4px 20px 12px 20px;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.expandAll:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.expandAll:active {
+  transform: scale(0.98);
+}
+
+/* ===== АДАПТИВНОСТЬ ===== */
+
+/* Планшеты */
+@media (max-width: 768px) {
+  .header {
+    padding: 12px 16px;
+  }
+
+  .title {
+    font-size: 15px;
+  }
+
+  .legend {
+    padding: 10px 16px;
+  }
+
+  .yearHeader {
+    padding: 8px 16px;
+  }
+
+  .yearContent {
+    padding: 0 16px 8px 16px;
+  }
+
+  .plantingItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .plantingCells {
+    font-size: 10px;
+    color: #94a3b8;
+  }
+
+  .expandAll {
+    margin: 4px 16px 12px 16px;
+  }
+}
+
+/* Мобильные устройства */
+@media (max-width: 480px) {
+  .container {
+    border-radius: 0;
+  }
+
+  .header {
+    padding: 10px 14px;
+  }
+
+  .title {
+    font-size: 14px;
+  }
+
+  .bedInfo {
+    font-size: 11px;
+  }
+
+  .legend {
+    padding: 8px 14px;
+  }
+
+  .legendColors {
+    gap: 4px 12px;
+  }
+
+  .legendItem {
+    font-size: 11px;
+  }
+
+  .yearHeader {
+    padding: 6px 14px;
+  }
+
+  .yearLabel {
+    font-size: 13px;
+  }
+
+  .yearContent {
+    padding: 0 14px 6px 14px;
+  }
+
+  .cropName {
+    font-size: 12px;
+  }
+
+  .plantingItem {
+    padding: 3px 4px;
+    font-size: 11px;
+  }
+
+  .plantingInfo {
+    gap: 4px;
+  }
+
+  .expandAll {
+    padding: 8px 16px;
+    margin: 4px 14px 10px 14px;
+    font-size: 11px;
+  }
+}
+
+/* ===== ТЕМНАЯ ТЕМА ===== */
+@media (prefers-color-scheme: dark) {
+  .container {
+    background: #0f172a;
+  }
+
+  .header {
+    border-bottom-color: #1e293b;
+  }
+
+  .title {
+    color: #e2e8f0;
+  }
+
+  .bedInfo {
+    color: #64748b;
+  }
+
+  .legend {
+    border-bottom-color: #1e293b;
+  }
+
+  .legendLabel {
+    color: #94a3b8;
+  }
+
+  .legendItem {
+    color: #cbd5e1;
+  }
+
+  .yearGroup {
+    border-bottom-color: #1e293b;
+  }
+
+  .yearHeader:hover {
+    background: #1e293b;
+  }
+
+  .yearLabel {
+    color: #e2e8f0;
+  }
+
+  .yearCount {
+    color: #64748b;
+  }
+
+  .cropName {
+    color: #cbd5e1;
+  }
+
+  .plantingItem:hover {
+    background: #1e293b;
+  }
+
+  .plantingDate {
+    color: #94a3b8;
+  }
+
+  .plantingCells {
+    color: #64748b;
+  }
+
+  .expandAll {
+    background: #1e293b;
+    color: #94a3b8;
+  }
+
+  .expandAll:hover {
+    background: #334155;
+    color: #e2e8f0;
+  }
+
+  .emptyText {
+    color: #cbd5e1;
+  }
+
+  .emptyHint {
+    color: #64748b;
+  }
+
+  .historyList::-webkit-scrollbar-thumb {
+    background: #334155;
+  }
+
+  .historyList::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+  }
+}
+
+/* ===== АНИМАЦИИ ===== */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.yearContent {
+  animation: slideDown 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yearContent {
+    animation: none;
+  }
+}

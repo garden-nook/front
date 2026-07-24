@@ -4,8 +4,11 @@ import addIcon from '../../assets/add.svg';
 import editIcon from '../../assets/edit.svg';
 import deleteIcon from '../../assets/delete.svg';
 import cancelIcon from '../../assets/cancel.svg';
+import minusIcon from '../../assets/minus.svg';
+import logoIcon from '../../assets/logo.svg';
+import cursorIcon from '../../assets/cursor.svg';
 
-type IconType = 'add' | 'edit' | 'delete' | 'cancel';
+type IconType = 'add' | 'edit' | 'delete' | 'cancel' | 'minus' | 'logo' | 'cursor';
 type colorType = 'greenLight' | 'greenDark' | 'red';
 
 interface ActionButtonProps{
@@ -13,7 +16,8 @@ interface ActionButtonProps{
   title?: string;
   icon?: IconType;
   color?: colorType;
-  shape?: 'littleSquare' | 'square' | 'circle' | 'text';
+  shape?: 'littleSquare' | 'square' | 'circle' | 'littleCircle' | 'text';
+  disabled?: boolean;
 }
 
 const iconMap: Record<IconType, string> = {
@@ -21,6 +25,9 @@ const iconMap: Record<IconType, string> = {
   edit: editIcon,
   delete: deleteIcon,
   cancel: cancelIcon,
+  minus: minusIcon,
+  logo: logoIcon,
+  cursor: cursorIcon,
 };
 
 const ActionButton: React.FC<ActionButtonProps> = ({ 
@@ -29,6 +36,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   icon,
   color,
   shape = 'text',
+  disabled = false,
 }) => {
     const classArray = [
     styles.actionBtn,
@@ -39,6 +47,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
     const buttonClasses = classArray
     .filter(Boolean)
     .join(' ');
+  if (disabled) classArray.push(styles.disabled);
   const iconClassArray = [
     styles.icon,
     styles[`icon_${shape}`],
@@ -49,6 +58,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
       onClick={onClick} 
       className={buttonClasses} 
       title={title}
+      disabled={disabled}
     >
        {icon? (
         <img 
