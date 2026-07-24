@@ -36,6 +36,12 @@
   border-radius: 3.2rem;
 }
 
+.littleCircle{
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 1.8rem;
+}
+
 .text {
   width: 15rem;
   height: 3.2rem;
@@ -107,6 +113,11 @@
 .icon_circle {
   width: 3.2rem;
   height: 3.2rem;
+}
+
+.icon_littleCircle {
+  width: 1.6rem;
+  height: 1.6rem;
 }
 
 .icon_text {

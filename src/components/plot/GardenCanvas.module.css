@@ -70,3 +70,24 @@
     left: 4px;
   }
 }
+
+/* ===== КАНВАС ===== */
+.canvasWrapper {
+  flex: 1;
+  position: relative;
+  background: #ffffff;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.canvasWrapper:active {
+  cursor: grabbing;
+}
+
+/* ===== ZOOM CONTROLS ===== */
+.zoomControlsWrapper {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10;
+}

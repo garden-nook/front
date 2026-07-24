@@ -1,86 +1,179 @@
-// src/pages/PlotEditor/components/Canvas/useGardenCanvas.ts
-import { useCallback, useRef } from "react";
-
-// ===== ЛОКАЛЬНЫЕ ТИПЫ (временные) =====
-
-interface GridPosition {
-  row: number;
-  col: number;
-}
-
-interface GridRect {
-  start: GridPosition;
-  end: GridPosition;
-}
-
-interface StaticObject {
-  id: string;
-  name: string;
-  rect: GridRect;
-  color: string;
-  type: "building" | "tree" | "path" | "water";
-}
-
-interface PlantingHistory {
-  id: string;
-  cropId: string;
-  cropName: string;
-  plantedDate: string;
-  harvestDate?: string;
-  cells: GridPosition[];
-  color: string;
-}
-
-interface Bed {
-  id: string;
-  name: string;
-  cells: GridPosition[];
-  plantings: PlantingHistory[];
-  createdAt: string;
-}
+// src/pages/PlotEditor/hooks/useGardenCanvas.ts
+import { useRef, useState, useCallback, useEffect } from "react";
+import type {
+  GardenObject,
+  Bed,
+  GridPosition,
+  GridRect,
+  Rect,
+  Tool,
+  StaticObject,
+} from "../api/types/plot.types";
+import { canvasStyles, staticObjectIcons } from "./canvasStyles";
 
 interface UseGardenCanvasProps {
-  canvasRef: React.RefObject<HTMLCanvasElement>;
-  containerRef: React.RefObject<HTMLDivElement>;
   plotSize: GridRect;
   gridSize: 0.5;
-  staticObjects: StaticObject[];
-  beds: Bed[];
-  viewMode: "planting" | "sun";
-  selectedCells: GridPosition[];
+  objects: GardenObject[];
+  selectedTool: Tool;
+  selectedObject: GardenObject | null;
+  hoveredObject: GardenObject | null;
+  isDrawing: boolean;
+  startCell: GridPosition | null;
+  endCell: GridPosition | null;
+  isDragging: boolean;
+  dragOffset: { row: number; col: number } | null;
+  scale: number;
+  cols: number;
+  rows: number;
+  setScale: (scale: number) => void;
   onCellClick: (row: number, col: number) => void;
+  onRectSelect: (rect: Rect) => void;
+  onObjectSelect: (obj: GardenObject | null) => void;
+  onObjectDelete: (id: string) => void;
+  onContextMenu: (
+    menu: { x: number; y: number; object: GardenObject } | null,
+  ) => void;
+  onHoverObject: (obj: GardenObject | null) => void;
+  resetDrawing: () => void;
+  setStartCell: (cell: GridPosition | null) => void;
+  setEndCell: (cell: GridPosition | null) => void;
+  setIsDrawing: (drawing: boolean) => void;
+  setIsDragging: (dragging: boolean) => void;
+  setDragOffset: (offset: { row: number; col: number } | null) => void;
+  onObjectUpdate?: (obj: GardenObject) => void;
+  isMenuOpen?: boolean;
 }
 
 export const useGardenCanvas = ({
-  canvasRef,
-  containerRef,
   plotSize,
   gridSize,
-  staticObjects,
-  beds,
-  viewMode,
-  selectedCells,
+  objects,
+  selectedTool,
+  selectedObject,
+  hoveredObject,
+  isDrawing,
+  startCell,
+  endCell,
+  isDragging,
+  dragOffset,
+  scale,
+  cols,
+  rows,
+  setScale,
   onCellClick,
+  onRectSelect,
+  onObjectSelect,
+  onObjectDelete,
+  onContextMenu,
+  onHoverObject,
+  resetDrawing,
+  setStartCell,
+  setEndCell,
+  setIsDrawing,
+  setIsDragging,
+  setDragOffset,
+  onObjectUpdate,
+  isMenuOpen = false,
 }: UseGardenCanvasProps) => {
-  const scale = useRef(1);
-  const offset = useRef({ x: 0, y: 0 });
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Конвертация координат
-  const gridToCanvas = useCallback((row: number, col: number) => {
-    const cellSize = 20 * scale.current;
-    return {
-      x: col * cellSize + offset.current.x,
-      y: row * cellSize + offset.current.y,
-    };
-  }, []);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(
+    null,
+  );
+  const [isMiddleButtonDown, setIsMiddleButtonDown] = useState(false);
+
+  const hasData = plotSize && plotSize.start && plotSize.end;
+  const cellSizePx = canvasStyles.sizes.cellBaseSize * scale;
+
+  // ===== ОГРАНИЧЕНИЕ ОФФСЕТА =====
+  const clampOffset = useCallback(
+    (newOffset: { x: number; y: number }) => {
+      const container = containerRef.current;
+      if (!container || !hasData) return newOffset;
+
+      const rect = container.getBoundingClientRect();
+      const totalWidth = cols * cellSizePx;
+      const totalHeight = rows * cellSizePx;
+
+      const maxOffsetX = rect.width / 2;
+      const maxOffsetY = rect.height / 2;
+
+      return {
+        x: Math.max(-maxOffsetX, Math.min(maxOffsetX, newOffset.x)),
+        y: Math.max(-maxOffsetY, Math.min(maxOffsetY, newOffset.y)),
+      };
+    },
+    [cols, rows, cellSizePx, hasData],
+  );
+
+  // ===== ПОЛУЧЕНИЕ ПОЗИЦИИ УЧАСТКА =====
+  const getPlotPosition = useCallback(() => {
+    const container = containerRef.current;
+    if (!container)
+      return { startX: 0, startY: 0, totalWidth: 0, totalHeight: 0 };
+
+    const rect = container.getBoundingClientRect();
+    const totalWidth = cols * cellSizePx;
+    const totalHeight = rows * cellSizePx;
+
+    const startX = (rect.width - totalWidth) / 2 + offset.x;
+    const startY = (rect.height - totalHeight) / 2 + offset.y;
+
+    return { startX, startY, totalWidth, totalHeight, rect };
+  }, [cols, rows, cellSizePx, offset]);
+
+  const getObjectAt = useCallback(
+    (row: number, col: number): GardenObject | null => {
+      for (let i = objects.length - 1; i >= 0; i--) {
+        const obj = objects[i];
+        if (
+          row >= obj.row &&
+          row < obj.row + obj.height &&
+          col >= obj.col &&
+          col < obj.col + obj.width
+        ) {
+          return obj;
+        }
+      }
+      return null;
+    },
+    [objects],
+  );
+
+  // ===== КОНВЕРТАЦИЯ КООРДИНАТ =====
+  const gridToCanvas = useCallback(
+    (row: number, col: number) => {
+      const { startX, startY } = getPlotPosition();
+      return {
+        x: col * cellSizePx + startX,
+        y: row * cellSizePx + startY,
+      };
+    },
+    [cellSizePx, getPlotPosition],
+  );
 
   const getCellFromMouse = useCallback(
-    (x: number, y: number) => {
-      const cellSize = 20 * scale.current;
-      const col = Math.floor((x - offset.current.x) / cellSize);
-      const row = Math.floor((y - offset.current.y) / cellSize);
+    (mouseX: number, mouseY: number) => {
+      if (!hasData) return null;
 
-      // Проверка границ участка
+      const { startX, startY, totalWidth, totalHeight } = getPlotPosition();
+
+      if (
+        mouseX < startX ||
+        mouseX > startX + totalWidth ||
+        mouseY < startY ||
+        mouseY > startY + totalHeight
+      ) {
+        return null;
+      }
+
+      const col = Math.round((mouseX - startX) / cellSizePx);
+      const row = Math.round((mouseY - startY) / cellSizePx);
+
       if (
         row < plotSize.start.row ||
         row > plotSize.end.row ||
@@ -92,10 +185,484 @@ export const useGardenCanvas = ({
 
       return { row, col };
     },
-    [plotSize],
+    [plotSize, cellSizePx, hasData, getPlotPosition],
   );
 
-  // ===== РЕНДЕРИНГ =====
+  // ===== ЦЕНТРИРОВАНИЕ (только при первой загрузке) =====
+  const centerPlot = useCallback(() => {
+    const container = containerRef.current;
+    if (!container || !hasData) return;
+
+    setOffset({ x: 0, y: 0 });
+  }, [hasData]);
+
+  useEffect(() => {
+    centerPlot();
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      render();
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // ===== ГЛОБАЛЬНАЯ БЛОКИРОВКА КОНТЕКСТНОГО МЕНЮ =====
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.body.addEventListener("contextmenu", handleContextMenu);
+
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.body.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
+
+  // ===== КУРСОР =====
+  const getCursor = useCallback(() => {
+    if (isPanning || isMiddleButtonDown) return "grabbing";
+
+    if (selectedTool === "delete") return "not-allowed";
+    if (selectedTool === "view" || selectedTool === "plant") return "default";
+    if (selectedTool === "select") return "grab";
+    if (selectedTool === "addBed" || selectedTool === "addStatic")
+      return "crosshair";
+    return "default";
+  }, [isPanning, isMiddleButtonDown, selectedTool]);
+
+  // ===== БЛОКИРОВКА CANVAS ПРИ ОТКРЫТОМ МЕНЮ =====
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    if (isMenuOpen) {
+      canvas.style.pointerEvents = "none";
+      canvas.style.opacity = "0.9";
+    } else {
+      canvas.style.pointerEvents = "auto";
+      canvas.style.opacity = "1";
+    }
+  }, [isMenuOpen]);
+
+  // ===== ОБРАБОТЧИКИ МЫШИ =====
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      // Если меню открыто - игнорируем все события мыши на canvas
+      if (isMenuOpen) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // ===== СРЕДНЯЯ КНОПКА МЫШИ (ПАНОРАМИРОВАНИЕ) =====
+      if (e.button === 1) {
+        e.preventDefault();
+        setIsMiddleButtonDown(true);
+        setPanStart({ x, y });
+        setIsPanning(true);
+        return;
+      }
+
+      const cell = getCellFromMouse(x, y);
+
+      // ===== ПРАВАЯ КНОПКА МЫШИ (КОНТЕКСТНОЕ МЕНЮ) - В ЛЮБОМ РЕЖИМЕ =====
+      if (e.button === 2) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (cell) {
+          const obj = getObjectAt(cell.row, cell.col);
+          if (obj) {
+            onContextMenu({ x: e.clientX, y: e.clientY, object: obj });
+            onObjectSelect(obj);
+            return;
+          }
+        }
+        onContextMenu(null);
+        return;
+      }
+
+      // ===== ЛЕВАЯ КНОПКА МЫШИ =====
+      if (e.button === 0) {
+        if (!cell) {
+          if (selectedTool === "select") {
+            onObjectSelect(null);
+          }
+          return;
+        }
+
+        // ===== РЕЖИМ ПРОСМОТРА =====
+        if (selectedTool === "view") {
+          const obj = getObjectAt(cell.row, cell.col);
+          if (obj && obj.type === "bed") {
+            onCellClick(cell.row, cell.col);
+            onObjectSelect(obj);
+          }
+          return;
+        }
+
+        // ===== РЕЖИМ ПОСАДКИ =====
+        if (selectedTool === "plant") {
+          const obj = getObjectAt(cell.row, cell.col);
+          if (obj && obj.type === "bed") {
+            onCellClick(cell.row, cell.col);
+            onObjectSelect(obj);
+          }
+          return;
+        }
+
+        // ===== РЕЖИМ РЕДАКТИРОВАНИЯ (select) =====
+        if (selectedTool === "select") {
+          const obj = getObjectAt(cell.row, cell.col);
+          if (obj) {
+            onObjectSelect(obj);
+            setIsDragging(true);
+            setDragOffset({
+              row: cell.row - obj.row,
+              col: cell.col - obj.col,
+            });
+            return;
+          }
+          onObjectSelect(null);
+          return;
+        }
+
+        // ===== РЕЖИМ ДОБАВЛЕНИЯ =====
+        if (selectedTool === "addStatic" || selectedTool === "addBed") {
+          setIsDrawing(true);
+          setStartCell(cell);
+          setEndCell(cell);
+          return;
+        }
+
+        // ===== РЕЖИМ УДАЛЕНИЯ =====
+        if (selectedTool === "delete") {
+          const obj = getObjectAt(cell.row, cell.col);
+          if (obj) {
+            onObjectDelete(obj.id);
+          }
+          return;
+        }
+      }
+    },
+    [
+      selectedTool,
+      getCellFromMouse,
+      getObjectAt,
+      onContextMenu,
+      onObjectSelect,
+      setIsDragging,
+      setDragOffset,
+      onObjectDelete,
+      onCellClick,
+      setStartCell,
+      setEndCell,
+      setIsDrawing,
+      isMenuOpen,
+    ],
+  );
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      // Если меню открыто - игнорируем все события мыши на canvas
+      if (isMenuOpen) return;
+
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const cell = getCellFromMouse(x, y);
+
+      // ===== ПАНОРАМИРОВАНИЕ (средняя кнопка) =====
+      if (isPanning && panStart) {
+        const dx = x - panStart.x;
+        const dy = y - panStart.y;
+
+        const newOffset = clampOffset({
+          x: offset.x + dx,
+          y: offset.y + dy,
+        });
+
+        setOffset(newOffset);
+        setPanStart({ x, y });
+        return;
+      }
+
+      // ===== ОБНОВЛЕНИЕ НАВЕДЕНИЯ =====
+      if (
+        cell &&
+        (selectedTool === "select" ||
+          selectedTool === "view" ||
+          selectedTool === "plant")
+      ) {
+        const obj = getObjectAt(cell.row, cell.col);
+        if (obj?.id !== hoveredObject?.id) {
+          onHoverObject(obj || null);
+        }
+      } else {
+        if (hoveredObject) {
+          onHoverObject(null);
+        }
+      }
+
+      // ===== ПЕРЕТАСКИВАНИЕ ОБЪЕКТОВ (только в режиме select) =====
+      if (
+        isDragging &&
+        selectedObject &&
+        dragOffset &&
+        cell &&
+        selectedTool === "select"
+      ) {
+        const newRow = cell.row - dragOffset.row;
+        const newCol = cell.col - dragOffset.col;
+
+        if (
+          newRow < 0 ||
+          newCol < 0 ||
+          newRow + selectedObject.height > rows ||
+          newCol + selectedObject.width > cols
+        ) {
+          return;
+        }
+
+        const otherObjects = objects.filter(
+          (obj) => obj.id !== selectedObject.id,
+        );
+        const hasOverlap = otherObjects.some(
+          (obj) =>
+            !(
+              obj.col + obj.width <= newCol ||
+              newCol + selectedObject.width <= obj.col ||
+              obj.row + obj.height <= newRow ||
+              newRow + selectedObject.height <= obj.row
+            ),
+        );
+
+        if (hasOverlap) return;
+
+        const updatedObj = { ...selectedObject, row: newRow, col: newCol };
+        onObjectSelect(updatedObj);
+
+        if (onObjectUpdate) {
+          onObjectUpdate(updatedObj);
+        }
+      }
+
+      // ===== РИСОВАНИЕ =====
+      if (
+        isDrawing &&
+        cell &&
+        (selectedTool === "addBed" || selectedTool === "addStatic")
+      ) {
+        setEndCell(cell);
+      }
+    },
+    [
+      isPanning,
+      panStart,
+      isDragging,
+      selectedObject,
+      dragOffset,
+      getCellFromMouse,
+      getObjectAt,
+      selectedTool,
+      rows,
+      cols,
+      objects,
+      onHoverObject,
+      hoveredObject,
+      onObjectSelect,
+      setEndCell,
+      isDrawing,
+      onObjectUpdate,
+      offset,
+      clampOffset,
+      isMenuOpen,
+    ],
+  );
+
+  const handleMouseUp = useCallback(
+    (e: React.MouseEvent) => {
+      // Если меню открыто - игнорируем все события мыши на canvas
+      if (isMenuOpen) return;
+
+      // ===== ЗАВЕРШЕНИЕ ПАНОРАМИРОВАНИЯ =====
+      if (e.button === 1) {
+        setIsMiddleButtonDown(false);
+        setIsPanning(false);
+        setPanStart(null);
+        return;
+      }
+
+      if (isPanning) {
+        setIsPanning(false);
+        setPanStart(null);
+        return;
+      }
+
+      if (isDragging) {
+        setIsDragging(false);
+        setDragOffset(null);
+        if (selectedObject && onObjectUpdate) {
+          onObjectUpdate(selectedObject);
+        }
+        return;
+      }
+
+      if (!isDrawing) {
+        resetDrawing();
+        return;
+      }
+
+      if (
+        startCell &&
+        endCell &&
+        (selectedTool === "addBed" || selectedTool === "addStatic")
+      ) {
+        const row = Math.min(startCell.row, endCell.row);
+        const col = Math.min(startCell.col, endCell.col);
+        const width = Math.abs(endCell.col - startCell.col) + 1;
+        const height = Math.abs(endCell.row - startCell.row) + 1;
+
+        if (width === 0 || height === 0) {
+          resetDrawing();
+          return;
+        }
+
+        const rect = { row, col, width, height };
+
+        if (row < 0 || col < 0 || row + height > rows || col + width > cols) {
+          alert("❌ Объект выходит за границы участка!");
+          resetDrawing();
+          return;
+        }
+
+        const hasOverlap = objects.some(
+          (obj) =>
+            !(
+              obj.col + obj.width <= col ||
+              col + width <= obj.col ||
+              obj.row + obj.height <= row ||
+              row + height <= obj.row
+            ),
+        );
+
+        if (hasOverlap) {
+          const overlapping = objects.filter(
+            (obj) =>
+              !(
+                obj.col + obj.width <= col ||
+                col + width <= obj.col ||
+                obj.row + obj.height <= row ||
+                row + height <= obj.row
+              ),
+          );
+          const names = overlapping.map((o) => o.name).join(", ");
+          alert(`❌ Пересечение с: ${names}`);
+          resetDrawing();
+          return;
+        }
+
+        onRectSelect(rect);
+      }
+
+      resetDrawing();
+    },
+    [
+      isPanning,
+      isDragging,
+      isDrawing,
+      startCell,
+      endCell,
+      objects,
+      rows,
+      cols,
+      resetDrawing,
+      onRectSelect,
+      selectedObject,
+      setIsDragging,
+      setDragOffset,
+      onObjectUpdate,
+      selectedTool,
+      isMenuOpen,
+    ],
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    if (isPanning) {
+      setIsPanning(false);
+      setPanStart(null);
+      setIsMiddleButtonDown(false);
+    }
+    if (isDrawing || isDragging) resetDrawing();
+    onHoverObject(null);
+  }, [isPanning, isDrawing, isDragging, resetDrawing, onHoverObject]);
+
+  // ===== ЗУМ (колесико мыши) =====
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      e.preventDefault();
+
+      // Если меню открыто - игнорируем
+      if (isMenuOpen) return;
+
+      if (isMiddleButtonDown || isPanning) return;
+
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const { startX, startY } = getPlotPosition();
+      const worldX = (mouseX - startX) / cellSizePx;
+      const worldY = (mouseY - startY) / cellSizePx;
+
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      const newScale = Math.max(0.3, Math.min(3, scale + delta));
+
+      const newCellSize = canvasStyles.sizes.cellBaseSize * newScale;
+      const newTotalWidth = cols * newCellSize;
+      const newTotalHeight = rows * newCellSize;
+
+      let newOffsetX =
+        mouseX - worldX * newCellSize - (rect.width - newTotalWidth) / 2;
+      let newOffsetY =
+        mouseY - worldY * newCellSize - (rect.height - newTotalHeight) / 2;
+
+      const clamped = clampOffset({ x: newOffsetX, y: newOffsetY });
+      newOffsetX = clamped.x;
+      newOffsetY = clamped.y;
+
+      setScale(newScale);
+      setOffset({ x: newOffsetX, y: newOffsetY });
+    },
+    [
+      scale,
+      cellSizePx,
+      cols,
+      rows,
+      getPlotPosition,
+      setScale,
+      isMiddleButtonDown,
+      isPanning,
+      clampOffset,
+      isMenuOpen,
+    ],
+  );
+
+  // ===== ОТРИСОВКА =====
   const render = useCallback(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
@@ -106,151 +673,212 @@ export const useGardenCanvas = ({
 
     const dpr = window.devicePixelRatio || 1;
     const rect = container.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    canvas.style.width = `${rect.width}px`;
+    canvas.style.height = `${rect.height}px`;
+
     ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, rect.width, rect.height);
 
-    const cellSize = 20 * scale.current;
-    const rows = plotSize.end.row - plotSize.start.row + 1;
-    const cols = plotSize.end.col - plotSize.start.col + 1;
+    ctx.fillStyle = canvasStyles.background;
+    ctx.fillRect(0, 0, rect.width, rect.height);
 
-    // 1. СЕТКА
-    ctx.strokeStyle = "#e2e8f0";
-    ctx.lineWidth = 0.5;
-
-    for (let r = 0; r <= rows; r++) {
-      const y = r * cellSize + offset.current.y;
-      ctx.beginPath();
-      ctx.moveTo(offset.current.x, y);
-      ctx.lineTo(offset.current.x + cols * cellSize, y);
-      ctx.stroke();
-    }
-
-    for (let c = 0; c <= cols; c++) {
-      const x = c * cellSize + offset.current.x;
-      ctx.beginPath();
-      ctx.moveTo(x, offset.current.y);
-      ctx.lineTo(x, offset.current.y + rows * cellSize);
-      ctx.stroke();
-    }
-
-    // 2. СТАЦИОНАРНЫЕ ОБЪЕКТЫ
-    staticObjects.forEach((obj) => {
-      const start = gridToCanvas(obj.rect.start.row, obj.rect.start.col);
-      const end = gridToCanvas(obj.rect.end.row + 1, obj.rect.end.col + 1);
-      const width = end.x - start.x;
-      const height = end.y - start.y;
-
-      ctx.fillStyle = obj.color || "#8B7355";
-      ctx.fillRect(start.x, start.y, width, height);
-
-      ctx.strokeStyle = "#4a3728";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(start.x, start.y, width, height);
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "12px system-ui";
+    if (!hasData) {
+      ctx.fillStyle = canvasStyles.text.colors.secondary;
+      ctx.font = `${canvasStyles.sizes.fontSize.medium}px ${canvasStyles.text.fontFamily}`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(obj.name, start.x + width / 2, start.y + height / 2);
-    });
-
-    // 3. ЗОНЫ ОСВЕЩЕНИЯ (если включено)
-    if (viewMode === "sun") {
-      // TODO: добавить отрисовку зон освещения
-      // Используйте testSunZones из testPlotData
+      ctx.fillText(
+        "Нет данных для отображения",
+        rect.width / 2,
+        rect.height / 2,
+      );
+      return;
     }
 
-    // 4. ГРЯДКИ И ПОСАДКИ
-    beds.forEach((bed) => {
-      bed.cells.forEach((cell) => {
-        const pos = gridToCanvas(cell.row, cell.col);
+    const { startX, startY, totalWidth, totalHeight } = getPlotPosition();
 
-        const activePlanting = bed.plantings.find(
-          (planting) =>
-            planting.cells.some(
-              (c) => c.row === cell.row && c.col === cell.col,
-            ) && !planting.harvestDate,
-        );
+    // СЕТКА
+    ctx.strokeStyle = canvasStyles.grid.color;
+    ctx.lineWidth = canvasStyles.grid.lineWidth;
+    for (let r = 0; r <= rows; r++) {
+      const y = startY + r * cellSizePx;
+      ctx.beginPath();
+      ctx.moveTo(startX, y);
+      ctx.lineTo(startX + totalWidth, y);
+      ctx.stroke();
+    }
+    for (let c = 0; c <= cols; c++) {
+      const x = startX + c * cellSizePx;
+      ctx.beginPath();
+      ctx.moveTo(x, startY);
+      ctx.lineTo(x, startY + totalHeight);
+      ctx.stroke();
+    }
 
+    // ОБЪЕКТЫ
+    objects.forEach((obj) => {
+      const x = startX + obj.col * cellSizePx;
+      const y = startY + obj.row * cellSizePx;
+      const width = obj.width * cellSizePx;
+      const height = obj.height * cellSizePx;
+
+      const isSelected = selectedObject?.id === obj.id;
+      const isHovered = hoveredObject?.id === obj.id;
+
+      ctx.fillStyle = obj.color;
+      ctx.globalAlpha =
+        obj.type === "bed"
+          ? canvasStyles.objects.bed.fillAlpha
+          : canvasStyles.objects.static.fillAlpha;
+      ctx.fillRect(x, y, width, height);
+      ctx.globalAlpha = 1;
+
+      if (isSelected) {
+        ctx.strokeStyle = canvasStyles.objects.selected.strokeColor;
+        ctx.lineWidth = canvasStyles.objects.selected.strokeWidth;
+      } else if (obj.type === "bed") {
+        ctx.strokeStyle = canvasStyles.objects.bed.strokeColor;
+        ctx.lineWidth = canvasStyles.objects.bed.strokeWidth;
+      } else {
+        ctx.strokeStyle = canvasStyles.objects.static.strokeColor;
+        ctx.lineWidth = canvasStyles.objects.static.strokeWidth;
+      }
+
+      if (isHovered && !isSelected) {
+        ctx.setLineDash(canvasStyles.objects.hovered.dashPattern);
+      }
+      ctx.strokeRect(x, y, width, height);
+      ctx.setLineDash([]);
+
+      if (obj.type === "bed") {
+        const bed = obj as Bed;
+        const activePlanting = bed.plantings.find((p) => !p.harvestDate);
         if (activePlanting) {
-          ctx.fillStyle = activePlanting.color || "#22c55e";
-          ctx.fillRect(pos.x, pos.y, cellSize, cellSize);
-
-          ctx.fillStyle = "#ffffff";
-          ctx.font = "10px system-ui";
+          ctx.fillStyle = canvasStyles.text.colors.light;
+          ctx.font = `${canvasStyles.sizes.fontSize.large}px ${canvasStyles.text.fontFamily}`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.fillText("🌱", pos.x + cellSize / 2, pos.y + cellSize / 2);
+          ctx.fillText("🌱", x + width / 2, y + height / 2 - 8);
+          ctx.fillStyle = canvasStyles.text.colors.light;
+          ctx.font = `${canvasStyles.sizes.fontSize.small}px ${canvasStyles.text.fontFamily}`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "top";
+          ctx.fillText(
+            activePlanting.cropName,
+            x + width / 2,
+            y + height / 2 + 16,
+          );
         } else {
-          ctx.fillStyle = "#f0fdf4";
-          ctx.fillRect(pos.x, pos.y, cellSize, cellSize);
+          ctx.fillStyle = canvasStyles.text.colors.light;
+          ctx.font = `${canvasStyles.sizes.fontSize.medium}px ${canvasStyles.text.fontFamily}`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("🌱", x + width / 2, y + height / 2 - 4);
+          ctx.fillStyle = canvasStyles.text.colors.light;
+          ctx.font = `${canvasStyles.sizes.fontSize.small}px ${canvasStyles.text.fontFamily}`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "top";
+          ctx.fillText(bed.name, x + width / 2, y + height / 2 + 12);
         }
-
-        ctx.strokeStyle = "#94a3b8";
-        ctx.lineWidth = 0.5;
-        ctx.strokeRect(pos.x, pos.y, cellSize, cellSize);
-      });
-
-      if (bed.cells.length > 0) {
-        const firstCell = bed.cells[0];
-        const pos = gridToCanvas(firstCell.row, firstCell.col);
-        ctx.fillStyle = "#475569";
-        ctx.font = "10px system-ui";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "bottom";
-        ctx.fillText(bed.name, pos.x + 2, pos.y - 2);
+      } else {
+        const staticObj = obj as StaticObject;
+        const icon = staticObjectIcons[staticObj.subtype] || "📦";
+        ctx.fillStyle = canvasStyles.text.colors.light;
+        ctx.font = `${canvasStyles.sizes.fontSize.large}px ${canvasStyles.text.fontFamily}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(icon, x + width / 2, y + height / 2 - 6);
+        ctx.fillStyle = canvasStyles.text.colors.light;
+        ctx.font = `${canvasStyles.sizes.fontSize.medium}px ${canvasStyles.text.fontFamily}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText(obj.name, x + width / 2, y + height / 2 + 8);
       }
     });
 
-    // 5. ВЫДЕЛЕНИЕ
-    selectedCells.forEach((cell) => {
-      const pos = gridToCanvas(cell.row, cell.col);
-      ctx.fillStyle = "rgba(34, 197, 94, 0.3)";
-      ctx.fillRect(pos.x, pos.y, cellSize, cellSize);
-      ctx.strokeStyle = "#22c55e";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(pos.x, pos.y, cellSize, cellSize);
-    });
+    // ВЫДЕЛЕНИЕ ПРИ РИСОВАНИИ
+    if (isDrawing && startCell && endCell) {
+      const row = Math.min(startCell.row, endCell.row);
+      const col = Math.min(startCell.col, endCell.col);
+      const width = (Math.abs(endCell.col - startCell.col) + 1) * cellSizePx;
+      const height = (Math.abs(endCell.row - startCell.row) + 1) * cellSizePx;
+      const x = startX + col * cellSizePx;
+      const y = startY + row * cellSizePx;
 
-    // 6. ИНФОРМАЦИЯ О МАСШТАБЕ
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "11px system-ui";
-    ctx.textAlign = "right";
-    ctx.textBaseline = "bottom";
-    ctx.fillText(
-      `Масштаб: ${Math.round(scale.current * 100)}%`,
-      rect.width - 20,
-      rect.height - 10,
-    );
-  }, [plotSize, staticObjects, beds, viewMode, selectedCells, gridToCanvas]);
+      ctx.fillStyle = canvasStyles.drawing.color;
+      ctx.globalAlpha = canvasStyles.drawing.fillAlpha;
+      ctx.fillRect(x, y, width, height);
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = canvasStyles.drawing.color;
+      ctx.lineWidth = canvasStyles.drawing.strokeWidth;
+      ctx.setLineDash(canvasStyles.drawing.dashPattern);
+      ctx.strokeRect(x, y, width, height);
+      ctx.setLineDash([]);
+    }
+  }, [
+    plotSize,
+    objects,
+    selectedObject,
+    hoveredObject,
+    isDrawing,
+    startCell,
+    endCell,
+    scale,
+    cols,
+    rows,
+    cellSizePx,
+    gridSize,
+    hasData,
+    getPlotPosition,
+    selectedTool,
+  ]);
+
+  // ===== РЕСАЙЗ =====
+  useEffect(() => {
+    const resize = () => {
+      if (!containerRef.current || !canvasRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvasRef.current.width = rect.width * dpr;
+      canvasRef.current.height = rect.height * dpr;
+      canvasRef.current.style.width = `${rect.width}px`;
+      canvasRef.current.style.height = `${rect.height}px`;
+      render();
+    };
+    resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, [render]);
+
+  useEffect(() => {
+    render();
+  }, [render]);
 
   return {
-    render,
-    setScale: (s: number) => {
-      scale.current = s;
-      render();
-    },
-    setOffset: (x: number, y: number) => {
-      offset.current = { x, y };
-      render();
-    },
+    canvasRef,
+    containerRef,
+    offset,
+    setOffset,
+    isPanning,
+    setIsPanning,
+    panStart,
+    setPanStart,
+    getPlotPosition,
+    getObjectAt,
+    gridToCanvas,
     getCellFromMouse,
-    getRectFromMouse: (x1: number, y1: number, x2: number, y2: number) => {
-      const start = getCellFromMouse(x1, y1);
-      const end = getCellFromMouse(x2, y2);
-      if (!start || !end) return null;
-      return {
-        start: {
-          row: Math.min(start.row, end.row),
-          col: Math.min(start.col, end.col),
-        },
-        end: {
-          row: Math.max(start.row, end.row),
-          col: Math.max(start.col, end.col),
-        },
-      };
-    },
+    centerPlot,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleMouseLeave,
+    handleWheel,
+    render,
+    getCursor,
   };
 };
 

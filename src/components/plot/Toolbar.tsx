@@ -1,142 +1,193 @@
-// src/components/plot/Toolbar/Toolbar.tsx
-import React from 'react';
+// src/pages/PlotEditor/components/plot/Toolbar.tsx
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import styles from './Toolbar.module.css';
-
-// ===== ЛОКАЛЬНЫЕ ТИПЫ =====
-
-interface GridPosition {
-  row: number;
-  col: number;
-}
-
-interface GridRect {
-  start: GridPosition;
-  end: GridPosition;
-}
-
-interface StaticObject {
-  id: string;
-  name: string;
-  rect: GridRect;
-  color: string;
-  type: "building" | "tree" | "path" | "water";
-}
-
-interface Bed {
-  id: string;
-  name: string;
-  cells: GridPosition[];
-  plantings: any[];
-  createdAt: string;
-}
+import { STATIC_LABELS } from '../../hooks/usePlotEditor';
+import type { Tool, Subtype, GardenObject, Rect } from '../../api/types/plot.types';
+import ActionButton from '../UI/ActionButton';
+import AddBedModal from './modals/AddBedModal';
 
 interface ToolbarProps {
-  selectedTool: 'select' | 'addBed' | 'addStatic' | 'resize';
-  onToolSelect: (tool: 'select' | 'addBed' | 'addStatic' | 'resize') => void;
-  onAddStaticObject: (rect: GridRect) => void;  // ← Исправлено: принимает GridRect
-  onAddBed: (cells: GridPosition[]) => void;    // ← Исправлено: принимает массив клеток
-  onUpdatePlotSize: (rect: GridRect) => void;
-  isSelecting?: boolean;
+  selectedTool: Tool;
+  onToolSelect: (tool: Tool) => void;
+  selectedSubtype: Subtype;
+  onSubtypeSelect: (subtype: Subtype) => void;
+  selectedObject: GardenObject | null;
+  onClearAll: () => void;
+  onAddBed: (name: string, rect: Rect) => void;
+  pendingBedRect: Rect | null;
+  onPendingBedRectClear: () => void;
+  onMenuOpenChange?: (isOpen: boolean) => void;
+  isDrawing?: boolean;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
   selectedTool,
   onToolSelect,
-  onAddStaticObject,
+  selectedSubtype,
+  onSubtypeSelect,
+  selectedObject,
+  onClearAll,
   onAddBed,
-  onUpdatePlotSize,
-  isSelecting = false,
+  pendingBedRect,
+  onPendingBedRectClear,
+  onMenuOpenChange,
+  isDrawing = false,
 }) => {
-  // ===== ОБРАБОТЧИКИ =====
-  const handleAddBed = () => {
-    // Создаем тестовую грядку 3x3
-    const cells = [];
-    for (let r = 0; r < 3; r++) {
-      for (let c = 0; c < 3; c++) {
-        cells.push({ row: r, col: c });
-      }
+  const [showAddBedModal, setShowAddBedModal] = useState(false);
+  const [defaultBedName, setDefaultBedName] = useState('');
+  const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
+  const submenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!selectedTool || selectedTool === 'select') {
+      onToolSelect('view');
     }
-    onAddBed(cells);
-    onToolSelect('select');
+  }, []);
+
+  useEffect(() => {
+    if (pendingBedRect) {
+      const bedCount = document.querySelectorAll('[data-type="bed"]').length || 0;
+      setDefaultBedName(`Грядка ${bedCount + 1}`);
+      setShowAddBedModal(true);
+    }
+  }, [pendingBedRect]);
+
+  // Обработчик открытия/закрытия подменю
+  const handleSubmenuToggle = useCallback((isOpen: boolean) => {
+    setIsSubmenuOpen(isOpen);
+    if (onMenuOpenChange) {
+      onMenuOpenChange(isOpen);
+    }
+  }, [onMenuOpenChange]);
+
+  const isViewOrPlantMode = selectedTool === 'view' || selectedTool === 'plant';
+  const isSelectMode = selectedTool === 'select';
+  const isAddMode = selectedTool === 'addBed' || selectedTool === 'addStatic';
+
+  const handleAddBedSave = (name: string) => {
+    if (pendingBedRect) {
+      onAddBed(name, pendingBedRect);
+      onPendingBedRectClear();
+    }
+    setShowAddBedModal(false);
   };
 
-  const handleAddStaticObject = () => {
-    // Создаем тестовый объект 2x2
-    const rect = {
-      start: { row: 0, col: 0 },
-      end: { row: 1, col: 1 },
-    };
-    onAddStaticObject(rect);
-    onToolSelect('select');
-  };
-
-  const handleResize = () => {
-    // Пример изменения размера участка
-    const rect = {
-      start: { row: 0, col: 0 },
-      end: { row: 20, col: 20 },
-    };
-    onUpdatePlotSize(rect);
-    onToolSelect('select');
+  const handleAddBedModalClose = () => {
+    setShowAddBedModal(false);
+    onPendingBedRectClear();
   };
 
   return (
-    <div className={styles.toolbar}>
-      <button
-        className={selectedTool === 'select' ? styles.active : ''}
-        onClick={() => onToolSelect('select')}
-        title="Выбрать объекты"
-      >
-        🖱️ Выбрать
-      </button>
+    <>
+      <div className={styles.toolbarWrapper}>
+        <div className={styles.toolbarRow}>
+          <ActionButton
+            onClick={() => {
+              if (selectedTool === 'view') {
+                onToolSelect('plant');
+              } else if (selectedTool === 'plant') {
+                onToolSelect('view');
+              } else {
+                onToolSelect('view');
+              }
+            }}
+            title="Просмотр и посадка"
+            icon="logo"
+            shape="littleCircle"
+            color={isViewOrPlantMode ? 'greenLight' : undefined}
+          />
 
-      <button
-        className={selectedTool === 'addBed' ? styles.active : ''}
-        onClick={() => {
-          onToolSelect('addBed');
-          if (selectedTool === 'addBed') {
-            handleAddBed();
-          }
-        }}
-        title="Создать грядку (выделите область на участке)"
-      >
-        📐 Грядка
-        {selectedTool === 'addBed' && isSelecting && (
-          <span className={styles.tooltip}>Выделите область на участке</span>
-        )}
-      </button>
+          <ActionButton
+            onClick={() => onToolSelect('select')}
+            title="Редактирование объектов"
+            icon="edit"
+            shape="littleCircle"
+            color={isSelectMode ? 'greenLight' : undefined}
+          />
 
-      <button
-        className={selectedTool === 'addStatic' ? styles.active : ''}
-        onClick={() => {
-          onToolSelect('addStatic');
-          if (selectedTool === 'addStatic') {
-            handleAddStaticObject();
-          }
-        }}
-        title="Добавить стационарный объект (выделите область на участке)"
-      >
-        🏠 Объект
-        {selectedTool === 'addStatic' && isSelecting && (
-          <span className={styles.tooltip}>Выделите область на участке</span>
-        )}
-      </button>
+          <div 
+            ref={submenuRef}
+            className={styles.submenu}
+            onMouseEnter={() => {
+              // При входе в меню - блокируем canvas
+              if (onMenuOpenChange) {
+                onMenuOpenChange(true);
+              }
+            }}
+            onMouseLeave={() => {
+              // При выходе из меню - разблокируем canvas
+              if (onMenuOpenChange) {
+                onMenuOpenChange(false);
+              }
+            }}
+          >
+            <ActionButton
+              onClick={() => {
+                if (!isAddMode) {
+                  onToolSelect('addBed');
+                }
+              }}
+              title="Добавить объект"
+              icon="add"
+              shape="littleCircle"
+              color={isAddMode ? 'greenLight' : undefined}
+            />
+            {isAddMode && (
+              <div 
+                className={styles.submenuItems}
+                onMouseEnter={() => {
+                  if (onMenuOpenChange) {
+                    onMenuOpenChange(true);
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (onMenuOpenChange) {
+                    onMenuOpenChange(false);
+                  }
+                }}
+              >
+                <button
+                  className={selectedTool === 'addBed' ? styles.active : ''}
+                  onClick={() => {
+                    onToolSelect('addBed');
+                    onSubtypeSelect('building');
+                  }}
+                >
+                  🌱 Грядка
+                </button>
+                {(['building', 'tree', 'path', 'water'] as const).map(subtype => (
+                  <button
+                    key={subtype}
+                    className={selectedTool === 'addStatic' && selectedSubtype === subtype ? styles.active : ''}
+                    onClick={() => {
+                      onToolSelect('addStatic');
+                      onSubtypeSelect(subtype);
+                    }}
+                  >
+                    {STATIC_LABELS[subtype]}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-      <button
-        className={selectedTool === 'resize' ? styles.active : ''}
-        onClick={handleResize}
-        title="Изменить размер участка"
-      >
-        📏 Изменить участок
-      </button>
+          <ActionButton
+            onClick={onClearAll}
+            title="Удалить все объекты"
+            icon="delete"
+            shape="littleCircle"
+            color="red"
+          />
+        </div>
+      </div>
 
-      {selectedTool === 'addBed' && (
-        <span className={styles.hint}>Выделите прямоугольную область на участке</span>
-      )}
-      {selectedTool === 'addStatic' && (
-        <span className={styles.hint}>Выделите прямоугольную область на участке</span>
-      )}
-    </div>
+      <AddBedModal
+        open={showAddBedModal}
+        onSave={handleAddBedSave}
+        onClose={handleAddBedModalClose}
+        defaultName={defaultBedName}
+      />
+    </>
   );
 };
 
