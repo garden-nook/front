@@ -1,9 +1,8 @@
-// src/components/Test.tsx
+// src/pages/Test.tsx
 import React, { useState } from 'react';
-import { authApi, type LoginRequest, type RegisterRequest } from '../api';
+import { authApi } from '../api/endpoints/auth';
 
 export const Test: React.FC = () => {
-  // ===== СОСТОЯНИЕ =====
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -11,9 +10,8 @@ export const Test: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const hasToken = !!localStorage.getItem('token');
+  const hasToken = !!localStorage.getItem('access_token');
 
-  // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
   const log = (type: 'success' | 'error' | 'info', message: string, data?: any) => {
     console.log(`${type.toUpperCase()}:`, message, data || '');
     setResult({ type, message, data });
@@ -40,7 +38,6 @@ export const Test: React.FC = () => {
     }
   };
 
-  // ===== ОПЕРАЦИИ =====
   const register = async () => {
     if (!displayName || !email || !password) {
       setError('Заполните все поля');
@@ -53,10 +50,11 @@ export const Test: React.FC = () => {
       password,
     });
 
-    if (response.success && response.data?.user_id) {
-      log('success', '✅ Регистрация успешна!', response.data);
+    const data = response.data;
+    if (data.success && data.data?.user_id) {
+      log('success', '✅ Регистрация успешна!', data.data);
     } else {
-      throw new Error(response.error || 'Ошибка регистрации');
+      throw new Error(data.error || 'Ошибка регистрации');
     }
   };
 
@@ -67,27 +65,29 @@ export const Test: React.FC = () => {
     }
 
     const response = await authApi.login({ email, password });
+    const data = response.data;
 
-    if (response.success && response.data?.access_token) {
-      localStorage.setItem('token', response.data.access_token);
-      log('success', '✅ Вход успешен!', response.data);
+    if (data.success && data.data?.access_token) {
+      localStorage.setItem('access_token', data.data.access_token);
+      log('success', '✅ Вход успешен!', data.data);
     } else {
-      throw new Error(response.error || 'Ошибка входа');
+      throw new Error(data.error || 'Ошибка входа');
     }
   };
 
   const getProfile = async () => {
     const response = await authApi.getMe();
+    const data = response.data;
 
-    if (response.success && response.data?.id) {
-      log('success', '✅ Профиль получен!', response.data);
+    if (data.success && data.data?.id) {
+      log('success', '✅ Профиль получен!', data.data);
     } else {
-      throw new Error(response.error || 'Ошибка получения профиля');
+      throw new Error(data.error || 'Ошибка получения профиля');
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
     setResult(null);
     setError(null);
     log('info', '🔓 Выход выполнен');
@@ -97,7 +97,6 @@ export const Test: React.FC = () => {
     <div style={styles.container}>
       <h1 style={styles.title}>🧪 Тестирование API</h1>
 
-      {/* ===== ПОЛЯ ВВОДА ===== */}
       <div style={styles.fields}>
         <div>
           <h3 style={styles.subtitle}>👤 Пользователь</h3>
@@ -127,9 +126,9 @@ export const Test: React.FC = () => {
         <div style={styles.info}>
           <strong>📋 Структура ответов:</strong>
           <ul style={styles.list}>
-            <li><strong>Регистрация:</strong> <code>response.data.user_id</code></li>
-            <li><strong>Вход:</strong> <code>response.data.access_token</code></li>
-            <li><strong>Профиль:</strong> <code>response.data.id</code></li>
+            <li><strong>Регистрация:</strong> <code>response.data.data.user_id</code></li>
+            <li><strong>Вход:</strong> <code>response.data.data.access_token</code></li>
+            <li><strong>Профиль:</strong> <code>response.data.data.id</code></li>
           </ul>
           <div style={styles.hint}>
             <strong>ℹ️ Токен автоматически добавляется интерцептором</strong>
@@ -137,7 +136,6 @@ export const Test: React.FC = () => {
         </div>
       </div>
 
-      {/* ===== КНОПКИ ===== */}
       <div style={styles.buttons}>
         <button onClick={() => withLoading(register)} disabled={loading} style={buttonStyle('#22c55e')}>
           {loading ? '⏳' : '📝'} Регистрация
@@ -153,7 +151,6 @@ export const Test: React.FC = () => {
         </button>
       </div>
 
-      {/* ===== СТАТУСЫ ===== */}
       {loading && <div style={styles.status}>⏳ Выполняется запрос...</div>}
       {error && <div style={styles.error}>❌ {error}</div>}
 
@@ -166,12 +163,10 @@ export const Test: React.FC = () => {
         </div>
       )}
 
-      {/* ===== СТАТУС ТОКЕНА ===== */}
       <div style={{ ...styles.tokenStatus, ...(hasToken ? styles.tokenExists : styles.tokenMissing) }}>
         <strong>🔑 Статус токена:</strong> {hasToken ? '✅ Есть' : '❌ Нет'}
       </div>
 
-      {/* ===== ИНСТРУКЦИИ ===== */}
       <div style={styles.instructions}>
         <strong>💡 Инструкция:</strong>
         <ol style={styles.instructionsList}>
@@ -187,7 +182,6 @@ export const Test: React.FC = () => {
   );
 };
 
-// ===== СТИЛИ =====
 const styles: Record<string, React.CSSProperties> = {
   container: {
     maxWidth: '800px',
@@ -218,6 +212,9 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
     padding: '6px 8px',
     marginBottom: '6px',
+    border: '1px solid #d1d5db',
+    borderRadius: '4px',
+    boxSizing: 'border-box',
   },
   info: {
     padding: '12px',
@@ -332,7 +329,6 @@ const buttonStyle = (color: string): React.CSSProperties => ({
   transition: 'all 0.2s',
 });
 
-// Добавляем глобальные стили для кнопок
 const style = document.createElement('style');
 style.textContent = `
   button:hover:not(:disabled) {

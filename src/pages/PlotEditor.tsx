@@ -166,6 +166,10 @@ export const PlotEditor: React.FC = () => {
     }
   }, [objects, setSelectedBed]);
 
+  // ✅ ИСПРАВЛЕНО: используем display_name вместо firstName
+  const displayName = user.display_name || 'Пользователь';
+  const userId = user.id || 'user';
+
   return (
     <div className={styles.container}>
       <div className={styles.toolbarWrapper}>

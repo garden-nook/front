@@ -1,13 +1,13 @@
 .card {
   background-color: white;
   border-radius: 20px;
-  overflow: hidden;
+  padding: 16px 18px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   text-decoration: none;
   color: inherit;
   display: block;
   transition: all 0.2s;
-  max-width: 220px;
+  max-width: 100%;
   border: 1px solid #E5E7EB;
 }
 
@@ -17,30 +17,19 @@
   border-color: #22C55E;
 }
 
-.header {
-  padding: 12px 14px 0px 14px;
-  text-align: center;
-}
-
 .title {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: #1F2937;
-  margin: 0 0 2px 0;
-}
-
-.family {
-  font-size: 12px;
-  color: #6B7280;
-  margin: 0 0 4px 0;
-  font-weight: 500;
+  margin: 0 0 8px 0;
+  letter-spacing: 0.5px;
   text-align: center;
 }
 
 .imageWrapper {
   width: 100%;
   aspect-ratio: 1 / 1;
-  background-color: #ffffff;
+  background-color: #FFFFFF;
   overflow: hidden;
   padding: 16px;
   display: flex;
@@ -68,16 +57,19 @@
   border-radius: 12px;
 }
 
-.content {
-  padding: 12px 14px 14px 14px;
+.family {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 8px 0 12px 0;
+  font-weight: 400;
+  text-align: center;
 }
 
 .specs {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 12px;
-  margin-bottom: 8px;
+  margin-top: 4px;
 }
 
 .spec {

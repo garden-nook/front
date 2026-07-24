@@ -1,10 +1,11 @@
+// src/pages/Tasks.tsx
 import { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/common/Toast';
 import ConfirmModal from '../components/ConfirmModal';
-import Avatar from '../components/Avatar';
+import Header from '../components/UI/Header/Header';
 import * as storage from '../services/storage';
+import { tasksStyles as styles } from '../PageStyles/Tasks.styles';
 
 type FilterType = 'all' | 'active' | 'done' | 'overdue';
 
@@ -36,7 +37,6 @@ export default function Tasks() {
 
   const today = new Date().toISOString().split('T')[0];
 
-  // Загружаем задачи при монтировании
   useEffect(() => {
     if (user) {
       storage.initializeDemoData(user.id);
@@ -190,65 +190,20 @@ export default function Tasks() {
 
   if (!user) return null;
 
-  return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC' }}>
-      {/* Header */}
-      <header style={{ backgroundColor: 'white', borderBottom: '2px solid #22C55E' }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '12px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1F2937', margin: 0 }}>
-            Огородный уголок
-          </h1>
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-            <Link to="/" style={{ fontSize: '14px', color: '#6B7280', textDecoration: 'none' }}>
-              Мои участки
-            </Link>
-            <Link to="/catalog" style={{ fontSize: '14px', color: '#6B7280', textDecoration: 'none' }}>
-              Каталог культур
-            </Link>
-            <Link to="/tasks" style={{ fontSize: '14px', fontWeight: 500, color: '#22C55E', textDecoration: 'none' }}>
-              Задачи
-            </Link>
-            <Link to="/profile" style={{ textDecoration: 'none' }}>
-              <Avatar 
-                userId={user.id} 
-                firstName={user.firstName} 
-                size={32}
-              />
-            </Link>
-          </nav>
-        </div>
-      </header>
+  const displayName = user.display_name || 'Пользователь';
+  const userId = user.id || 'user';
 
-      {/* Main Content */}
-      <main style={{ maxWidth: '1400px', margin: '0 auto', padding: '32px 40px', paddingBottom: '100px' }}>
-        {/* Заголовок */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+  return (
+    <div style={styles.page}>
+      <Header userId={userId} firstName={displayName} />
+
+      <main style={styles.main}>
+        <div style={styles.headerRow}>
           <div>
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1F2937', margin: '0 0 8px 0' }}>
-              Задачи и уведомления
-            </h2>
-            <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>
-              Управление задачами по уходу за участками
-            </p>
+            <h2 style={styles.pageTitle}>Задачи и уведомления</h2>
+            <p style={styles.pageSubtitle}>Управление задачами по уходу за участками</p>
           </div>
-          <button
-            type="button"
-            onClick={openCreateModal}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#22C55E',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '14px',
-              fontWeight: 500,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            }}
-          >
+          <button type="button" onClick={openCreateModal} style={styles.addButton}>
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
@@ -256,8 +211,7 @@ export default function Tasks() {
           </button>
         </div>
 
-        {/* Фильтры */}
-        <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '16px 20px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div style={styles.filterContainer}>
           {filters.map((f) => {
             const count = f.key === 'all' ? tasks.length :
                           f.key === 'active' ? tasks.filter(t => !t.done).length :
@@ -269,29 +223,17 @@ export default function Tasks() {
                 type="button"
                 onClick={() => setFilter(f.key)}
                 style={{
-                  padding: '8px 16px',
-                  borderRadius: '16px',
-                  border: '1px solid',
+                  ...styles.filterButton,
                   borderColor: filter === f.key ? '#22C55E' : '#E5E7EB',
                   backgroundColor: filter === f.key ? '#DCFCE7' : 'white',
                   color: filter === f.key ? '#16A34A' : '#6B7280',
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
                 }}
               >
                 {f.label}
                 <span style={{
+                  ...styles.filterBadge,
                   backgroundColor: filter === f.key ? '#22C55E' : '#E5E7EB',
                   color: filter === f.key ? 'white' : '#6B7280',
-                  borderRadius: '10px',
-                  padding: '2px 8px',
-                  fontSize: '11px',
-                  minWidth: '20px',
-                  textAlign: 'center',
                 }}>
                   {count}
                 </span>
@@ -300,37 +242,30 @@ export default function Tasks() {
           })}
         </div>
 
-        {/* Список задач */}
         {Object.keys(groupedTasks).length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6B7280', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <p style={{ fontSize: '18px', margin: '0 0 8px 0' }}>Задач не найдено</p>
-            <p style={{ fontSize: '14px', margin: 0 }}>Добавьте новую задачу или измените фильтр</p>
+          <div style={styles.emptyState}>
+            <p style={styles.emptyTitle}>Задач не найдено</p>
+            <p style={styles.emptyText}>Добавьте новую задачу или измените фильтр</p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={styles.taskList}>
             {Object.entries(groupedTasks).map(([plotName, plotTasks]) => (
               <div key={plotName}>
-                <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#1F2937', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={styles.plotGroupTitle}>
                   <svg width="18" height="18" fill="none" stroke="#22C55E" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                   </svg>
                   {plotName}
-                  <span style={{ fontSize: '13px', color: '#6B7280', fontWeight: 400 }}>
+                  <span style={styles.plotGroupCount}>
                     ({plotTasks.length} {plotTasks.length === 1 ? 'задача' : plotTasks.length < 5 ? 'задачи' : 'задач'})
                   </span>
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={styles.tasksContainer}>
                   {plotTasks.map((task) => (
                     <div
                       key={task.id}
                       style={{
-                        backgroundColor: 'white',
-                        borderRadius: '8px',
-                        padding: '16px 20px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        ...styles.taskCard,
                         opacity: task.done ? 0.7 : 1,
                         borderLeft: isOverdue(task) ? '4px solid #DC2626' : '4px solid transparent',
                       }}
@@ -339,59 +274,42 @@ export default function Tasks() {
                         type="checkbox"
                         checked={task.done}
                         onChange={() => handleToggle(task.id)}
-                        style={{ width: '18px', height: '18px', accentColor: '#22C55E', cursor: 'pointer', flexShrink: 0 }}
+                        style={styles.checkbox}
                       />
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={styles.taskContent}>
                         <div style={{
-                          fontSize: '15px',
-                          fontWeight: 500,
+                          ...styles.taskText,
                           color: task.done ? '#9CA3AF' : '#1F2937',
                           textDecoration: task.done ? 'line-through' : 'none',
-                          marginBottom: '4px',
                         }}>
                           {task.text}
                         </div>
-                        <div style={{ fontSize: '12px', color: '#6B7280', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <div style={styles.taskMeta}>
+                          <span style={styles.taskDate}>
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                             {formatDate(task.dueDate)}
                             {isOverdue(task) && (
-                              <span style={{ color: '#DC2626', fontWeight: 500, marginLeft: '4px' }}>
-                                (просрочено)
-                              </span>
+                              <span style={styles.overdueBadge}>(просрочено)</span>
                             )}
                           </span>
                           <span
                             style={{
+                              ...styles.priorityBadge,
                               backgroundColor: getPriorityColor(task.priority),
                               color: getPriorityTextColor(task.priority),
-                              padding: '2px 8px',
-                              borderRadius: '10px',
-                              fontSize: '11px',
-                              fontWeight: 500,
                             }}
                           >
                             {getPriorityLabel(task.priority)}
                           </span>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                      <div style={styles.taskActions}>
                         <button
                           type="button"
                           onClick={() => openEditModal(task)}
-                          style={{
-                            width: '36px',
-                            height: '36px',
-                            borderRadius: '6px',
-                            backgroundColor: '#DCFCE7',
-                            border: 'none',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
+                          style={styles.editButton}
                         >
                           <svg width="18" height="18" fill="none" stroke="#16A34A" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -400,17 +318,7 @@ export default function Tasks() {
                         <button
                           type="button"
                           onClick={() => handleDelete(task.id)}
-                          style={{
-                            width: '36px',
-                            height: '36px',
-                            borderRadius: '6px',
-                            backgroundColor: '#FEE2E2',
-                            border: 'none',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
+                          style={styles.deleteButton}
                         >
                           <svg width="18" height="18" fill="none" stroke="#DC2626" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -426,112 +334,40 @@ export default function Tasks() {
         )}
       </main>
 
-      {/* FAB кнопка */}
-      <button
-        type="button"
-        onClick={openCreateModal}
-        style={{
-          position: 'fixed',
-          bottom: '32px',
-          right: 'calc(50% - 700px + 40px)',
-          width: '56px',
-          height: '56px',
-          backgroundColor: '#22C55E',
-          color: 'white',
-          borderRadius: '50%',
-          border: 'none',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          zIndex: 100,
-        }}
-      >
+      <button type="button" onClick={openCreateModal} style={styles.fab}>
         <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
       </button>
 
-      {/* Модалка создания/редактирования */}
       {isModalOpen && (
-        <div
-          onClick={closeModal}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              backgroundColor: 'white',
-              borderRadius: '12px',
-              padding: '24px',
-              width: '100%',
-              maxWidth: '440px',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1F2937', margin: 0 }}>
+        <div onClick={closeModal} style={styles.modalOverlay}>
+          <div onClick={(e) => e.stopPropagation()} style={styles.modal}>
+            <div style={styles.modalHeader}>
+              <h2 style={styles.modalTitle}>
                 {editingTaskId ? 'Изменить задачу' : 'Новая задача'}
               </h2>
-              <button
-                type="button"
-                onClick={closeModal}
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  backgroundColor: '#FEE2E2',
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+              <button type="button" onClick={closeModal} style={styles.modalCloseButton}>
                 <svg width="16" height="16" fill="none" stroke="#DC2626" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={styles.modalBody}>
               <div>
-                <label style={{ display: 'block', fontSize: '14px', color: '#6B7280', marginBottom: '6px' }}>
-                  Название задачи
-                </label>
+                <label style={styles.modalLabel}>Название задачи</label>
                 <input
                   type="text"
                   value={formData.text}
                   onChange={(e) => setFormData({ ...formData, text: e.target.value })}
                   placeholder="Например: Полить томаты"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
+                  style={styles.modalInput}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '14px', color: '#6B7280', marginBottom: '6px' }}>
-                  Участок
-                </label>
+                <label style={styles.modalLabel}>Участок</label>
                 <select
                   value={formData.plotId}
                   onChange={(e) => {
@@ -542,16 +378,7 @@ export default function Tasks() {
                       plotName: plot?.name || ''
                     });
                   }}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    backgroundColor: 'white',
-                    boxSizing: 'border-box',
-                  }}
+                  style={styles.modalSelect}
                 >
                   <option value="">Выберите участок</option>
                   {storage.getPlots(user.id).map((plot) => (
@@ -563,46 +390,28 @@ export default function Tasks() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '14px', color: '#6B7280', marginBottom: '6px' }}>
-                  Дата выполнения
-                </label>
+                <label style={styles.modalLabel}>Дата выполнения</label>
                 <input
                   type="date"
                   value={formData.dueDate}
                   onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
+                  style={styles.modalInput}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '14px', color: '#6B7280', marginBottom: '6px' }}>
-                  Приоритет
-                </label>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <label style={styles.modalLabel}>Приоритет</label>
+                <div style={styles.priorityGroup}>
                   {(['low', 'medium', 'high'] as const).map((p) => (
                     <button
                       key={p}
                       type="button"
                       onClick={() => setFormData({ ...formData, priority: p })}
                       style={{
-                        flex: 1,
-                        padding: '10px',
-                        border: '1px solid',
+                        ...styles.priorityButton,
                         borderColor: formData.priority === p ? getPriorityTextColor(p) : '#E5E7EB',
                         backgroundColor: formData.priority === p ? getPriorityColor(p) : 'white',
                         color: formData.priority === p ? getPriorityTextColor(p) : '#6B7280',
-                        borderRadius: '6px',
-                        fontSize: '13px',
-                        fontWeight: 500,
-                        cursor: 'pointer',
                       }}
                     >
                       {getPriorityLabel(p)}
@@ -611,38 +420,11 @@ export default function Tasks() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    backgroundColor: 'white',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    color: '#374151',
-                    cursor: 'pointer',
-                  }}
-                >
+              <div style={styles.modalActions}>
+                <button type="button" onClick={closeModal} style={styles.cancelButton}>
                   Отмена
                 </button>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    backgroundColor: '#22C55E',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontWeight: 500,
-                  }}
-                >
+                <button type="button" onClick={handleSubmit} style={styles.submitButton}>
                   {editingTaskId ? 'Сохранить' : 'Создать'}
                 </button>
               </div>
@@ -651,7 +433,6 @@ export default function Tasks() {
         </div>
       )}
 
-      {/* Модалка подтверждения удаления */}
       <ConfirmModal
         isOpen={!!deleteConfirm}
         title="Удалить задачу?"

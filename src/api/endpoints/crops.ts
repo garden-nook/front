@@ -1,54 +1,74 @@
 // src/api/endpoints/crops.ts
-import { api } from "../client";
-import {
-  type Crop,
-  type CropFamily,
-  type CropRule,
-  type CreateCropRequest,
-  type UpdateCropRequest,
-  type CreateFamilyRequest,
-  type UpdateFamilyRequest,
-  type CreateRuleRequest,
-} from "../types/crops.types";
+import { api } from '../client'; // ← Исправлено: api вместо client
+import type {
+  Crop,
+  CropExtended,
+  CropFamily,
+  CreateCropRequest,
+  UpdateCropRequest,
+  CreateFamilyRequest,
+  UpdateFamilyRequest,
+} from '../types/crops.types';
 
-export const cropsApi = {
-  // ===== СЕМЕЙСТВА =====
-  getFamilies: () => api.get<CropFamily[]>("/crop-families"),
+// ============================================================
+// КУЛЬТУРЫ
+// ============================================================
 
-  getFamilyById: (id: string) => api.get<CropFamily>(`/crop-families/${id}`),
+const BASE_URL = '/api/v1/crops';
 
-  // ===== КУЛЬТУРЫ =====
-  getCrops: (params?: {
-    page?: number;
-    limit?: number;
-    familyId?: string;
-    search?: string;
-  }) => api.get<Crop[]>("/crops", { params }),
+export async function getCrops(params?: {
+  family_id?: number;
+  search?: string;
+}): Promise<Crop[]> {
+  const response = await api.get<{ data: Crop[] }>(BASE_URL, { params });
+  return response.data.data;
+}
 
-  getCropById: (id: string) => api.get<Crop>(`/crops/${id}`),
+export async function getCropById(id: number): Promise<CropExtended | null> {
+  const response = await api.get<{ data: CropExtended }>(`${BASE_URL}/${id}`);
+  return response.data.data;
+}
 
-  // ===== АДМИН-МЕТОДЫ (для семейств) =====
-  createFamily: (data: CreateFamilyRequest) =>
-    api.post<CropFamily>("/admin/crop-families", data),
+export async function createCrop(data: CreateCropRequest): Promise<number> {
+  const response = await api.post<{ data: { id: number } }>(BASE_URL, data);
+  return response.data.data.id;
+}
 
-  updateFamily: (id: string, data: UpdateFamilyRequest) =>
-    api.put<CropFamily>(`/admin/crop-families/${id}`, data),
+export async function updateCrop(id: number, data: UpdateCropRequest): Promise<number> {
+  const response = await api.put<{ data: { id: number } }>(`${BASE_URL}/${id}`, data);
+  return response.data.data.id;
+}
 
-  deleteFamily: (id: string) => api.delete(`/admin/crop-families/${id}`),
+export async function deleteCrop(id: number): Promise<void> {
+  await api.delete(`${BASE_URL}/${id}`);
+}
 
-  // ===== АДМИН-МЕТОДЫ (для культур) =====
-  createCrop: (data: CreateCropRequest) => api.post<Crop>("/admin/crops", data),
+// ============================================================
+// СЕМЕЙСТВА
+// ============================================================
 
-  updateCrop: (id: string, data: UpdateCropRequest) =>
-    api.put<Crop>(`/admin/crops/${id}`, data),
+const FAMILIES_URL = '/api/v1/crop-families';
 
-  deleteCrop: (id: string) => api.delete(`/admin/crops/${id}`),
+export async function getCropFamilies(): Promise<CropFamily[]> {
+  const response = await api.get<{ data: CropFamily[] }>(FAMILIES_URL);
+  return response.data.data;
+}
 
-  // ===== АДМИН-МЕТОДЫ (для правил) =====
-  getRules: () => api.get<CropRule[]>("/admin/crop-rules"),
+export async function getCropFamily(id: number): Promise<CropFamily> {
+  const response = await api.get<{ data: CropFamily }>(`${FAMILIES_URL}/${id}`);
+  return response.data.data;
+}
 
-  createRule: (data: CreateRuleRequest) =>
-    api.post<CropRule>("/admin/crop-rules", data),
+export async function createCropFamily(data: CreateFamilyRequest): Promise<number> {
+  const response = await api.post<{ data: { id: number } }>(FAMILIES_URL, data);
+  return response.data.data.id;
+}
 
-  deleteRule: (id: string) => api.delete(`/admin/crop-rules/${id}`),
-};
+export async function updateCropFamily(id: number, data: UpdateFamilyRequest): Promise<number> {
+  const response = await api.put<{ data: { id: number } }>(`${FAMILIES_URL}/${id}`, data);
+  return response.data.data.id;
+}
+
+export async function deleteCropFamily(id: number): Promise<void> {
+  await api.delete(`${FAMILIES_URL}/${id}`);
+}

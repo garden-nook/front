@@ -3,20 +3,19 @@
   flex-direction: column;
   gap: 4px;
   width: 100%;
-  max-width: 240px; /* Уменьшаем ширину */
 }
 
 .label {
-  font-size: 12px; /* Уменьшаем шрифт метки */
+  font-size: 12px;
   font-weight: 500;
   color: #374151;
 }
 
 .input {
-  padding: 8px 12px; /* Уменьшаем отступы */
+  padding: 8px 12px;
   border: 1px solid #E5E7EB;
   border-radius: 10px;
-  font-size: 13px; /* Уменьшаем шрифт */
+  font-size: 13px;
   font-family: inherit;
   outline: none;
   background-color: #F3F4F6;
@@ -28,7 +27,7 @@
 
 .input::placeholder {
   color: #9CA3AF;
-  font-size: 13px; /* Уменьшаем плейсхолдер */
+  font-size: 13px;
 }
 
 .input:focus {

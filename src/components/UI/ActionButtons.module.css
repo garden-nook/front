@@ -49,14 +49,6 @@
   font-size: 1.6rem;
 }
 
-.iconType {
-  /* Для кнопок с иконками */
-}
-
-.withText {
-  /* Для текстовых кнопок */
-}
-
 .greenDark {
   background: var(--color-green-cucumber);
 }
