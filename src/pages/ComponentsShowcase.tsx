@@ -272,11 +272,9 @@ export default function ComponentsShowcase() {
                   id={crop.id}
                   name={crop.name}
                   family={crop.family}
-                  group={crop.group}
                   vegetationDays={crop.vegetationDays}
                   soilNeeds={crop.soilNeeds}
                   lightNeeds={crop.lightNeeds}
-                  description={crop.description}
                 />
               ))}
             </div>

@@ -747,6 +747,10 @@ export default function PlotEditor() {
 
   if (!user) return null;
 
+  // ✅ ИСПРАВЛЕНО: используем display_name вместо firstName
+  const displayName = user.display_name || 'Пользователь';
+  const userId = user.id || 'user';
+
   return (
     <div style={{ height: '100vh', position: 'relative', overflow: 'hidden', backgroundColor: '#D1D5DB', animation: 'fadeIn 0.3s ease-in' }}>
       <style>{`
@@ -907,8 +911,8 @@ export default function PlotEditor() {
       <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 10 }}>
         <Link to="/profile" style={{ textDecoration: 'none' }}>
           <Avatar 
-            userId={user.id} 
-            firstName={user.firstName} 
+            userId={userId} 
+            firstName={displayName} 
             size={32}
           />
         </Link>
