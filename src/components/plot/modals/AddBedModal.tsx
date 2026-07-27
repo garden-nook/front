@@ -1,4 +1,3 @@
-// src/pages/PlotEditor/components/modals/AddBedModal.tsx
 import React, { useState, useEffect } from 'react';
 import styles from './Modals.module.css';
 import Input from '../../UI/Input/Input';
@@ -36,7 +35,7 @@ export const AddBedModal: React.FC<AddBedModalProps> = ({
   return (
     <div className={styles.modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className={styles.modal}>
-        <h3>🌱 Новая грядка</h3>
+        <h3>Новая грядка</h3>
         <form onSubmit={handleSubmit}>
           <div className={styles.modalField}>
             <label htmlFor="bedName">Название грядки:</label>

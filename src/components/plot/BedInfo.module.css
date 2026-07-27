@@ -1,0 +1,64 @@
+@import '../../styles/variables.module.css';
+
+.bedInfoWrapper {
+  flex-shrink: 0;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.bedInfo {
+  background: var(--color-white);
+  border-radius: 1rem;
+  padding: 1.4rem 1.6rem;
+  transition: all 0.3s ease;
+  border-left: 4px solid var(--color-green-cucumber);
+}
+
+.bedInfoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.bedInfoTitle {
+  font-weight: 600;
+  color: var(--color-black);
+}
+
+.bedInfoContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.bedInfoRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.3rem;
+  padding: 0.2rem 0;
+}
+
+.bedInfoLabel {
+  color: var(--color-gray-6);
+}
+
+.bedInfoValue {
+  font-weight: 500;
+}
+
+.plantButtonWrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.8rem;
+}

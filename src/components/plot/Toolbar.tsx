@@ -1,10 +1,8 @@
 // src/pages/PlotEditor/components/plot/Toolbar.tsx
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import styles from './Toolbar.module.css';
-import { STATIC_LABELS } from '../../hooks/usePlotEditor';
-import type { Tool, Subtype, GardenObject, Rect } from '../../api/types/plot.types';
+import { type Tool, type Subtype, type GardenObject, type Rect, STATIC_LABELS } from '../../api/types/plot.types';
 import ActionButton from '../UI/ActionButton';
-import AddBedModal from './modals/AddBedModal';
 
 interface ToolbarProps {
   selectedTool: Tool;
@@ -13,7 +11,7 @@ interface ToolbarProps {
   onSubtypeSelect: (subtype: Subtype) => void;
   selectedObject: GardenObject | null;
   onClearAll: () => void;
-  onAddBed: (name: string, rect: Rect) => void;
+  onAddBed: (defaultName: string) => void; // Изменено: теперь просто открывает модалку
   pendingBedRect: Rect | null;
   onPendingBedRectClear: () => void;
   onMenuOpenChange?: (isOpen: boolean) => void;
@@ -33,8 +31,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onMenuOpenChange,
   isDrawing = false,
 }) => {
-  const [showAddBedModal, setShowAddBedModal] = useState(false);
-  const [defaultBedName, setDefaultBedName] = useState('');
   const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
   const submenuRef = useRef<HTMLDivElement>(null);
 
@@ -44,13 +40,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     }
   }, []);
 
+  // При появлении pendingBedRect открываем модалку
   useEffect(() => {
     if (pendingBedRect) {
       const bedCount = document.querySelectorAll('[data-type="bed"]').length || 0;
-      setDefaultBedName(`Грядка ${bedCount + 1}`);
-      setShowAddBedModal(true);
+      onAddBed(`Грядка ${bedCount + 1}`);
     }
-  }, [pendingBedRect]);
+  }, [pendingBedRect, onAddBed]);
 
   // Обработчик открытия/закрытия подменю
   const handleSubmenuToggle = useCallback((isOpen: boolean) => {
@@ -64,130 +60,106 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const isSelectMode = selectedTool === 'select';
   const isAddMode = selectedTool === 'addBed' || selectedTool === 'addStatic';
 
-  const handleAddBedSave = (name: string) => {
-    if (pendingBedRect) {
-      onAddBed(name, pendingBedRect);
-      onPendingBedRectClear();
-    }
-    setShowAddBedModal(false);
-  };
-
-  const handleAddBedModalClose = () => {
-    setShowAddBedModal(false);
-    onPendingBedRectClear();
-  };
-
   return (
-    <>
-      <div className={styles.toolbarWrapper}>
-        <div className={styles.toolbarRow}>
+    <div className={styles.toolbarWrapper}>
+      <div className={styles.toolbarRow}>
+        <ActionButton
+          onClick={() => {
+            if (selectedTool === 'view') {
+              onToolSelect('plant');
+            } else if (selectedTool === 'plant') {
+              onToolSelect('view');
+            } else {
+              onToolSelect('view');
+            }
+          }}
+          title="Просмотр и посадка"
+          icon="logo"
+          shape="littleCircle"
+          color={isViewOrPlantMode ? 'greenLight' : undefined}
+        />
+
+        <ActionButton
+          onClick={() => onToolSelect('select')}
+          title="Редактирование объектов"
+          icon="edit"
+          shape="littleCircle"
+          color={isSelectMode ? 'greenLight' : undefined}
+        />
+
+        <div 
+          ref={submenuRef}
+          className={styles.submenu}
+          onMouseEnter={() => {
+            if (onMenuOpenChange) {
+              onMenuOpenChange(true);
+            }
+          }}
+          onMouseLeave={() => {
+            if (onMenuOpenChange) {
+              onMenuOpenChange(false);
+            }
+          }}
+        >
           <ActionButton
             onClick={() => {
-              if (selectedTool === 'view') {
-                onToolSelect('plant');
-              } else if (selectedTool === 'plant') {
-                onToolSelect('view');
-              } else {
-                onToolSelect('view');
+              if (!isAddMode) {
+                onToolSelect('addBed');
               }
             }}
-            title="Просмотр и посадка"
-            icon="logo"
+            title="Добавить объект"
+            icon="add"
             shape="littleCircle"
-            color={isViewOrPlantMode ? 'greenLight' : undefined}
+            color={isAddMode ? 'greenLight' : undefined}
           />
-
-          <ActionButton
-            onClick={() => onToolSelect('select')}
-            title="Редактирование объектов"
-            icon="edit"
-            shape="littleCircle"
-            color={isSelectMode ? 'greenLight' : undefined}
-          />
-
-          <div 
-            ref={submenuRef}
-            className={styles.submenu}
-            onMouseEnter={() => {
-              // При входе в меню - блокируем canvas
-              if (onMenuOpenChange) {
-                onMenuOpenChange(true);
-              }
-            }}
-            onMouseLeave={() => {
-              // При выходе из меню - разблокируем canvas
-              if (onMenuOpenChange) {
-                onMenuOpenChange(false);
-              }
-            }}
-          >
-            <ActionButton
-              onClick={() => {
-                if (!isAddMode) {
-                  onToolSelect('addBed');
+          {isAddMode && (
+            <div 
+              className={styles.submenuItems}
+              onMouseEnter={() => {
+                if (onMenuOpenChange) {
+                  onMenuOpenChange(true);
                 }
               }}
-              title="Добавить объект"
-              icon="add"
-              shape="littleCircle"
-              color={isAddMode ? 'greenLight' : undefined}
-            />
-            {isAddMode && (
-              <div 
-                className={styles.submenuItems}
-                onMouseEnter={() => {
-                  if (onMenuOpenChange) {
-                    onMenuOpenChange(true);
-                  }
-                }}
-                onMouseLeave={() => {
-                  if (onMenuOpenChange) {
-                    onMenuOpenChange(false);
-                  }
+              onMouseLeave={() => {
+                if (onMenuOpenChange) {
+                  onMenuOpenChange(false);
+                }
+              }}
+            >
+              <button
+                className={selectedTool === 'addBed' ? styles.active : ''}
+                onClick={() => {
+                  onToolSelect('addBed');
+                  onSubtypeSelect('building');
                 }}
               >
+                Грядка
+              </button>
+              {(['building', 'tree', 'path', 'water'] as const).map(subtype => (
                 <button
-                  className={selectedTool === 'addBed' ? styles.active : ''}
+                  key={subtype}
+                  className={selectedTool === 'addStatic' && selectedSubtype === subtype ? styles.active : ''}
                   onClick={() => {
-                    onToolSelect('addBed');
-                    onSubtypeSelect('building');
+                    onToolSelect('addStatic');
+                    onSubtypeSelect(subtype);
                   }}
                 >
-                  🌱 Грядка
+                  {STATIC_LABELS[subtype]}
                 </button>
-                {(['building', 'tree', 'path', 'water'] as const).map(subtype => (
-                  <button
-                    key={subtype}
-                    className={selectedTool === 'addStatic' && selectedSubtype === subtype ? styles.active : ''}
-                    onClick={() => {
-                      onToolSelect('addStatic');
-                      onSubtypeSelect(subtype);
-                    }}
-                  >
-                    {STATIC_LABELS[subtype]}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <ActionButton
-            onClick={onClearAll}
-            title="Удалить все объекты"
-            icon="delete"
-            shape="littleCircle"
-            color="red"
-          />
+              ))}
+            </div>
+          )}
         </div>
-      </div>
 
-      <AddBedModal
-        open={showAddBedModal}
-        onSave={handleAddBedSave}
-        onClose={handleAddBedModalClose}
-        defaultName={defaultBedName}
-      />
-    </>
+        <ActionButton
+          onClick={onClearAll}
+          title="Удалить все объекты"
+          icon="delete"
+          shape="littleCircle"
+          color="red"
+        />
+      </div>
+    </div>
   );
 };
 

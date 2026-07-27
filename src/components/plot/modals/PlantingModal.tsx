@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import styles from './Modals.module.css';
-import type { Bed, Crop } from '../../../api/types/plot.types';
+import type { UIBed, UICrop } from '../../../api/types/plot.types';
 
 interface PlantingModalProps {
-  bed: Bed;
-  cropId: string;
+  bed: UIBed;
+  cropId: number;
   plantedDate: string;
-  crops: Crop[];
-  onSave: (cropId: string, plantedDate: string) => void;
+  crops: UICrop[];
+  onSave: (cropId: number, plantedDate: string) => void;
   onClose: () => void;
 }
 
@@ -35,7 +35,7 @@ export const PlantingModal: React.FC<PlantingModalProps> = ({
         <form onSubmit={handleSubmit}>
           <div className={styles.modalField}>
             <label>Культура:</label>
-            <select value={cropId} onChange={(e) => setCropId(e.target.value)}>
+            <select value={cropId} onChange={(e) => setCropId(Number(e.target.value))}>
               {crops.map(crop => (
                 <option key={crop.id} value={crop.id}>
                   {crop.name} ({crop.vegetationDays} дн.)
