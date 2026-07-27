@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://api.dev.192-144-12-78.nip.io";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://api.dev.192-144-12-78.nip.io";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
