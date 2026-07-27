@@ -1,5 +1,4 @@
-// src/pages/PlotEditor/components/plot/GardenCanvas.tsx
-import React, { useRef, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useGardenCanvas } from "../../hooks/useGardenCanvas";
 import type {
   GardenObject,
@@ -77,11 +76,6 @@ export const GardenCanvas: React.FC<GardenCanvasProps> = ({
   const {
     canvasRef,
     containerRef,
-    getPlotPosition,
-    getObjectAt,
-    gridToCanvas,
-    getCellFromMouse,
-    centerPlot,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,

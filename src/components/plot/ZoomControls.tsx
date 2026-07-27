@@ -21,7 +21,6 @@ export const ZoomControls: React.FC<ZoomControlsProps> = ({
   onScaleChange,
   minScale = 0.5, // 50%
   maxScale = 2,   // 200%
-  step = 0.1,
 }) => {
   // Храним предыдущее валидное значение
   const [inputValue, setInputValue] = useState<string>(String(Math.round(scale * 100)));

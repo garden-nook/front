@@ -245,16 +245,6 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
       ];
       setObjects(uiObjects);
 
-      // ✅ Обновляем bedsForHistory
-      const updatedBeds = uiObjects.filter(isBed) as UIBed[];
-      const updatedBedsForHistory = updatedBeds.map((bed) => ({
-        id: bed.id,
-        name: bed.name,
-        currentCropName: bed.currentCropName || null,
-        plantDate: bed.plantDate || null,
-      }));
-      // setBedsForHistory(updatedBedsForHistory); // Если нужно обновлять состояние
-
       // Восстанавливаем выделение
       if (selectedId) {
         const restored = uiObjects.find((obj) => obj.id === selectedId);
