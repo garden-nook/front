@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import styles from './Modals.module.css';
-import type { GardenObject } from '../../../api/types/plot.types';
-import Input from '../../UI/Input/Input';
+import React, { useState } from "react";
+import type { GardenObject } from "../../../api/types/plot.types";
+import Input from "../../UI/Input/Input";
+import styles from "./Modals.module.css";
 
 interface ContextMenuProps {
   x: number;
@@ -32,9 +32,9 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleRename();
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       setIsRenaming(false);
       setNewName(object.name);
     }
@@ -55,7 +55,12 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
               autoFocus
             />
             <div className={styles.renameActions}>
-              <button onClick={() => { setIsRenaming(false); setNewName(object.name); }}>
+              <button
+                onClick={() => {
+                  setIsRenaming(false);
+                  setNewName(object.name);
+                }}
+              >
                 Отмена
               </button>
               <button className={styles.primary} onClick={handleRename}>
@@ -65,9 +70,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
           </div>
         ) : (
           <>
-            <button onClick={() => setIsRenaming(true)}>
-              Переименовать
-            </button>
+            <button onClick={() => setIsRenaming(true)}>Переименовать</button>
             <button className={styles.danger} onClick={() => onDelete(object.id)}>
               Удалить
             </button>

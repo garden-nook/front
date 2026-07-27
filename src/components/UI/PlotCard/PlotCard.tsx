@@ -1,7 +1,7 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import styles from './PlotCard.module.css';
-import ActionButton from '../ActionButton';
+import React from "react";
+import { Link } from "react-router-dom";
+import ActionButton from "../ActionButton";
+import styles from "./PlotCard.module.css";
 
 interface PlotCardProps {
   id: string;
@@ -22,7 +22,7 @@ const PlotCard: React.FC<PlotCardProps> = ({
   bedsCount,
   cropsCount,
   onEdit,
-  onDelete
+  onDelete,
 }) => {
   return (
     <div className={styles.card}>
@@ -36,18 +36,8 @@ const PlotCard: React.FC<PlotCardProps> = ({
         </p>
       </div>
       <div className={styles.actions}>
-        <ActionButton 
-          icon="edit" 
-          color="greenLight" 
-          shape="littleSquare" 
-          onClick={onEdit}
-        />
-        <ActionButton 
-          icon="delete" 
-          color="red" 
-          shape="littleSquare" 
-          onClick={onDelete}
-        />
+        <ActionButton icon="edit" color="greenLight" shape="littleSquare" onClick={onEdit} />
+        <ActionButton icon="delete" color="red" shape="littleSquare" onClick={onDelete} />
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-@import '../../styles/variables.module.css';
+@import "../../styles/variables.module.css";
 
 .bedInfoWrapper {
   flex-shrink: 0;

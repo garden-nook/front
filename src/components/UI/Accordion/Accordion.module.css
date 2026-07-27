@@ -1,24 +1,23 @@
 .accordion {
-  border: 1px solid #E5E7EB;
-  border-radius: 10px; 
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
   overflow: hidden;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   transition: background-color 0.2s ease;
 }
-
 
 .default,
 .success,
 .danger {
-  background-color: #FFFFFF;
-  border-color: #E5E7EB;
+  background-color: #ffffff;
+  border-color: #e5e7eb;
 }
 
 .default.open,
 .success.open,
 .danger.open {
-  background-color: #F3F4F6;
-  border-color: #E5E7EB;
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
 }
 
 .header {
@@ -32,10 +31,10 @@
   justify-content: space-between;
   font-family: inherit;
   font-size: 14px;
-  color: #1F2937;
+  color: #1f2937;
   transition: background-color 0.2s ease;
-  background-color: #FFFFFF;
-  border-radius: 16px; 
+  background-color: #ffffff;
+  border-radius: 16px;
 }
 
 .title {
@@ -46,7 +45,7 @@
 .arrow {
   flex-shrink: 0;
   transition: transform 0.2s ease;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 .arrowOpen {
@@ -54,31 +53,30 @@
 }
 
 .header:hover {
-  background-color: #F3F4F6;
+  background-color: #f3f4f6;
 }
 
 .header:active {
-  background-color: #E5E7EB;
+  background-color: #e5e7eb;
 }
 
-
 .headerOpen {
-  background-color: #F3F4F6 !important;
+  background-color: #f3f4f6 !important;
 }
 
 .headerOpen:hover {
-  background-color: #E5E7EB !important;
+  background-color: #e5e7eb !important;
 }
 
 .headerOpen:active {
-  background-color: #D1D5DB !important;
+  background-color: #d1d5db !important;
 }
 
 .content {
   padding: 12px 20px 16px 20px;
-  border-top: 1px solid #E5E7EB;
+  border-top: 1px solid #e5e7eb;
   font-size: 13px;
-  color: #4B5563;
+  color: #4b5563;
   line-height: 1.5;
-  background-color: #F3F4F6;
+  background-color: #f3f4f6;
 }

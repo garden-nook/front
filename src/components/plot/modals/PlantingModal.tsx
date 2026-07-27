@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import styles from './Modals.module.css';
-import type { UIBed, UICrop } from '../../../api/types/plot.types';
+import React, { useState } from "react";
+import type { UIBed, UICrop } from "../../../api/types/plot.types";
+import styles from "./Modals.module.css";
 
 interface PlantingModalProps {
   bed: UIBed;
@@ -28,15 +28,22 @@ export const PlantingModal: React.FC<PlantingModalProps> = ({
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div
+      className={styles.modalOverlay}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className={styles.modal}>
         <h3>🌱 Посадка на грядку</h3>
-        <p className={styles.modalSubtitle}>"{bed.name}" ({bed.width}×{bed.height})</p>
+        <p className={styles.modalSubtitle}>
+          "{bed.name}" ({bed.width}×{bed.height})
+        </p>
         <form onSubmit={handleSubmit}>
           <div className={styles.modalField}>
             <label>Культура:</label>
             <select value={cropId} onChange={(e) => setCropId(Number(e.target.value))}>
-              {crops.map(crop => (
+              {crops.map((crop) => (
                 <option key={crop.id} value={crop.id}>
                   {crop.name} ({crop.vegetationDays} дн.)
                 </option>
@@ -45,11 +52,19 @@ export const PlantingModal: React.FC<PlantingModalProps> = ({
           </div>
           <div className={styles.modalField}>
             <label>Дата посадки:</label>
-            <input type="date" value={plantedDate} onChange={(e) => setPlantedDate(e.target.value)} />
+            <input
+              type="date"
+              value={plantedDate}
+              onChange={(e) => setPlantedDate(e.target.value)}
+            />
           </div>
           <div className={styles.modalActions}>
-            <button type="button" onClick={onClose}>Отмена</button>
-            <button type="submit" className={styles.primary}>Посадить</button>
+            <button type="button" onClick={onClose}>
+              Отмена
+            </button>
+            <button type="submit" className={styles.primary}>
+              Посадить
+            </button>
           </div>
         </form>
       </div>

@@ -1,7 +1,7 @@
 // src/pages/PlotEditor/components/plot/PlotInfo.tsx
-import React, { useState, useRef, useEffect } from 'react';
-import styles from './PlotInfo.module.css';
-import ActionButton from '../UI/ActionButton';
+import React, { useEffect, useRef, useState } from "react";
+import ActionButton from "../UI/ActionButton";
+import styles from "./PlotInfo.module.css";
 
 interface PlotInfoProps {
   plotName: string;
@@ -66,70 +66,56 @@ export const PlotInfo: React.FC<PlotInfoProps> = ({
 
   return (
     <div className={styles.plotInfoWrapper}>
-      <div 
-        className={`${styles.plotInfo} ${isCollapsed ? styles.collapsed : ''}`}
-      >
+      <div className={`${styles.plotInfo} ${isCollapsed ? styles.collapsed : ""}`}>
         {isCollapsed ? (
-          <div 
+          <div
             className={styles.plotInfoCollapsed}
             onClick={handleCollapsedClick}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <span className={styles.plotInfoTitle}/>
-            <div 
+            <span className={styles.plotInfoTitle} />
+            <div
               ref={containerRef}
-              className={`${styles.plotNameContainer} ${isScrolling ? styles.scrolling : ''}`}
+              className={`${styles.plotNameContainer} ${isScrolling ? styles.scrolling : ""}`}
             >
-              <span 
-                ref={titleRef}
-                className={styles.plotName}
-              >
+              <span ref={titleRef} className={styles.plotName}>
                 {plotName}
               </span>
             </div>
             <div onClick={handleButtonClick}>
-              <ActionButton 
-                onClick={() => {}} 
-                title="Развернуть"
-                icon="add"
-                shape="miniCircle"
-              />
+              <ActionButton onClick={() => {}} title="Развернуть" icon="add" shape="miniCircle" />
             </div>
           </div>
         ) : (
           <>
-            <div 
+            <div
               className={styles.plotInfoHeader}
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
             >
-              <div 
+              <div
                 ref={containerRef}
-                className={`${styles.plotNameContainer} ${isScrolling ? styles.scrolling : ''}`}
+                className={`${styles.plotNameContainer} ${isScrolling ? styles.scrolling : ""}`}
               >
-                <span 
-                  ref={titleRef}
-                  className={styles.plotName}
-                >
+                <span ref={titleRef} className={styles.plotName}>
                   {plotName}
                 </span>
               </div>
-              <ActionButton 
-                onClick={onToggle}
-                title="Свернуть"
-                icon="minus"
-                shape="miniCircle"
-              />
+              <ActionButton onClick={onToggle} title="Свернуть" icon="minus" shape="miniCircle" />
             </div>
             <div className={styles.plotInfoContent}>
               <div className={styles.plotInfoRow}>
                 <span className={styles.plotInfoLabel}>Размер:</span>
-                <span className={styles.plotInfoValue}>{plotWidth} × {plotHeight} м</span>
+                <span className={styles.plotInfoValue}>
+                  {plotWidth} × {plotHeight} м
+                </span>
               </div>
               <div className={styles.plotInfoRow}>
                 <span className={styles.plotInfoLabel}>Площадь:</span>
-                <span className={styles.plotInfoValue}>{(plotWidth * plotHeight).toFixed(1)} м²</span>
+                <span className={styles.plotInfoValue}>
+                  {(plotWidth * plotHeight).toFixed(1)} м²
+                </span>
               </div>
               <div className={styles.plotInfoRow}>
                 <span className={styles.plotInfoLabel}>Клетка:</span>
@@ -137,7 +123,9 @@ export const PlotInfo: React.FC<PlotInfoProps> = ({
               </div>
               <div className={styles.plotInfoRow}>
                 <span className={styles.plotInfoLabel}>Сетка:</span>
-                <span className={styles.plotInfoValue}>{cols} × {rows}</span>
+                <span className={styles.plotInfoValue}>
+                  {cols} × {rows}
+                </span>
               </div>
               <div className={styles.plotInfoRow}>
                 <span className={styles.plotInfoLabel}>Объектов:</span>

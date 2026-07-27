@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import styles from './Nav.module.css';
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import styles from "./Nav.module.css";
 
 interface NavProps {
   links: { label: string; to: string }[];
@@ -17,7 +17,7 @@ const Nav: React.FC<NavProps> = ({ links }) => {
           <Link
             key={link.to}
             to={link.to}
-            className={`${styles.link} ${isActive ? styles.active : ''}`}
+            className={`${styles.link} ${isActive ? styles.active : ""}`}
           >
             {link.label}
           </Link>

@@ -6,7 +6,7 @@
 
 .link {
   font-size: 14px;
-  color: #6B7280; 
+  color: #6b7280;
   text-decoration: none;
   cursor: pointer;
   padding: 8px 16px;
@@ -17,29 +17,26 @@
 }
 
 .link:hover {
-  background-color: #F3F4F6;
-  color: #6B7280; 
+  background-color: #f3f4f6;
+  color: #6b7280;
 }
 
-
 .link:active {
-  background-color: #E5E7EB;
-  color: #6B7280; 
+  background-color: #e5e7eb;
+  color: #6b7280;
 }
 
 .active {
-  background-color: #E5E7EB; 
-  color: #6B7280; 
+  background-color: #e5e7eb;
+  color: #6b7280;
 }
-
 
 .active:hover {
-  background-color: #E5E7EB;
-  color: #6B7280;
+  background-color: #e5e7eb;
+  color: #6b7280;
 }
 
-
 .active:active {
-  background-color: #D1D5DB;
-  color: #6B7280;
+  background-color: #d1d5db;
+  color: #6b7280;
 }

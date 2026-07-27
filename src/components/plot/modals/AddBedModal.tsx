@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import styles from './Modals.module.css';
-import Input from '../../UI/Input/Input';
+import React, { useEffect, useState } from "react";
+import Input from "../../UI/Input/Input";
+import styles from "./Modals.module.css";
 
 interface AddBedModalProps {
   open: boolean;
@@ -13,7 +13,7 @@ export const AddBedModal: React.FC<AddBedModalProps> = ({
   open,
   onSave,
   onClose,
-  defaultName = '',
+  defaultName = "",
 }) => {
   const [name, setName] = useState(defaultName);
 
@@ -33,7 +33,12 @@ export const AddBedModal: React.FC<AddBedModalProps> = ({
   if (!open) return null;
 
   return (
-    <div className={styles.modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div
+      className={styles.modalOverlay}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className={styles.modal}>
         <h3>Новая грядка</h3>
         <form onSubmit={handleSubmit}>
@@ -48,7 +53,9 @@ export const AddBedModal: React.FC<AddBedModalProps> = ({
             />
           </div>
           <div className={styles.modalActions}>
-            <button type="button" onClick={onClose}>Отмена</button>
+            <button type="button" onClick={onClose}>
+              Отмена
+            </button>
             <button type="submit" className={styles.primary} disabled={!name.trim()}>
               Создать
             </button>

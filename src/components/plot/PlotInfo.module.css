@@ -1,4 +1,4 @@
-@import '../../styles/variables.module.css';
+@import "../../styles/variables.module.css";
 
 .plotInfoWrapper {
   flex-shrink: 0;

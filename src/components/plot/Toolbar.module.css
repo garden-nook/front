@@ -1,5 +1,5 @@
 /* src/pages/PlotEditor/components/plot/Toolbar.module.css */
-@import '../../styles/variables.module.css';
+@import "../../styles/variables.module.css";
 
 .toolbarWrapper {
   display: flex;
@@ -44,7 +44,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 10;
   min-width: 12rem;
-  
+
   /* Анимация выпадения с центрированием */
   animation: slideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   transform-origin: top center;
@@ -77,7 +77,9 @@
   text-align: left;
   white-space: nowrap;
   font-family: inherit;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .submenuItems button:hover {

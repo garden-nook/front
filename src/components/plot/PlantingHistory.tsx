@@ -1,9 +1,9 @@
 // src/pages/PlotEditor/components/plot/PlantingHistory.tsx
-import React, { useState, useMemo, useEffect } from 'react';
-import styles from './PlantingHistory.module.css';
-import { useToast } from '../common/Toast';
-import { getBedHistory } from '../../api';
-import type { BedCropHistoryEntry } from '../../api/types/plot.types';
+import React, { useEffect, useMemo, useState } from "react";
+import { getBedHistory } from "../../api";
+import type { BedCropHistoryEntry } from "../../api/types/plot.types";
+import { useToast } from "../common/Toast";
+import styles from "./PlantingHistory.module.css";
 
 interface PlantingHistoryProps {
   selectedBedId: string | null;
@@ -15,101 +15,97 @@ interface PlantingHistoryProps {
   }[];
 }
 
-export const PlantingHistory: React.FC<PlantingHistoryProps> = ({
-  selectedBedId,
-  beds,
-}) => {
+export const PlantingHistory: React.FC<PlantingHistoryProps> = ({ selectedBedId, beds }) => {
   const { showToast } = useToast();
   const [expandedYears, setExpandedYears] = useState<Set<string>>(new Set());
   const [historyData, setHistoryData] = useState<BedCropHistoryEntry[]>([]);
 
   // Загружаем историю с сервера при выборе грядки
-useEffect(() => {
-  if (!selectedBedId) {
-    setHistoryData([]);
-    return;
-  }
+  useEffect(() => {
+    if (!selectedBedId) {
+      setHistoryData([]);
+      return;
+    }
 
-  const loadHistory = async () => {
-    try {
-      const data = await getBedHistory(selectedBedId);
-      console.log('📜 История с сервера:', data);
-      console.log('📊 Количество записей:', data?.length);
-      if (data && Array.isArray(data)) {
-        setHistoryData(data);
-      } else {
+    const loadHistory = async () => {
+      try {
+        const data = await getBedHistory(selectedBedId);
+        console.log("📜 История с сервера:", data);
+        console.log("📊 Количество записей:", data?.length);
+        if (data && Array.isArray(data)) {
+          setHistoryData(data);
+        } else {
+          setHistoryData([]);
+        }
+      } catch (error) {
+        console.error("Ошибка загрузки истории:", error);
+        showToast("Ошибка загрузки истории посадок", "error");
         setHistoryData([]);
       }
-    } catch (error) {
-      console.error('Ошибка загрузки истории:', error);
-      showToast('Ошибка загрузки истории посадок', 'error');
-      setHistoryData([]);
-    } 
-  };
+    };
 
-  loadHistory();
-}, [selectedBedId, showToast]);
+    loadHistory();
+  }, [selectedBedId, showToast]);
 
   // Находим выбранную грядку
   const selectedBed = useMemo(() => {
-    return beds.find(b => b.id === selectedBedId);
+    return beds.find((b) => b.id === selectedBedId);
   }, [beds, selectedBedId]);
 
   // Формируем список всех посадок
-const allPlantings = useMemo(() => {
-  const result: {
-    id: string;
-    cropName: string;
-    plantedDate: string;
-    harvestDate?: string;
-    isCurrent: boolean;
-  }[] = [];
+  const allPlantings = useMemo(() => {
+    const result: {
+      id: string;
+      cropName: string;
+      plantedDate: string;
+      harvestDate?: string;
+      isCurrent: boolean;
+    }[] = [];
 
-  // Текущая посадка (из структуры участка)
-  if (selectedBed?.currentCropName && selectedBed?.plantDate) {
-    result.push({
-      id: `current-${selectedBed.id}`,
-      cropName: selectedBed.currentCropName,
-      plantedDate: selectedBed.plantDate,
-      harvestDate: undefined,
-      isCurrent: true,
-    });
-  }
+    // Текущая посадка (из структуры участка)
+    if (selectedBed?.currentCropName && selectedBed?.plantDate) {
+      result.push({
+        id: `current-${selectedBed.id}`,
+        cropName: selectedBed.currentCropName,
+        plantedDate: selectedBed.plantDate,
+        harvestDate: undefined,
+        isCurrent: true,
+      });
+    }
 
-  // ✅ Исторические посадки (из API) - НЕ ДУБЛИРУЕМ
-  if (historyData && Array.isArray(historyData) && historyData.length > 0) {
-    // Проверяем, есть ли уже текущая посадка с такими же данными
-    historyData.forEach(entry => {
-      // Проверяем, не дублируется ли текущая посадка
-      const isDuplicate = result.some(
-        r => r.cropName === entry.crop_name && 
-             r.plantedDate === entry.plant_date &&
-             r.isCurrent
-      );
-      
-      if (!isDuplicate) {
-        result.push({
-          id: `history-${entry.crop_id}-${entry.plant_date}`,
-          cropName: entry.crop_name || 'Неизвестная культура',
-          plantedDate: entry.plant_date,
-          harvestDate: entry.harvest_date,
-          isCurrent: false,
-        });
-      }
-    });
-  }
+    // ✅ Исторические посадки (из API) - НЕ ДУБЛИРУЕМ
+    if (historyData && Array.isArray(historyData) && historyData.length > 0) {
+      // Проверяем, есть ли уже текущая посадка с такими же данными
+      historyData.forEach((entry) => {
+        // Проверяем, не дублируется ли текущая посадка
+        const isDuplicate = result.some(
+          (r) =>
+            r.cropName === entry.crop_name && r.plantedDate === entry.plant_date && r.isCurrent,
+        );
 
-  console.log('📊 Итоговый список посадок:', result);
-  console.log('📊 Количество посадок:', result.length);
-  return result;
-}, [selectedBed, historyData]);
+        if (!isDuplicate) {
+          result.push({
+            id: `history-${entry.crop_id}-${entry.plant_date}`,
+            cropName: entry.crop_name || "Неизвестная культура",
+            plantedDate: entry.plant_date,
+            harvestDate: entry.harvest_date,
+            isCurrent: false,
+          });
+        }
+      });
+    }
+
+    console.log("📊 Итоговый список посадок:", result);
+    console.log("📊 Количество посадок:", result.length);
+    return result;
+  }, [selectedBed, historyData]);
 
   // Разделяем на активную и завершенные посадки
   const { activePlantings, historyPlantings } = useMemo(() => {
     const active: typeof allPlantings = [];
     const history: typeof allPlantings = [];
 
-    allPlantings.forEach(planting => {
+    allPlantings.forEach((planting) => {
       if (!planting.harvestDate) {
         active.push(planting);
       } else {
@@ -127,8 +123,8 @@ const allPlantings = useMemo(() => {
     if (!historyPlantings || historyPlantings.length === 0) return {};
 
     const groups: Record<string, typeof historyPlantings> = {};
-    
-    historyPlantings.forEach(planting => {
+
+    historyPlantings.forEach((planting) => {
       if (!planting.plantedDate) return;
       const year = new Date(planting.plantedDate).getFullYear().toString();
       if (!groups[year]) {
@@ -137,13 +133,11 @@ const allPlantings = useMemo(() => {
       groups[year].push(planting);
     });
 
-    return Object.fromEntries(
-      Object.entries(groups).sort((a, b) => Number(b[0]) - Number(a[0]))
-    );
+    return Object.fromEntries(Object.entries(groups).sort((a, b) => Number(b[0]) - Number(a[0])));
   }, [historyPlantings]);
 
   const toggleYear = (year: string) => {
-    setExpandedYears(prev => {
+    setExpandedYears((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(year)) {
         newSet.delete(year);
@@ -155,13 +149,13 @@ const allPlantings = useMemo(() => {
   };
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return '—';
+    if (!dateString) return "—";
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('ru-RU', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
+      return date.toLocaleDateString("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
       });
     } catch {
       return dateString;
@@ -170,23 +164,25 @@ const allPlantings = useMemo(() => {
 
   // Если нет никаких посадок - показываем пустое состояние
   if (allPlantings.length === 0) {
-    return 
+    return;
   }
 
   const years = Object.keys(groupedByYear);
 
   return (
     <div className={styles.container}>
-        <span className={styles.header}>История посадок</span>
+      <span className={styles.header}>История посадок</span>
 
       {/* ===== ТЕКУЩАЯ ПОСАДКА (показываем только если есть) ===== */}
       {activePlantings.length > 0 && (
         <div className={styles.activeSection}>
           <div className={styles.activePlanting}>
-            {activePlantings.map(planting => (
+            {activePlantings.map((planting) => (
               <div key={planting.id} className={styles.activePlantingItem}>
                 <span className={styles.activePlantingName}>{planting.cropName}</span>
-                <span className={styles.activePlantingDate}>{formatDate(planting.plantedDate)}</span>
+                <span className={styles.activePlantingDate}>
+                  {formatDate(planting.plantedDate)}
+                </span>
               </div>
             ))}
           </div>
@@ -196,30 +192,22 @@ const allPlantings = useMemo(() => {
       {/* ===== ИСТОРИЯ ПОСАДОК (показываем только если есть) ===== */}
       {historyPlantings.length > 0 && (
         <div className={styles.historySection}>
-
           <div className={styles.historyList}>
-            {years.map(year => {
+            {years.map((year) => {
               const plantings = groupedByYear[year];
               const isExpanded = expandedYears.has(year);
 
               return (
                 <div key={year} className={styles.yearGroup}>
-                  <button
-                    className={styles.yearHeader}
-                    onClick={() => toggleYear(year)}
-                  >
-                    <span className={styles.yearIcon}>
-                      {isExpanded ? '▼' : '▶'}
-                    </span>
+                  <button className={styles.yearHeader} onClick={() => toggleYear(year)}>
+                    <span className={styles.yearIcon}>{isExpanded ? "▼" : "▶"}</span>
                     <span className={styles.yearLabel}>{year}</span>
-                    <span className={styles.yearCount}>
-                      {plantings.length} посадок
-                    </span>
+                    <span className={styles.yearCount}>{plantings.length} посадок</span>
                   </button>
 
                   {isExpanded && (
                     <div className={styles.yearContent}>
-                      {plantings.map(planting => (
+                      {plantings.map((planting) => (
                         <div key={planting.id} className={styles.historyItem}>
                           <span className={styles.historyCropName}>{planting.cropName}</span>
                           <span className={styles.historyDate}>
@@ -250,7 +238,7 @@ const allPlantings = useMemo(() => {
                 }
               }}
             >
-              {expandedYears.size === years.length ? 'Свернуть всё' : 'Развернуть всё'}
+              {expandedYears.size === years.length ? "Свернуть всё" : "Развернуть всё"}
             </button>
           )}
         </div>

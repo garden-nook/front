@@ -1,6 +1,6 @@
 // src/components/common/ProtectedRoute.tsx
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -8,17 +8,11 @@ interface ProtectedRouteProps {
   redirectPath?: string;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  redirectPath = '/login' 
-}) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, redirectPath = "/login" }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div>Загрузка...</div>
-
-    );
+    return <div>Загрузка...</div>;
   }
 
   // ❌ Не авторизован — редирект на логин

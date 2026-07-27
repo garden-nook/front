@@ -161,13 +161,7 @@ export interface PlotEvents {
 
 // ===== UI ТИПЫ ДЛЯ РЕДАКТОРА =====
 
-export type Tool =
-  | "view"
-  | "select"
-  | "addStatic"
-  | "addBed"
-  | "delete"
-  | "plant";
+export type Tool = "view" | "select" | "addStatic" | "addBed" | "delete" | "plant";
 
 export type Subtype = "building" | "tree" | "path" | "water";
 export type ObjectType = "static" | "bed";
