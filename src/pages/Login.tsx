@@ -1,84 +1,103 @@
+// src/pages/Login.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { authApi } from '../api/endpoints/auth';
+import { loginStyles as styles } from '../PageStyles/Login.styles';
+import logoIcon from '../assets/logo.svg';
 
-type AuthMode = 'login' | 'register' | 'reset';
+type AuthMode = 'login' | 'register';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { login: authLogin } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Форма входа
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // Форма регистрации
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
-  const [regFirstName, setRegFirstName] = useState('');
-  const [regLastName, setRegLastName] = useState('');
+  const [regDisplayName, setRegDisplayName] = useState('');
 
-  // Форма восстановления
-  const [resetEmail, setResetEmail] = useState('');
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     if (!loginEmail || !loginPassword) {
       setError('Заполните все поля');
+      setLoading(false);
       return;
     }
 
-    const success = login(loginEmail, loginPassword);
-    if (success) {
-      navigate('/');
-    } else {
-      setError('Неверный email или пароль');
+    try {
+      const response = await authApi.login({
+        email: loginEmail,
+        password: loginPassword,
+      });
+
+      const data = response.data;
+
+      if (data.success && data.data?.access_token) {
+        await authLogin(loginEmail, loginPassword);
+        navigate('/');
+      } else {
+        setError(data.error || 'Неверный email или пароль');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Ошибка соединения с сервером');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    if (!regEmail || !regPassword || !regFirstName || !regLastName) {
+    if (!regEmail || !regPassword || !regDisplayName) {
       setError('Заполните все поля');
+      setLoading(false);
       return;
     }
 
     if (regPassword !== regConfirmPassword) {
       setError('Пароли не совпадают');
+      setLoading(false);
       return;
     }
 
-    if (regPassword.length < 6) {
-      setError('Пароль должен содержать минимум 6 символов');
+    if (regPassword.length < 8) {
+      setError('Пароль должен содержать минимум 8 символов');
+      setLoading(false);
       return;
     }
 
-    const success = register(regEmail, regPassword, regFirstName, regLastName);
-    if (success) {
-      navigate('/');
-    } else {
-      setError('Пользователь с таким email уже существует');
+    try {
+      const response = await authApi.register({
+        display_name: regDisplayName,
+        email: regEmail,
+        password: regPassword,
+      });
+
+      const data = response.data;
+
+      if (data.success && data.data?.user_id) {
+        await authLogin(regEmail, regPassword);
+        navigate('/');
+      } else {
+        setError(data.error || 'Ошибка регистрации');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Ошибка соединения с сервером');
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const handleReset = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    if (!resetEmail) {
-      setError('Введите email');
-      return;
-    }
-
   };
 
   const inputStyle = {
@@ -90,18 +109,19 @@ export default function Login() {
     outline: 'none',
     boxSizing: 'border-box' as const,
     transition: 'border-color 0.2s',
+    fontFamily: 'inherit',
   };
 
   const buttonStyle = {
     width: '100%',
     padding: '12px',
-    backgroundColor: '#22C55E',
+    backgroundColor: loading ? '#9CA3AF' : '#22C55E',
     color: 'white',
     border: 'none',
     borderRadius: '8px',
     fontSize: '14px',
     fontWeight: 500,
-    cursor: 'pointer',
+    cursor: loading ? 'default' : 'pointer',
     transition: 'background-color 0.2s',
   };
 
@@ -110,234 +130,133 @@ export default function Login() {
     border: 'none',
     color: '#22C55E',
     fontSize: '13px',
-    cursor: 'pointer',
+    cursor: loading ? 'default' : 'pointer',
     padding: 0,
     textDecoration: 'underline',
+    fontFamily: 'inherit',
+    opacity: loading ? 0.5 : 1,
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#F8FAFC',
-      padding: '20px',
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '40px',
-        width: '100%',
-        maxWidth: '420px',
-        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-      }}>
-        {/* Логотип */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{
-            width: '64px',
-            height: '64px',
-            backgroundColor: '#DCFCE7',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 16px',
-          }}>
-            <svg width="32" height="32" fill="none" stroke="#22C55E" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
+    <div style={styles.container}>
+      <div style={styles.card}>
+        <div style={styles.logoWrapper}>
+          <div style={styles.logoRow}>
+            <img
+              src={logoIcon}
+              alt="Огородный уголок"
+              style={styles.logoImage}
+            />
+            <h1 style={styles.title}>Огородный уголок</h1>
           </div>
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1F2937', margin: '0 0 8px 0' }}>
-            Огородный уголок
-          </h1>
-          <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>
+          <p style={styles.subtitle}>
             {mode === 'login' && 'Войдите в свой аккаунт'}
             {mode === 'register' && 'Создайте новый аккаунт'}
-            {mode === 'reset' && 'Восстановление пароля'}
           </p>
         </div>
 
-        {/* Сообщения об ошибках и успехе */}
         {error && (
-          <div style={{
-            backgroundColor: '#FEE2E2',
-            color: '#DC2626',
-            padding: '12px',
-            borderRadius: '8px',
-            fontSize: '13px',
-            marginBottom: '16px',
-          }}>
+          <div style={styles.errorBox}>
             {error}
           </div>
         )}
 
-        {success && (
-          <div style={{
-            backgroundColor: '#DCFCE7',
-            color: '#16A34A',
-            padding: '12px',
-            borderRadius: '8px',
-            fontSize: '13px',
-            marginBottom: '16px',
-          }}>
-            {success}
-          </div>
-        )}
-
-        {/* Форма входа */}
         {mode === 'login' && (
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleLogin} style={styles.form}>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                Email
-              </label>
+              <label style={styles.label}>Email</label>
               <input
                 type="email"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
                 placeholder="your@email.com"
                 style={inputStyle}
+                disabled={loading}
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                Пароль
-              </label>
+              <label style={styles.label}>Пароль</label>
               <input
                 type="password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 placeholder="••••••••"
                 style={inputStyle}
+                disabled={loading}
               />
             </div>
 
-            <div style={{ textAlign: 'right' }}>
-              <button type="button" onClick={() => setMode('reset')} style={linkButtonStyle}>
-                Забыли пароль?
-              </button>
-            </div>
-
-            <button type="submit" style={buttonStyle}>
-              Войти
+            <button type="submit" style={buttonStyle} disabled={loading}>
+              {loading ? 'Загрузка...' : 'Войти'}
             </button>
 
-            <div style={{ textAlign: 'center', fontSize: '13px', color: '#6B7280' }}>
+            <div style={styles.switchMode}>
               Нет аккаунта?{' '}
-              <button type="button" onClick={() => setMode('register')} style={linkButtonStyle}>
+              <button type="button" onClick={() => setMode('register')} style={linkButtonStyle} disabled={loading}>
                 Зарегистрироваться
               </button>
             </div>
           </form>
         )}
 
-        {/* Форма регистрации */}
         {mode === 'register' && (
-          <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                  Имя
-                </label>
-                <input
-                  type="text"
-                  value={regFirstName}
-                  onChange={(e) => setRegFirstName(e.target.value)}
-                  placeholder="Иван"
-                  style={inputStyle}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                  Фамилия
-                </label>
-                <input
-                  type="text"
-                  value={regLastName}
-                  onChange={(e) => setRegLastName(e.target.value)}
-                  placeholder="Иванов"
-                  style={inputStyle}
-                />
-              </div>
+          <form onSubmit={handleRegister} style={styles.form}>
+            <div>
+              <label style={styles.label}>Имя и фамилия</label>
+              <input
+                type="text"
+                value={regDisplayName}
+                onChange={(e) => setRegDisplayName(e.target.value)}
+                placeholder="Иван Иванов"
+                style={inputStyle}
+                disabled={loading}
+              />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                Email
-              </label>
+              <label style={styles.label}>Email</label>
               <input
                 type="email"
                 value={regEmail}
                 onChange={(e) => setRegEmail(e.target.value)}
                 placeholder="your@email.com"
                 style={inputStyle}
+                disabled={loading}
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                Пароль
-              </label>
+              <label style={styles.label}>Пароль</label>
               <input
                 type="password"
                 value={regPassword}
                 onChange={(e) => setRegPassword(e.target.value)}
-                placeholder="Минимум 6 символов"
+                placeholder="Минимум 8 символов"
                 style={inputStyle}
+                disabled={loading}
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                Подтвердите пароль
-              </label>
+              <label style={styles.label}>Подтвердите пароль</label>
               <input
                 type="password"
                 value={regConfirmPassword}
                 onChange={(e) => setRegConfirmPassword(e.target.value)}
                 placeholder="••••••••"
                 style={inputStyle}
+                disabled={loading}
               />
             </div>
 
-            <button type="submit" style={buttonStyle}>
-              Зарегистрироваться
+            <button type="submit" style={buttonStyle} disabled={loading}>
+              {loading ? 'Загрузка...' : 'Зарегистрироваться'}
             </button>
 
-            <div style={{ textAlign: 'center', fontSize: '13px', color: '#6B7280' }}>
+            <div style={styles.switchMode}>
               Уже есть аккаунт?{' '}
-              <button type="button" onClick={() => setMode('login')} style={linkButtonStyle}>
-                Войти
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Форма восстановления пароля */}
-        {mode === 'reset' && (
-          <form onSubmit={handleReset} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
-                Email
-              </label>
-              <input
-                type="email"
-                value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
-                placeholder="your@email.com"
-                style={inputStyle}
-              />
-            </div>
-
-            <button type="submit" style={buttonStyle}>
-              Восстановить пароль
-            </button>
-
-            <div style={{ textAlign: 'center', fontSize: '13px', color: '#6B7280' }}>
-              Вспомнили пароль?{' '}
-              <button type="button" onClick={() => setMode('login')} style={linkButtonStyle}>
+              <button type="button" onClick={() => setMode('login')} style={linkButtonStyle} disabled={loading}>
                 Войти
               </button>
             </div>

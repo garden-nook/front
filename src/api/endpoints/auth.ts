@@ -1,4 +1,5 @@
-import { api } from "../client";
+// src/api/endpoints/auth.ts
+import { api } from "../client"; 
 import {
   type LoginRequest,
   type MeResponse,

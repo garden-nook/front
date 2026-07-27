@@ -1,0 +1,153 @@
+import React, { useEffect, useRef } from 'react';
+import styles from './Toolbar.module.css';
+import { type Tool, type Subtype, type GardenObject, type Rect, STATIC_LABELS } from '../../api/types/plot.types';
+import ActionButton from '../UI/ActionButton';
+
+interface ToolbarProps {
+  selectedTool: Tool;
+  onToolSelect: (tool: Tool) => void;
+  selectedSubtype: Subtype;
+  onSubtypeSelect: (subtype: Subtype) => void;
+  selectedObject: GardenObject | null;
+  onClearAll: () => void;
+  onAddBed: (defaultName: string) => void; // Изменено: теперь просто открывает модалку
+  pendingBedRect: Rect | null;
+  onPendingBedRectClear: () => void;
+  onMenuOpenChange?: (isOpen: boolean) => void;
+  isDrawing?: boolean;
+}
+
+export const Toolbar: React.FC<ToolbarProps> = ({
+  selectedTool,
+  onToolSelect,
+  selectedSubtype,
+  onSubtypeSelect,
+  onClearAll,
+  onAddBed,
+  pendingBedRect,
+  onMenuOpenChange,
+}) => {
+  const submenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!selectedTool || selectedTool === 'select') {
+      onToolSelect('view');
+    }
+  }, []);
+
+  // При появлении pendingBedRect открываем модалку
+  useEffect(() => {
+    if (pendingBedRect) {
+      const bedCount = document.querySelectorAll('[data-type="bed"]').length || 0;
+      onAddBed(`Грядка ${bedCount + 1}`);
+    }
+  }, [pendingBedRect, onAddBed]);
+
+  const isViewOrPlantMode = selectedTool === 'view' || selectedTool === 'plant';
+  const isSelectMode = selectedTool === 'select';
+  const isAddMode = selectedTool === 'addBed' || selectedTool === 'addStatic';
+
+  return (
+    <div className={styles.toolbarWrapper}>
+      <div className={styles.toolbarRow}>
+        <ActionButton
+          onClick={() => {
+            if (selectedTool === 'view') {
+              onToolSelect('plant');
+            } else if (selectedTool === 'plant') {
+              onToolSelect('view');
+            } else {
+              onToolSelect('view');
+            }
+          }}
+          title="Просмотр и посадка"
+          icon="logo"
+          shape="littleCircle"
+          color={isViewOrPlantMode ? 'greenLight' : undefined}
+        />
+
+        <ActionButton
+          onClick={() => onToolSelect('select')}
+          title="Редактирование объектов"
+          icon="edit"
+          shape="littleCircle"
+          color={isSelectMode ? 'greenLight' : undefined}
+        />
+
+        <div 
+          ref={submenuRef}
+          className={styles.submenu}
+          onMouseEnter={() => {
+            if (onMenuOpenChange) {
+              onMenuOpenChange(true);
+            }
+          }}
+          onMouseLeave={() => {
+            if (onMenuOpenChange) {
+              onMenuOpenChange(false);
+            }
+          }}
+        >
+          <ActionButton
+            onClick={() => {
+              if (!isAddMode) {
+                onToolSelect('addBed');
+              }
+            }}
+            title="Добавить объект"
+            icon="add"
+            shape="littleCircle"
+            color={isAddMode ? 'greenLight' : undefined}
+          />
+          {isAddMode && (
+            <div 
+              className={styles.submenuItems}
+              onMouseEnter={() => {
+                if (onMenuOpenChange) {
+                  onMenuOpenChange(true);
+                }
+              }}
+              onMouseLeave={() => {
+                if (onMenuOpenChange) {
+                  onMenuOpenChange(false);
+                }
+              }}
+            >
+              <button
+                className={selectedTool === 'addBed' ? styles.active : ''}
+                onClick={() => {
+                  onToolSelect('addBed');
+                  onSubtypeSelect('building');
+                }}
+              >
+                Грядка
+              </button>
+              {(['building', 'tree', 'path', 'water'] as const).map(subtype => (
+                <button
+                  key={subtype}
+                  className={selectedTool === 'addStatic' && selectedSubtype === subtype ? styles.active : ''}
+                  onClick={() => {
+                    onToolSelect('addStatic');
+                    onSubtypeSelect(subtype);
+                  }}
+                >
+                  {STATIC_LABELS[subtype]}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <ActionButton
+          onClick={onClearAll}
+          title="Удалить все объекты"
+          icon="delete"
+          shape="littleCircle"
+          color="red"
+        />
+      </div>
+    </div>
+  );
+};
+
+export default Toolbar;

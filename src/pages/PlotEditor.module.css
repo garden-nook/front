@@ -1,0 +1,140 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--color-gray-1);
+  position: relative;
+}
+
+.toolbarWrapper {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.toolbarWrapper > * {
+  pointer-events: auto;
+}
+
+.mainContent {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.leftPanel {
+  position: absolute;
+  left: 1.6rem;
+  top: 1.6rem;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  width: 28rem;
+  overflow-y: auto;
+  pointer-events: none;
+}
+
+.leftPanel > * {
+  pointer-events: auto;
+}
+
+.leftPanel::-webkit-scrollbar {
+  width: 0.4rem;
+}
+
+.leftPanel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.leftPanel::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+.leftPanel::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.canvasWrapper {
+  flex: 1;
+  position: relative;
+  background: var(--color-white);
+  overflow: hidden;
+}
+
+.backToListBtn {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 5;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  color: var(--color-gray-8);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.backToListBtn:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.backToListBtn:active {
+  transform: scale(0.97);
+}
+
+.zoomControlsWrapper {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 18px;
+  color: var(--color-gray-6);
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 18px;
+  color: #ef4444;
+  gap: 16px;
+}
+
+.error button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-blue-5);
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+

@@ -27,7 +27,7 @@ const icons: Record<ToastType, string> = {
   success: '✓',
   error: '✕',
   warning: '⚠',
-  info: '',
+  info: 'i',
 };
 
 const colors: Record<ToastType, { bg: string; border: string; text: string; icon: string }> = {
@@ -56,40 +56,80 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      {/* Контейнер уведомлений */}
-      <div className="fixed bottom-5 left-5 z-9999 flex flex-col gap-2 max-w-sm">
+      
+      {/* ✅ Уведомления в правом верхнем углу */}
+      <div style={{
+        position: 'fixed',
+        top: '80px',           // ← Отступ сверху (чтобы не перекрывать хедер)
+        right: '20px',         // ← Отступ справа
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        maxWidth: '400px',
+        width: '100%',
+        pointerEvents: 'none', // Чтобы клики проходили сквозь контейнер
+      }}>
         {toasts.map(toast => {
           const c = colors[toast.type];
           return (
             <div
               key={toast.id}
               onClick={() => removeToast(toast.id)}
-              className="flex items-center gap-2.5 p-3 rounded-lg border shadow-lg cursor-pointer min-w-[280px] animate-slideIn"
               style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '12px 16px',
+                borderRadius: '10px',
+                border: `1px solid ${c.border}`,
                 backgroundColor: c.bg,
-                borderColor: c.border,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                cursor: 'pointer',
+                pointerEvents: 'auto', // Чтобы клик по уведомлению работал
+                minWidth: '280px',
+                animation: 'slideInRight 0.3s ease-out',
               }}
             >
               <div
-                className="w-6 h-6 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                style={{ backgroundColor: c.icon }}
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: c.icon,
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  flexShrink: 0,
+                }}
               >
                 {icons[toast.type]}
               </div>
-              <span className="text-sm flex-1" style={{ color: c.text }}>
+              <span style={{
+                fontSize: '14px',
+                color: c.text,
+                flex: 1,
+              }}>
                 {toast.message}
               </span>
             </div>
           );
         })}
       </div>
+      
       <style>{`
-        @keyframes slideIn {
-          from { transform: translateX(-100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-        .animate-slideIn {
-          animation: slideIn 0.3s ease-out;
+        @keyframes slideInRight {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
         }
       `}</style>
     </ToastContext.Provider>

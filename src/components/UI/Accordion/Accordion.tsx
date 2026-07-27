@@ -3,7 +3,7 @@ import styles from './Accordion.module.css';
 
 interface AccordionProps {
   title: string;
-  content: React.ReactNode; // ← Меняем с string на React.ReactNode
+  content: React.ReactNode; 
   variant?: 'default' | 'success' | 'danger';
 }
 
