@@ -1,5 +1,5 @@
-import React from 'react';
-import styles from './CropCard.module.css';
+import React from "react";
+import styles from "./CropCard.module.css";
 
 interface CropCardProps {
   id: string;
@@ -25,13 +25,13 @@ const CropCard: React.FC<CropCardProps> = ({
   onClick,
 }) => {
   return (
-    <div 
-      className={styles.card} 
-      onClick={onClick} 
-      style={{ cursor: onClick ? 'pointer' : 'default' }}
+    <div
+      className={styles.card}
+      onClick={onClick}
+      style={{ cursor: onClick ? "pointer" : "default" }}
     >
       <h3 className={styles.title}>{name.toUpperCase()}</h3>
-      
+
       <div className={styles.imageWrapper}>
         {image ? (
           <img src={image} alt={name} className={styles.image} />
@@ -39,9 +39,9 @@ const CropCard: React.FC<CropCardProps> = ({
           <div className={styles.imagePlaceholder} />
         )}
       </div>
-      
+
       <p className={styles.family}>{family}</p>
-      
+
       <div className={styles.specs}>
         <div className={styles.spec}>
           <span className={styles.specLabel}>Вегетация:</span>

@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
-import Header from '../components/UI/Header/Header';
-import SearchBar from '../components/UI/SearchBar/SearchBar';
-import CropCard from '../components/UI/CropCard/CropCard';
-import CropDetailModal from '../components/UI/CropDetailModal/CropDetailModal';
-import { getCrops, getCropById } from '../api/endpoints/crops';
-import { mapSunNeeds, type Crop } from '../api/types/crops.types';
-import { catalogStyles as styles } from '../PageStyles/Catalog.styles';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useEffect, useRef, useState } from "react";
+import { getCropById, getCrops } from "../api/endpoints/crops";
+import { type Crop, mapSunNeeds } from "../api/types/crops.types";
+import CropCard from "../components/UI/CropCard/CropCard";
+import CropDetailModal from "../components/UI/CropDetailModal/CropDetailModal";
+import Header from "../components/UI/Header/Header";
+import SearchBar from "../components/UI/SearchBar/SearchBar";
+import { useAuth } from "../contexts/AuthContext";
+import { catalogStyles as styles } from "../PageStyles/Catalog.styles";
 
 const Catalog: React.FC = () => {
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [crops, setCrops] = useState<Crop[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCropDetail, setSelectedCropDetail] = useState<{
@@ -77,24 +77,24 @@ const Catalog: React.FC = () => {
       const data = await getCropById(id);
       if (data) {
         const relations = data.crop_relations || {};
-        
+
         setSelectedCropDetail({
           id: String(data.crop.id),
           name: data.crop.name,
           family_name: data.crop.family_name,
           vegetation_days_avg: data.crop.vegetation_days_avg || 0,
-          soil_name: data.crop.soil_name || '',
+          soil_name: data.crop.soil_name || "",
           sun_needs: data.crop.sun_needs || 0,
-          description: data.crop.description || '',
+          description: data.crop.description || "",
           predecessors: {
-            good: (relations.good_predecessors || []).map((r: any) => r.crop_name),
-            bad: (relations.bad_predecessors || []).map((r: any) => r.crop_name),
+            good: (relations.good_predecessors || []).map((r) => r.crop_name),
+            bad: (relations.bad_predecessors || []).map((r) => r.crop_name),
           },
           neighbors: {
-            good: (relations.good_companions || []).map((r: any) => r.crop_name),
-            bad: (relations.bad_companions || []).map((r: any) => r.crop_name),
+            good: (relations.good_companions || []).map((r) => r.crop_name),
+            bad: (relations.bad_companions || []).map((r) => r.crop_name),
           },
-          following: (relations.good_successors || []).map((r: any) => r.crop_name),
+          following: (relations.good_successors || []).map((r) => r.crop_name),
         });
       }
     } catch {
@@ -112,8 +112,8 @@ const Catalog: React.FC = () => {
 
   if (!user) return null;
 
-  const displayName = user.display_name || 'Пользователь';
-  const userId = user.id || 'user';
+  const displayName = user.display_name || "Пользователь";
+  const userId = user.id || "user";
 
   return (
     <div style={styles.page}>
@@ -140,7 +140,7 @@ const Catalog: React.FC = () => {
                   name={crop.name}
                   family={crop.family_name}
                   vegetationDays={crop.vegetation_days_avg}
-                  soilNeeds={crop.soil_name || 'Не указано'}
+                  soilNeeds={crop.soil_name || "Не указано"}
                   lightNeeds={mapSunNeeds(crop.sun_needs)}
                   onClick={() => handleCropClick(crop)}
                 />
@@ -149,7 +149,7 @@ const Catalog: React.FC = () => {
           ) : (
             <div style={styles.emptyWrapper}>
               <p style={styles.empty}>
-                {searchTerm ? 'Ничего не найдено' : 'Нет культур в каталоге'}
+                {searchTerm ? "Ничего не найдено" : "Нет культур в каталоге"}
               </p>
             </div>
           )}
@@ -157,10 +157,7 @@ const Catalog: React.FC = () => {
       </main>
 
       {selectedCropDetail && (
-        <CropDetailModal
-          crop={selectedCropDetail}
-          onClose={handleCloseModal}
-        />
+        <CropDetailModal crop={selectedCropDetail} onClose={handleCloseModal} />
       )}
     </div>
   );

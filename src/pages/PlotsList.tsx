@@ -1,18 +1,17 @@
-// src/pages/PlotsList.tsx
-import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../components/common/Toast';
-import ConfirmModal from '../components/ConfirmModal';
-import Header from '../components/UI/Header/Header';
-import PlotCard from '../components/UI/PlotCard/PlotCard';
-import Input from '../components/UI/Input/Input';
-import Select from '../components/UI/Select/Select';
-import ActionButton from '../components/UI/ActionButton';
-import { getPlots, createPlot, updatePlot, deletePlot } from '../api/endpoints/plots';
-import { getSoilTypes } from '../api/endpoints/soil-types';
-import type { Plot } from '../api/types/plots.types';
-import type { SoilType } from '../api/types/crops.types';
-import { plotsListStyles as styles } from '../PageStyles/PlotsList.styles';
+import { useEffect, useState } from "react";
+import { createPlot, deletePlot, getPlots, updatePlot } from "../api/endpoints/plots";
+import { getSoilTypes } from "../api/endpoints/soil-types";
+import type { SoilType } from "../api/types/crops.types";
+import type { Plot } from "../api/types/plots.types";
+import { useToast } from "../components/common/Toast";
+import ConfirmModal from "../components/ConfirmModal";
+import ActionButton from "../components/UI/ActionButton";
+import Header from "../components/UI/Header/Header";
+import Input from "../components/UI/Input/Input";
+import PlotCard from "../components/UI/PlotCard/PlotCard";
+import Select from "../components/UI/Select/Select";
+import { useAuth } from "../contexts/AuthContext";
+import { plotsListStyles as styles } from "../PageStyles/PlotsList.styles";
 
 export default function PlotsList() {
   const { user } = useAuth();
@@ -23,20 +22,17 @@ export default function PlotsList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlotId, setEditingPlotId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    name: '',
-    width: '',
-    height: '',
-    soilTypeId: '',
+    name: "",
+    width: "",
+    height: "",
+    soilTypeId: "",
   });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const [plotsData, soilTypesData] = await Promise.all([
-        getPlots(),
-        getSoilTypes(),
-      ]);
+      const [plotsData, soilTypesData] = await Promise.all([getPlots(), getSoilTypes()]);
       setPlots(plotsData || []);
       setSoilTypes(soilTypesData || []);
     } catch {
@@ -53,7 +49,7 @@ export default function PlotsList() {
 
   const openCreateModal = () => {
     setEditingPlotId(null);
-    setFormData({ name: '', width: '', height: '', soilTypeId: '' });
+    setFormData({ name: "", width: "", height: "", soilTypeId: "" });
     setIsModalOpen(true);
   };
 
@@ -63,7 +59,7 @@ export default function PlotsList() {
       name: plot.name,
       width: String(plot.grid_cols || 0),
       height: String(plot.grid_rows || 0),
-      soilTypeId: String(plot.soil_type || ''),
+      soilTypeId: String(plot.soil_type || ""),
     });
     setIsModalOpen(true);
   };
@@ -71,12 +67,12 @@ export default function PlotsList() {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingPlotId(null);
-    setFormData({ name: '', width: '', height: '', soilTypeId: '' });
+    setFormData({ name: "", width: "", height: "", soilTypeId: "" });
   };
 
   const handleSubmit = async () => {
     if (!formData.name.trim() || !formData.width || !formData.height) {
-      showToast('Пожалуйста, заполните все обязательные поля', 'error');
+      showToast("Пожалуйста, заполните все обязательные поля", "error");
       return;
     }
 
@@ -84,7 +80,7 @@ export default function PlotsList() {
     const heightNum = Number(formData.height);
 
     if (isNaN(widthNum) || isNaN(heightNum) || widthNum <= 0 || heightNum <= 0) {
-      showToast('Введите корректные размеры', 'error');
+      showToast("Введите корректные размеры", "error");
       return;
     }
 
@@ -96,7 +92,7 @@ export default function PlotsList() {
           name: formData.name.trim(),
           soilTypeID: soilTypeId,
         });
-        showToast('Участок успешно обновлён', 'success');
+        showToast("Участок успешно обновлён", "success");
       } else {
         await createPlot({
           name: formData.name.trim(),
@@ -104,13 +100,13 @@ export default function PlotsList() {
           heightMeters: heightNum,
           soilTypeID: soilTypeId,
         });
-        showToast('Участок успешно создан', 'success');
+        showToast("Участок успешно создан", "success");
       }
 
       closeModal();
       loadData();
     } catch {
-      showToast('Ошибка сохранения участка', 'error');
+      showToast("Ошибка сохранения участка", "error");
     }
   };
 
@@ -123,10 +119,10 @@ export default function PlotsList() {
 
     try {
       await deletePlot(deleteConfirm);
-      showToast('Участок успешно удалён', 'success');
+      showToast("Участок успешно удалён", "success");
       loadData();
     } catch {
-      showToast('Ошибка удаления участка', 'error');
+      showToast("Ошибка удаления участка", "error");
     } finally {
       setDeleteConfirm(null);
     }
@@ -138,8 +134,8 @@ export default function PlotsList() {
 
   if (!user) return null;
 
-  const displayName = user.display_name || 'Пользователь';
-  const userId = user.id || 'user';
+  const displayName = user.display_name || "Пользователь";
+  const userId = user.id || "user";
   const soilOptions = soilTypes.map((type) => ({
     value: String(type.id),
     label: type.name,
@@ -189,7 +185,7 @@ export default function PlotsList() {
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <h2 style={styles.modalTitle}>
-                {editingPlotId ? 'Изменить участок' : 'Создать участок'}
+                {editingPlotId ? "Изменить участок" : "Создать участок"}
               </h2>
               <ActionButton
                 icon="cancel"
@@ -234,21 +230,14 @@ export default function PlotsList() {
                 <Select
                   value={formData.soilTypeId}
                   onChange={(e) => setFormData({ ...formData, soilTypeId: e.target.value })}
-                  options={[
-                    { value: '', label: 'Выберите тип' },
-                    ...soilOptions,
-                  ]}
+                  options={[{ value: "", label: "Выберите тип" }, ...soilOptions]}
                 />
               </div>
 
               <div style={styles.modalActions}>
+                <ActionButton title="Отмена" shape="text" onClick={closeModal} />
                 <ActionButton
-                  title="Отмена"
-                  shape="text"
-                  onClick={closeModal}
-                />
-                <ActionButton
-                  title={editingPlotId ? 'Сохранить' : 'Создать'}
+                  title={editingPlotId ? "Сохранить" : "Создать"}
                   color="greenLight"
                   shape="text"
                   onClick={handleSubmit}

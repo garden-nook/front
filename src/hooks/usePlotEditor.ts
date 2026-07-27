@@ -1,34 +1,28 @@
-import { useState, useCallback, useEffect } from "react";
-import {
-  getPlotStructure,
-  sendPlotEvents,
-  getCrops,
-  STATIC_LABELS,
-  STATIC_COLORS,
-} from "../api";
+import { useCallback, useEffect, useState } from "react";
 import type {
   GardenObject,
-  UIBed,
-  UIStaticObject,
-  UIPlanting,
-  UICrop,
   Rect,
-  Tool,
   Subtype,
+  Tool,
+  UIBed,
+  UICrop,
+  UIPlanting,
+  UIStaticObject,
 } from "../api";
+import { STATIC_COLORS, STATIC_LABELS, getCrops, getPlotStructure, sendPlotEvents } from "../api";
+import { useToast } from "../components/common/Toast";
 import {
   adaptBed,
   adaptObject,
   createBedCreatedEvent,
-  createBedUpdatedEvent,
   createBedDeletedEvent,
-  createObjectCreatedEvent,
-  createObjectUpdatedEvent,
-  createObjectDeletedEvent,
+  createBedUpdatedEvent,
   createCropPlantedEvent,
   createCropRemovedEvent,
+  createObjectCreatedEvent,
+  createObjectDeletedEvent,
+  createObjectUpdatedEvent,
 } from "../pages/utils/adapters"; // ✅ Убрали hasObjectChanged
-import { useToast } from "../components/common/Toast";
 
 interface UsePlotEditorProps {
   plotId?: string;
@@ -58,9 +52,7 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
 
   // ===== ОСНОВНЫЕ СОСТОЯНИЯ =====
   const [objects, setObjects] = useState<GardenObject[]>([]);
-  const [selectedObject, setSelectedObject] = useState<GardenObject | null>(
-    null,
-  );
+  const [selectedObject, setSelectedObject] = useState<GardenObject | null>(null);
   const [selectedBed, setSelectedBed] = useState<UIBed | null>(null);
   const [crops, setCrops] = useState<UICrop[]>([]);
   const [loading, setLoading] = useState(false);
@@ -90,9 +82,7 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
     row: number;
     col: number;
   } | null>(null);
-  const [endCell, setEndCell] = useState<{ row: number; col: number } | null>(
-    null,
-  );
+  const [endCell, setEndCell] = useState<{ row: number; col: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState<{
     row: number;
@@ -111,14 +101,12 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
   } | null>(null);
 
   // ===== ВСПОМОГАТЕЛЬНЫЕ ВЫЧИСЛЕНИЯ =====
-  const cellSizeMeters: 0.5 = 0.5;
+  const cellSizeMeters = 0.5 as const;
   const cols = gridCols;
   const rows = gridRows;
 
   const beds = objects.filter(isBed) as UIBed[];
-  const staticObjects = objects.filter(
-    (obj): obj is UIStaticObject => obj.type === "static",
-  );
+  const staticObjects = objects.filter((obj): obj is UIStaticObject => obj.type === "static");
 
   const bedsForHistory = beds.map((bed) => ({
     id: bed.id,
@@ -291,8 +279,7 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
           showToast("Конфликт версий. Данные обновлены", "warning");
           await refreshData();
         } else {
-          const message =
-            err.response?.data?.error || "Ошибка отправки события";
+          const message = err.response?.data?.error || "Ошибка отправки события";
           showToast(message, "error");
         }
         throw err;
@@ -329,10 +316,7 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
       if (updatedObj.type === "bed") {
         event = createBedUpdatedEvent(updatedObj as UIBed, prevObj as UIBed);
       } else {
-        event = createObjectUpdatedEvent(
-          updatedObj as UIStaticObject,
-          prevObj as UIStaticObject,
-        );
+        event = createObjectUpdatedEvent(updatedObj as UIStaticObject, prevObj as UIStaticObject);
       }
       await sendEvent(event);
     },
@@ -357,11 +341,7 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
 
   const addPlanting = useCallback(
     async (bedId: string, planting: Omit<UIPlanting, "id">) => {
-      const event = createCropPlantedEvent(
-        bedId,
-        planting.cropId,
-        planting.plantedDate,
-      );
+      const event = createCropPlantedEvent(bedId, planting.cropId, planting.plantedDate);
       await sendEvent(event);
     },
     [sendEvent],
@@ -380,9 +360,7 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
       console.log("✅ Событие сбора отправлено");
 
       // После обновления данных, обновляем selectedBed
-      const updatedBed = objects.find((obj) => obj.id === bedId) as
-        | UIBed
-        | undefined;
+      const updatedBed = objects.find((obj) => obj.id === bedId) as UIBed | undefined;
       if (updatedBed) {
         setSelectedBed(updatedBed);
         setSelectedObject(updatedBed);
@@ -408,19 +386,16 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
     [beds.length],
   );
 
-  const createStaticObject = useCallback(
-    (rect: Rect, subtype: Subtype): UIStaticObject => {
-      return {
-        id: `static-${Date.now()}`,
-        type: "static",
-        subtype,
-        name: STATIC_LABELS[subtype],
-        color: STATIC_COLORS[subtype],
-        ...rect,
-      };
-    },
-    [],
-  );
+  const createStaticObject = useCallback((rect: Rect, subtype: Subtype): UIStaticObject => {
+    return {
+      id: `static-${Date.now()}`,
+      type: "static",
+      subtype,
+      name: STATIC_LABELS[subtype],
+      color: STATIC_COLORS[subtype],
+      ...rect,
+    };
+  }, []);
 
   const resetDrawing = useCallback(() => {
     setIsDrawing(false);
@@ -433,7 +408,7 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
 
   const handleToolSelect = useCallback((tool: Tool) => {
     setSelectedTool(tool);
-    if (tool !== "view" && tool !== "plant") {
+    if (!["view", "plant"].includes(tool)) {
       setSelectedBed(null);
     }
   }, []);

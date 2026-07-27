@@ -1,29 +1,28 @@
-// src/pages/PlotEditor/index.tsx
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import styles from './PlotEditor.module.css';
-import type { UIBed } from '../api/types/plot.types';
-import Toolbar from '../components/plot/Toolbar';
-import GardenCanvas from '../components/plot/GardenCanvas';
-import ContextMenu from '../components/plot/modals/ContextMenu';
-import PlantingModal from '../components/plot/modals/PlantingModal';
-import ZoomControls from '../components/plot/ZoomControls';
-import PlantingHistory from '../components/plot/PlantingHistory';
-import PlotInfo from '../components/plot/PlotInfo';
-import BedInfo from '../components/plot/BedInfo';
-import AddBedModal from '../components/plot/modals/AddBedModal';
-import { usePlotEditor } from '../hooks/usePlotEditor';
-import { useToast } from '../components/common/Toast';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import type { UIBed } from "../api/types/plot.types";
+import { useToast } from "../components/common/Toast";
+import BedInfo from "../components/plot/BedInfo";
+import GardenCanvas from "../components/plot/GardenCanvas";
+import AddBedModal from "../components/plot/modals/AddBedModal";
+import ContextMenu from "../components/plot/modals/ContextMenu";
+import PlantingModal from "../components/plot/modals/PlantingModal";
+import PlantingHistory from "../components/plot/PlantingHistory";
+import PlotInfo from "../components/plot/PlotInfo";
+import Toolbar from "../components/plot/Toolbar";
+import ZoomControls from "../components/plot/ZoomControls";
+import { usePlotEditor } from "../hooks/usePlotEditor";
+import styles from "./PlotEditor.module.css";
 
 export const PlotEditor: React.FC = () => {
   const navigate = useNavigate();
   const { id: plotId } = useParams<{ id: string }>();
   const { showToast } = useToast();
-  
+
   // Состояние для модалки добавления грядки
   const [showAddBedModal, setShowAddBedModal] = useState(false);
-  const [defaultBedName, setDefaultBedName] = useState('');
-  
+  const [defaultBedName, setDefaultBedName] = useState("");
+
   const {
     objects,
     selectedObject,
@@ -83,25 +82,25 @@ export const PlotEditor: React.FC = () => {
     handleZoomIn,
     handleZoomOut,
     handleScaleChange,
-  } = usePlotEditor({ 
+  } = usePlotEditor({
     plotId,
   });
 
   const handleGoToPlots = () => {
-    navigate('/plots');
+    navigate("/plots");
   };
 
   // Обработчик сбора урожая
   const handleHarvest = () => {
     if (selectedBed) {
-      const hasActivePlanting = selectedBed.currentCropId !== null && 
-                               selectedBed.currentCropId !== undefined;
-      
+      const hasActivePlanting =
+        selectedBed.currentCropId !== null && selectedBed.currentCropId !== undefined;
+
       if (hasActivePlanting) {
         const plantingId = `current-${selectedBed.id}`;
         harvestPlanting(selectedBed.id, plantingId);
       } else {
-        showToast('Нет активных посадок для сбора', 'info');
+        showToast("Нет активных посадок для сбора", "info");
       }
     }
   };
@@ -128,7 +127,7 @@ export const PlotEditor: React.FC = () => {
   // Открываем модалку при появлении pendingBedRect
   useEffect(() => {
     if (pendingBedRect) {
-      const bedCount = objects.filter(o => o.type === 'bed').length || 0;
+      const bedCount = objects.filter((o) => o.type === "bed").length || 0;
       setDefaultBedName(`Грядка ${bedCount + 1}`);
       setShowAddBedModal(true);
     }
@@ -136,10 +135,9 @@ export const PlotEditor: React.FC = () => {
 
   // Обновляем selectedBed при изменении объектов
   useEffect(() => {
-    if (selectedBed) {
+    if (selectedBed?.id) {
       const updated = objects.find(
-        (obj): obj is UIBed => 
-          obj.type === 'bed' && obj.id === selectedBed.id
+        (obj): obj is UIBed => obj.type === "bed" && obj.id === selectedBed.id,
       );
       setSelectedBed(updated || null);
     }
@@ -190,18 +188,13 @@ export const PlotEditor: React.FC = () => {
           {selectedBed && (
             <BedInfo
               bed={selectedBed}
-              showPlantButton={selectedTool === 'view' || selectedTool === 'plant'}
+              showPlantButton={selectedTool === "view" || selectedTool === "plant"}
               onPlant={handlePlant}
               onHarvest={handleHarvest}
             />
           )}
 
-          {selectedBed && (
-            <PlantingHistory
-              selectedBedId={selectedBed.id}
-              beds={bedsForHistory}
-            />
-          )}
+          {selectedBed && <PlantingHistory selectedBedId={selectedBed.id} beds={bedsForHistory} />}
         </div>
 
         <div className={styles.canvasWrapper}>
@@ -237,7 +230,7 @@ export const PlotEditor: React.FC = () => {
             onObjectUpdate={handleObjectUpdate}
           />
 
-          <button 
+          <button
             className={styles.backToListBtn}
             onClick={handleGoToPlots}
             title="Вернуться к списку участков"
@@ -295,11 +288,7 @@ export const PlotEditor: React.FC = () => {
       )}
 
       {/* Индикатор сохранения */}
-      {isSaving && (
-        <div className={styles.savingIndicator}>
-          Сохранение...
-        </div>
-      )}
+      {isSaving && <div className={styles.savingIndicator}>Сохранение...</div>}
     </div>
   );
 };

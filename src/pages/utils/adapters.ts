@@ -1,24 +1,21 @@
 // src/pages/PlotEditor/utils/adapters.ts
+import type { Crop } from "../../api/types/crops.types";
 import type {
-  UIBed,
-  UIStaticObject,
-  GardenObject,
-  PlotEvent,
   BedCreatedPayload,
-  BedUpdatedPayload,
   BedDeletedPayload,
-  ObjectCreatedPayload,
-  ObjectUpdatedPayload,
-  ObjectDeletedPayload,
+  BedUpdatedPayload,
   CropPlantedPayload,
   CropRemovedPayload,
+  GardenObject,
+  ObjectCreatedPayload,
+  ObjectDeletedPayload,
+  ObjectUpdatedPayload,
+  PlotEvent,
+  UIBed,
   UICrop,
+  UIStaticObject,
 } from "../../api/types/plot.types";
-import type { Crop } from "../../api/types/crops.types";
-import {
-  EventType as EventTypeConst,
-  STATIC_COLORS,
-} from "../../api/types/plot.types";
+import { EventType as EventTypeConst, STATIC_COLORS } from "../../api/types/plot.types";
 
 // Маппинг типов объектов из API в UI
 const OBJECT_TYPE_MAP: Record<number, string> = {
@@ -90,9 +87,7 @@ export const adaptObject = (obj: any): UIStaticObject => {
 // Преобразование API культуры в UI культуру
 export const adaptCrop = (crop: Crop, index?: number): UICrop => {
   const colorIndex =
-    index !== undefined
-      ? index % CROP_COLORS.length
-      : crop.id % CROP_COLORS.length;
+    index !== undefined ? index % CROP_COLORS.length : crop.id % CROP_COLORS.length;
   return {
     id: crop.id,
     name: crop.name,
@@ -118,10 +113,7 @@ export const createBedCreatedEvent = (bed: UIBed): PlotEvent => {
 };
 
 // Обновление грядки
-export const createBedUpdatedEvent = (
-  bed: UIBed,
-  previousBed?: UIBed,
-): PlotEvent => {
+export const createBedUpdatedEvent = (bed: UIBed, previousBed?: UIBed): PlotEvent => {
   const payload: BedUpdatedPayload = {
     bed_id: bed.id,
   };
@@ -264,13 +256,9 @@ export const adaptObjectsToEvents = (
 ): PlotEvent[] => {
   const events: PlotEvent[] = [];
 
-  const created = currentObjects.filter(
-    (obj) => !previousObjects.some((p) => p.id === obj.id),
-  );
+  const created = currentObjects.filter((obj) => !previousObjects.some((p) => p.id === obj.id));
 
-  const deleted = previousObjects.filter(
-    (obj) => !currentObjects.some((c) => c.id === obj.id),
-  );
+  const deleted = previousObjects.filter((obj) => !currentObjects.some((c) => c.id === obj.id));
 
   const updated = currentObjects.filter((obj) => {
     const prev = previousObjects.find((p) => p.id === obj.id);
@@ -295,9 +283,7 @@ export const adaptObjectsToEvents = (
   updated
     .filter((obj) => obj.type === "bed")
     .forEach((bed) => {
-      const prev = previousObjects.find((p) => p.id === bed.id) as
-        | UIBed
-        | undefined;
+      const prev = previousObjects.find((p) => p.id === bed.id) as UIBed | undefined;
       events.push(createBedUpdatedEvent(bed as UIBed, prev));
     });
 
@@ -316,9 +302,7 @@ export const adaptObjectsToEvents = (
   updated
     .filter((obj) => obj.type === "static")
     .forEach((obj) => {
-      const prev = previousObjects.find((p) => p.id === obj.id) as
-        | UIStaticObject
-        | undefined;
+      const prev = previousObjects.find((p) => p.id === obj.id) as UIStaticObject | undefined;
       events.push(createObjectUpdatedEvent(obj as UIStaticObject, prev));
     });
 
@@ -333,10 +317,7 @@ export const adaptObjectsToEvents = (
 
 // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 
-export const hasObjectChanged = (
-  obj: GardenObject,
-  prev: GardenObject,
-): boolean => {
+export const hasObjectChanged = (obj: GardenObject, prev: GardenObject): boolean => {
   if (obj.type !== prev.type) return true;
 
   if (obj.type === "bed") {

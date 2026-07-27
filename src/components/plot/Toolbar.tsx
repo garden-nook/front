@@ -1,7 +1,13 @@
-import React, { useEffect, useRef } from 'react';
-import styles from './Toolbar.module.css';
-import { type Tool, type Subtype, type GardenObject, type Rect, STATIC_LABELS } from '../../api/types/plot.types';
-import ActionButton from '../UI/ActionButton';
+import React, { useEffect, useRef } from "react";
+import {
+  type GardenObject,
+  type Rect,
+  STATIC_LABELS,
+  type Subtype,
+  type Tool,
+} from "../../api/types/plot.types";
+import ActionButton from "../UI/ActionButton";
+import styles from "./Toolbar.module.css";
 
 interface ToolbarProps {
   selectedTool: Tool;
@@ -30,10 +36,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const submenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!selectedTool || selectedTool === 'select') {
-      onToolSelect('view');
+    if (!selectedTool) {
+      onToolSelect("view");
     }
-  }, []);
+  }, [onToolSelect, selectedTool]);
 
   // При появлении pendingBedRect открываем модалку
   useEffect(() => {
@@ -43,38 +49,38 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     }
   }, [pendingBedRect, onAddBed]);
 
-  const isViewOrPlantMode = selectedTool === 'view' || selectedTool === 'plant';
-  const isSelectMode = selectedTool === 'select';
-  const isAddMode = selectedTool === 'addBed' || selectedTool === 'addStatic';
+  const isViewOrPlantMode = selectedTool === "view" || selectedTool === "plant";
+  const isSelectMode = selectedTool === "select";
+  const isAddMode = selectedTool === "addBed" || selectedTool === "addStatic";
 
   return (
     <div className={styles.toolbarWrapper}>
       <div className={styles.toolbarRow}>
         <ActionButton
           onClick={() => {
-            if (selectedTool === 'view') {
-              onToolSelect('plant');
-            } else if (selectedTool === 'plant') {
-              onToolSelect('view');
+            if (selectedTool === "view") {
+              onToolSelect("plant");
+            } else if (selectedTool === "plant") {
+              onToolSelect("view");
             } else {
-              onToolSelect('view');
+              onToolSelect("view");
             }
           }}
           title="Просмотр и посадка"
           icon="logo"
           shape="littleCircle"
-          color={isViewOrPlantMode ? 'greenLight' : undefined}
+          color={isViewOrPlantMode ? "greenLight" : undefined}
         />
 
         <ActionButton
-          onClick={() => onToolSelect('select')}
+          onClick={() => onToolSelect("select")}
           title="Редактирование объектов"
           icon="edit"
           shape="littleCircle"
-          color={isSelectMode ? 'greenLight' : undefined}
+          color={isSelectMode ? "greenLight" : undefined}
         />
 
-        <div 
+        <div
           ref={submenuRef}
           className={styles.submenu}
           onMouseEnter={() => {
@@ -91,16 +97,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           <ActionButton
             onClick={() => {
               if (!isAddMode) {
-                onToolSelect('addBed');
+                onToolSelect("addBed");
               }
             }}
             title="Добавить объект"
             icon="add"
             shape="littleCircle"
-            color={isAddMode ? 'greenLight' : undefined}
+            color={isAddMode ? "greenLight" : undefined}
           />
           {isAddMode && (
-            <div 
+            <div
               className={styles.submenuItems}
               onMouseEnter={() => {
                 if (onMenuOpenChange) {
@@ -114,20 +120,22 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               }}
             >
               <button
-                className={selectedTool === 'addBed' ? styles.active : ''}
+                className={selectedTool === "addBed" ? styles.active : ""}
                 onClick={() => {
-                  onToolSelect('addBed');
-                  onSubtypeSelect('building');
+                  onToolSelect("addBed");
+                  onSubtypeSelect("building");
                 }}
               >
                 Грядка
               </button>
-              {(['building', 'tree', 'path', 'water'] as const).map(subtype => (
+              {(["building", "tree", "path", "water"] as const).map((subtype) => (
                 <button
                   key={subtype}
-                  className={selectedTool === 'addStatic' && selectedSubtype === subtype ? styles.active : ''}
+                  className={
+                    selectedTool === "addStatic" && selectedSubtype === subtype ? styles.active : ""
+                  }
                   onClick={() => {
-                    onToolSelect('addStatic');
+                    onToolSelect("addStatic");
                     onSubtypeSelect(subtype);
                   }}
                 >

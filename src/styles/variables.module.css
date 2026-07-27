@@ -1,25 +1,25 @@
 :root {
-    --color-white: #ffffff;
-    --color-black: #000000;
+  --color-white: #ffffff;
+  --color-black: #000000;
 
-    --color-green: #41AA00; 
-    --color-green-light-1: #D3FFB8; 
-    --color-green-light-2: #9BFF80; 
-    --color-green-light-3: #50FF48; 
-    --color-green-cucumber: #1BD80E; 
-    --color-green-cucumber-1: #16B00B; 
-    --color-green-cucumber-2: #129009; 
+  --color-green: #41aa00;
+  --color-green-light-1: #d3ffb8;
+  --color-green-light-2: #9bff80;
+  --color-green-light-3: #50ff48;
+  --color-green-cucumber: #1bd80e;
+  --color-green-cucumber-1: #16b00b;
+  --color-green-cucumber-2: #129009;
 
-    --color-red-tomato-dark: #BB1C00; 
-    --color-red-tomato-light-1: #FFD3CC; 
-    --color-red-tomato-light-2: #FF7B66; 
-    --color-red-tomato-light-3: #FF4F33; 
+  --color-red-tomato-dark: #bb1c00;
+  --color-red-tomato-light-1: #ffd3cc;
+  --color-red-tomato-light-2: #ff7b66;
+  --color-red-tomato-light-3: #ff4f33;
 
-    --color-gray-1: #EDEEF0; /* фон 1 */
-    --color-gray-2: #F5F6F7; /* фон 2 профиль */
-    --color-gray-3: #EAEBEF; /* фон 3 профиль */
-    --color-gray-4: #E4E5E9; /* фон 2 инпут */
-    --color-gray-5: #DADCE2; /* фон 3 инпут */
-    --color-gray-6: #818C99; /* текст серый */
-    --color-gray-7: #6F7985; /* серый иконки */
+  --color-gray-1: #edeef0; /* фон 1 */
+  --color-gray-2: #f5f6f7; /* фон 2 профиль */
+  --color-gray-3: #eaebef; /* фон 3 профиль */
+  --color-gray-4: #e4e5e9; /* фон 2 инпут */
+  --color-gray-5: #dadce2; /* фон 3 инпут */
+  --color-gray-6: #818c99; /* текст серый */
+  --color-gray-7: #6f7985; /* серый иконки */
 }

@@ -1,20 +1,20 @@
-import React from 'react';
-import styles from './Input.module.css';
+import React from "react";
+import styles from "./Input.module.css";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   placeholder?: string;
 }
 
-const Input: React.FC<InputProps> = ({ 
-  label, 
-  placeholder = 'Введите текст', 
+const Input: React.FC<InputProps> = ({
+  label,
+  placeholder = "Введите текст",
   id,
-  className = '',
-  ...props 
+  className = "",
+  ...props
 }) => {
-  const inputId = id || label?.toLowerCase().replace(/\s+/g, '-') || 'input';
-  
+  const inputId = id || label?.toLowerCase().replace(/\s+/g, "-") || "input";
+
   return (
     <div className={styles.wrapper}>
       {label && (

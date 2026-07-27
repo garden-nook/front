@@ -8,19 +8,19 @@
   display: block;
   transition: all 0.2s;
   max-width: 100%;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
 }
 
 .card:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border-color: #22C55E;
+  border-color: #22c55e;
 }
 
 .title {
   font-size: 15px;
   font-weight: 700;
-  color: #1F2937;
+  color: #1f2937;
   margin: 0 0 8px 0;
   letter-spacing: 0.5px;
   text-align: center;
@@ -29,7 +29,7 @@
 .imageWrapper {
   width: 100%;
   aspect-ratio: 1 / 1;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   overflow: hidden;
   padding: 16px;
   display: flex;
@@ -48,18 +48,18 @@
 .imagePlaceholder {
   width: 100%;
   height: 100%;
-  background-color: #E5E7EB;
+  background-color: #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9CA3AF;
+  color: #9ca3af;
   font-size: 12px;
   border-radius: 12px;
 }
 
 .family {
   font-size: 14px;
-  color: #6B7280;
+  color: #6b7280;
   margin: 8px 0 12px 0;
   font-weight: 400;
   text-align: center;
@@ -80,14 +80,14 @@
 }
 
 .specLabel {
-  color: #1F2937;
+  color: #1f2937;
   font-size: 14px;
   font-weight: 600;
   text-align: left;
 }
 
 .specValue {
-  color: #1F2937;
+  color: #1f2937;
   font-weight: 600;
   font-size: 14px;
   text-align: right;

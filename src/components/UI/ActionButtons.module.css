@@ -1,4 +1,4 @@
-@import '../../styles/variables.module.css';
+@import "../../styles/variables.module.css";
 
 .actionBtn {
   border: none;
@@ -36,13 +36,13 @@
   border-radius: 3.2rem;
 }
 
-.littleCircle{
+.littleCircle {
   width: 3.6rem;
   height: 3.6rem;
   border-radius: 1.8rem;
 }
 
-.miniCircle{
+.miniCircle {
   width: 2.4rem;
   height: 2.4rem;
   border-radius: 1.2rem;
@@ -118,7 +118,7 @@
   height: 1.6rem;
 }
 
-.icon_miniCircle{
+.icon_miniCircle {
   width: 1.4rem;
   height: 1.4rem;
 }

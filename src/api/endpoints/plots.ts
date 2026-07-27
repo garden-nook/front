@@ -1,8 +1,8 @@
 // src/api/endpoints/plots.ts
-import { api } from '../client';
-import type { Plot, CreatePlotRequest, UpdatePlotRequest } from '../types/plots.types';
+import { api } from "../client";
+import type { CreatePlotRequest, Plot, UpdatePlotRequest } from "../types/plots.types";
 
-const BASE_URL = '/api/v1/plots';
+const BASE_URL = "/api/v1/plots";
 
 export async function getPlots(): Promise<Plot[]> {
   const response = await api.get<{ data: Plot[] }>(BASE_URL);

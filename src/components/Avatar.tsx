@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 
 interface AvatarProps {
   userId: string;
@@ -20,12 +20,12 @@ export default function Avatar({ userId, firstName, size = 32, onClick }: Avatar
   const style: React.CSSProperties = {
     width: `${size}px`,
     height: `${size}px`,
-    borderRadius: '50%',
-    overflow: 'hidden',
-    cursor: onClick ? 'pointer' : 'default',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: "50%",
+    overflow: "hidden",
+    cursor: onClick ? "pointer" : "default",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   };
 
   if (avatar) {
@@ -36,7 +36,7 @@ export default function Avatar({ userId, firstName, size = 32, onClick }: Avatar
         onClick={onClick}
         style={{
           ...style,
-          objectFit: 'cover',
+          objectFit: "cover",
         }}
       />
     );
@@ -47,13 +47,13 @@ export default function Avatar({ userId, firstName, size = 32, onClick }: Avatar
       onClick={onClick}
       style={{
         ...style,
-        backgroundColor: '#22C55E',
-        color: 'white',
+        backgroundColor: "#22C55E",
+        color: "white",
         fontSize: `${size * 0.45}px`,
         fontWeight: 600,
       }}
     >
-      {firstName?.charAt(0) || 'U'}
+      {firstName?.charAt(0) || "U"}
     </div>
   );
 }

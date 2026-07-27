@@ -1,8 +1,8 @@
-import React from 'react';
-import Logo from '../Logo/Logo';
-import Nav from '../Nav/Nav';
-import ProfileButton from '../ProfileButton/ProfileButton';
-import styles from './Header.module.css';
+import React from "react";
+import Logo from "../Logo/Logo";
+import Nav from "../Nav/Nav";
+import ProfileButton from "../ProfileButton/ProfileButton";
+import styles from "./Header.module.css";
 
 interface HeaderProps {
   userId: string;
@@ -11,8 +11,8 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ userId, firstName }) => {
   const navLinks = [
-    { label: 'Мои участки', to: '/' },
-    { label: 'Каталог культур', to: '/catalog' }
+    { label: "Мои участки", to: "/" },
+    { label: "Каталог культур", to: "/catalog" },
   ];
 
   return (

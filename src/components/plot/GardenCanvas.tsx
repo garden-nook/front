@@ -1,12 +1,6 @@
 import React, { useEffect } from "react";
+import type { GardenObject, GridPosition, GridRect, Rect, Tool } from "../../api/types/plot.types";
 import { useGardenCanvas } from "../../hooks/useGardenCanvas";
-import type {
-  GardenObject,
-  GridPosition,
-  GridRect,
-  Rect,
-  Tool,
-} from "../../api/types/plot.types";
 
 interface GardenCanvasProps {
   plotSize: GridRect;
@@ -28,9 +22,7 @@ interface GardenCanvasProps {
   onRectSelect: (rect: Rect) => void;
   onObjectSelect: (obj: GardenObject | null) => void;
   onObjectDelete: (id: string) => void;
-  onContextMenu: (
-    menu: { x: number; y: number; object: GardenObject } | null,
-  ) => void;
+  onContextMenu: (menu: { x: number; y: number; object: GardenObject } | null) => void;
   onHoverObject: (obj: GardenObject | null) => void;
   resetDrawing: () => void;
   setStartCell: (cell: GridPosition | null) => void;
@@ -122,16 +114,13 @@ export const GardenCanvas: React.FC<GardenCanvasProps> = ({
   }, [getCursor, canvasRef]);
 
   return (
-    <div 
-      ref={containerRef} 
-      style={{ width: '100%', height: '100%', position: 'relative' }}
-    >
+    <div ref={containerRef} style={{ width: "100%", height: "100%", position: "relative" }}>
       <canvas
         ref={canvasRef}
         style={{
-          width: '100%',
-          height: '100%',
-          display: 'block',
+          width: "100%",
+          height: "100%",
+          display: "block",
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}

@@ -1,8 +1,8 @@
 // src/pages/PlotEditor/components/plot/BedInfo.tsx
-import React from 'react';
-import styles from './BedInfo.module.css';
-import type { UIBed } from '../../api/types/plot.types';
-import ActionButton from '../UI/ActionButton';
+import React from "react";
+import type { UIBed } from "../../api/types/plot.types";
+import ActionButton from "../UI/ActionButton";
+import styles from "./BedInfo.module.css";
 
 interface BedInfoProps {
   bed: UIBed;
@@ -18,11 +18,12 @@ export const BedInfo: React.FC<BedInfoProps> = ({
   onHarvest,
 }) => {
   // Проверяем наличие активной посадки по currentCropId или plantings
-  const hasActivePlanting = 
+  const hasActivePlanting =
     (bed.currentCropId !== null && bed.currentCropId !== undefined) ||
-    bed.plantings?.some(p => !p.harvestDate) || false;
+    bed.plantings?.some((p) => !p.harvestDate) ||
+    false;
 
-  console.log('BedInfo состояние:', {
+  console.log("BedInfo состояние:", {
     bedName: bed.name,
     currentCropId: bed.currentCropId,
     plantings: bed.plantings,
@@ -43,15 +44,14 @@ export const BedInfo: React.FC<BedInfoProps> = ({
           <div className={styles.bedInfoRow}>
             <span className={styles.bedInfoLabel}>Размер:</span>
             <span className={styles.bedInfoValue}>
-              {bed.width} × {bed.height} ({(bed.width * 0.5).toFixed(1)} × {(bed.height * 0.5).toFixed(1)} м)
+              {bed.width} × {bed.height} ({(bed.width * 0.5).toFixed(1)} ×{" "}
+              {(bed.height * 0.5).toFixed(1)} м)
             </span>
           </div>
           {hasActivePlanting && (
             <div className={styles.bedInfoRow}>
               <span className={styles.bedInfoLabel}>Посажено:</span>
-              <span className={styles.bedInfoValue}>
-                {bed.currentCropName}
-              </span>
+              <span className={styles.bedInfoValue}>{bed.currentCropName}</span>
             </div>
           )}
           {showPlantButton && (
@@ -63,11 +63,7 @@ export const BedInfo: React.FC<BedInfoProps> = ({
                   color="red"
                 />
               ) : (
-                <ActionButton
-                  onClick={onPlant}
-                  title="Посадить"
-                  color="greenDark"
-                />
+                <ActionButton onClick={onPlant} title="Посадить" color="greenDark" />
               )}
             </div>
           )}
