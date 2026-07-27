@@ -33,8 +33,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY_IMAGE }}
           tags: |
-            type=raw,value=${{ vars.BRANCH_NAME }}-latest
-            type=raw,value=${{ vars.BRANCH_NAME }}-${{ github.sha }}
+            type=raw,value=${{ github.ref_name }}-latest
+            type=raw,value=${{ github.ref_name }}-${{ github.sha }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -44,9 +44,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VITE_API_URL=${{ vars.VITE_API_URL }}
-          cache-from: type=registry,ref=${{ env.REGISTRY_IMAGE }}:${{ vars.BRANCH_NAME }}-buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY_IMAGE }}:${{ vars.BRANCH_NAME }}-buildcache,mode=max
+            VITE_API_URL=${{ vars.VITE_API_URL_START }}${{ github.ref_name }}${{ vars.VITE_API_URL_END }}
+          cache-from: type=registry,ref=${{ env.REGISTRY_IMAGE }}:${{ github.ref_name }}-buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY_IMAGE }}:${{ github.ref_name }}-buildcache,mode=max
 
   deploy:
     name: Deploy
@@ -63,8 +63,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            cd /opt/garden-nook/docker/${{ vars.BRANCH_NAME }}
+            cd /opt/garden-nook/docker/${{ github.ref_name }}
             docker compose pull
-            FRONT_IMAGE_TAG=${{ vars.BRANCH_NAME }}-${{ github.sha }} docker compose up -d --remove-orphans
+            FRONT_IMAGE_TAG=${{ github.ref_name }}-${{ github.sha }} docker compose up -d --remove-orphans
             docker image prune -f
-            echo "Deployed ${{ vars.BRANCH_NAME }}-${{ github.sha }}"
+            echo "Deployed ${{ github.ref_name }}-${{ github.sha }}"
