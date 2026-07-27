@@ -1,0 +1,90 @@
+@import '../../styles/variables.module.css';
+
+.plotInfoWrapper {
+  flex-shrink: 0;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.plotInfo {
+  background: var(--color-white);
+  border-radius: 1rem;
+  padding: 1.4rem 1.6rem;
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.plotInfo.collapsed {
+  cursor: pointer;
+  padding: 1.2rem 1.4rem;
+  min-width: auto;
+}
+
+.plotInfoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.plotInfoCollapsed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.plotInfoTitle {
+  font-weight: 700;
+  color: var(--color-black);
+}
+
+.plotInfoContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.plotInfoRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.3rem;
+  padding: 0.2rem 0;
+}
+
+.plotInfoLabel {
+  color: var(--color-gray-6);
+}
+
+.plotInfoValue {
+  font-weight: 500;
+}
+
+.plotNameContainer {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  margin-right: 1.4rem;
+}
+
+.plotName {
+  display: inline-block;
+  font-weight: 700;
+  color: var(--color-black);
+  white-space: nowrap;
+  transition: transform 0.5s ease;
+}
+
+.plotNameContainer.scrolling .plotName {
+  animation: marquee 3s linear infinite;
+}

@@ -2,14 +2,15 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import type {
   GardenObject,
-  Bed,
+  UIBed,
+  UIStaticObject,
   GridPosition,
   GridRect,
   Rect,
   Tool,
-  StaticObject,
 } from "../api/types/plot.types";
 import { canvasStyles, staticObjectIcons } from "./canvasStyles";
+import { useToast } from "../components/common/Toast";
 
 interface UseGardenCanvasProps {
   plotSize: GridRect;
@@ -78,6 +79,7 @@ export const useGardenCanvas = ({
 }: UseGardenCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { showToast } = useToast();
 
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -156,6 +158,7 @@ export const useGardenCanvas = ({
     [cellSizePx, getPlotPosition],
   );
 
+  // ===== ПОЛУЧЕНИЕ КЛЕТКИ ИЗ КООРДИНАТ МЫШИ =====
   const getCellFromMouse = useCallback(
     (mouseX: number, mouseY: number) => {
       if (!hasData) return null;
@@ -171,8 +174,9 @@ export const useGardenCanvas = ({
         return null;
       }
 
-      const col = Math.round((mouseX - startX) / cellSizePx);
-      const row = Math.round((mouseY - startY) / cellSizePx);
+      const offset = 0.001;
+      const col = Math.floor((mouseX - startX) / cellSizePx + offset);
+      const row = Math.floor((mouseY - startY) / cellSizePx + offset);
 
       if (
         row < plotSize.start.row ||
@@ -253,7 +257,6 @@ export const useGardenCanvas = ({
   // ===== ОБРАБОТЧИКИ МЫШИ =====
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      // Если меню открыто - игнорируем все события мыши на canvas
       if (isMenuOpen) {
         e.preventDefault();
         e.stopPropagation();
@@ -265,7 +268,6 @@ export const useGardenCanvas = ({
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      // ===== СРЕДНЯЯ КНОПКА МЫШИ (ПАНОРАМИРОВАНИЕ) =====
       if (e.button === 1) {
         e.preventDefault();
         setIsMiddleButtonDown(true);
@@ -276,7 +278,6 @@ export const useGardenCanvas = ({
 
       const cell = getCellFromMouse(x, y);
 
-      // ===== ПРАВАЯ КНОПКА МЫШИ (КОНТЕКСТНОЕ МЕНЮ) - В ЛЮБОМ РЕЖИМЕ =====
       if (e.button === 2) {
         e.preventDefault();
         e.stopPropagation();
@@ -293,7 +294,6 @@ export const useGardenCanvas = ({
         return;
       }
 
-      // ===== ЛЕВАЯ КНОПКА МЫШИ =====
       if (e.button === 0) {
         if (!cell) {
           if (selectedTool === "select") {
@@ -302,7 +302,6 @@ export const useGardenCanvas = ({
           return;
         }
 
-        // ===== РЕЖИМ ПРОСМОТРА =====
         if (selectedTool === "view") {
           const obj = getObjectAt(cell.row, cell.col);
           if (obj && obj.type === "bed") {
@@ -312,7 +311,6 @@ export const useGardenCanvas = ({
           return;
         }
 
-        // ===== РЕЖИМ ПОСАДКИ =====
         if (selectedTool === "plant") {
           const obj = getObjectAt(cell.row, cell.col);
           if (obj && obj.type === "bed") {
@@ -322,7 +320,6 @@ export const useGardenCanvas = ({
           return;
         }
 
-        // ===== РЕЖИМ РЕДАКТИРОВАНИЯ (select) =====
         if (selectedTool === "select") {
           const obj = getObjectAt(cell.row, cell.col);
           if (obj) {
@@ -338,7 +335,6 @@ export const useGardenCanvas = ({
           return;
         }
 
-        // ===== РЕЖИМ ДОБАВЛЕНИЯ =====
         if (selectedTool === "addStatic" || selectedTool === "addBed") {
           setIsDrawing(true);
           setStartCell(cell);
@@ -346,7 +342,6 @@ export const useGardenCanvas = ({
           return;
         }
 
-        // ===== РЕЖИМ УДАЛЕНИЯ =====
         if (selectedTool === "delete") {
           const obj = getObjectAt(cell.row, cell.col);
           if (obj) {
@@ -375,7 +370,6 @@ export const useGardenCanvas = ({
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      // Если меню открыто - игнорируем все события мыши на canvas
       if (isMenuOpen) return;
 
       const rect = canvasRef.current?.getBoundingClientRect();
@@ -384,7 +378,6 @@ export const useGardenCanvas = ({
       const y = e.clientY - rect.top;
       const cell = getCellFromMouse(x, y);
 
-      // ===== ПАНОРАМИРОВАНИЕ (средняя кнопка) =====
       if (isPanning && panStart) {
         const dx = x - panStart.x;
         const dy = y - panStart.y;
@@ -399,7 +392,6 @@ export const useGardenCanvas = ({
         return;
       }
 
-      // ===== ОБНОВЛЕНИЕ НАВЕДЕНИЯ =====
       if (
         cell &&
         (selectedTool === "select" ||
@@ -416,7 +408,6 @@ export const useGardenCanvas = ({
         }
       }
 
-      // ===== ПЕРЕТАСКИВАНИЕ ОБЪЕКТОВ (только в режиме select) =====
       if (
         isDragging &&
         selectedObject &&
@@ -459,7 +450,6 @@ export const useGardenCanvas = ({
         }
       }
 
-      // ===== РИСОВАНИЕ =====
       if (
         isDrawing &&
         cell &&
@@ -494,10 +484,8 @@ export const useGardenCanvas = ({
 
   const handleMouseUp = useCallback(
     (e: React.MouseEvent) => {
-      // Если меню открыто - игнорируем все события мыши на canvas
       if (isMenuOpen) return;
 
-      // ===== ЗАВЕРШЕНИЕ ПАНОРАМИРОВАНИЯ =====
       if (e.button === 1) {
         setIsMiddleButtonDown(false);
         setIsPanning(false);
@@ -543,7 +531,6 @@ export const useGardenCanvas = ({
         const rect = { row, col, width, height };
 
         if (row < 0 || col < 0 || row + height > rows || col + width > cols) {
-          alert("❌ Объект выходит за границы участка!");
           resetDrawing();
           return;
         }
@@ -569,7 +556,7 @@ export const useGardenCanvas = ({
               ),
           );
           const names = overlapping.map((o) => o.name).join(", ");
-          alert(`❌ Пересечение с: ${names}`);
+          showToast(`Пересечение с: ${names}`, "error");
           resetDrawing();
           return;
         }
@@ -596,6 +583,7 @@ export const useGardenCanvas = ({
       onObjectUpdate,
       selectedTool,
       isMenuOpen,
+      showToast,
     ],
   );
 
@@ -614,9 +602,7 @@ export const useGardenCanvas = ({
     (e: React.WheelEvent) => {
       e.preventDefault();
 
-      // Если меню открыто - игнорируем
       if (isMenuOpen) return;
-
       if (isMiddleButtonDown || isPanning) return;
 
       const rect = canvasRef.current?.getBoundingClientRect();
@@ -748,15 +734,22 @@ export const useGardenCanvas = ({
         ctx.lineWidth = canvasStyles.objects.static.strokeWidth;
       }
 
-      if (isHovered && !isSelected) {
+      let showHoverEffect = false;
+      if (selectedTool === "select") {
+        showHoverEffect = isHovered && !isSelected;
+      } else if (selectedTool === "view" || selectedTool === "plant") {
+        showHoverEffect = isHovered && !isSelected && obj.type === "bed";
+      }
+
+      if (showHoverEffect) {
         ctx.setLineDash(canvasStyles.objects.hovered.dashPattern);
       }
       ctx.strokeRect(x, y, width, height);
       ctx.setLineDash([]);
 
       if (obj.type === "bed") {
-        const bed = obj as Bed;
-        const activePlanting = bed.plantings.find((p) => !p.harvestDate);
+        const bed = obj as UIBed;
+        const activePlanting = bed.plantings?.find((p) => !p.harvestDate);
         if (activePlanting) {
           ctx.fillStyle = canvasStyles.text.colors.light;
           ctx.font = `${canvasStyles.sizes.fontSize.large}px ${canvasStyles.text.fontFamily}`;
@@ -785,7 +778,7 @@ export const useGardenCanvas = ({
           ctx.fillText(bed.name, x + width / 2, y + height / 2 + 12);
         }
       } else {
-        const staticObj = obj as StaticObject;
+        const staticObj = obj as UIStaticObject;
         const icon = staticObjectIcons[staticObj.subtype] || "📦";
         ctx.fillStyle = canvasStyles.text.colors.light;
         ctx.font = `${canvasStyles.sizes.fontSize.large}px ${canvasStyles.text.fontFamily}`;
@@ -800,7 +793,6 @@ export const useGardenCanvas = ({
       }
     });
 
-    // ВЫДЕЛЕНИЕ ПРИ РИСОВАНИИ
     if (isDrawing && startCell && endCell) {
       const row = Math.min(startCell.row, endCell.row);
       const col = Math.min(startCell.col, endCell.col);

@@ -16,7 +16,7 @@ interface ActionButtonProps{
   title?: string;
   icon?: IconType;
   color?: colorType;
-  shape?: 'littleSquare' | 'square' | 'circle' | 'littleCircle' | 'text';
+  shape?: 'littleSquare' | 'square' | 'circle' | 'littleCircle' | 'miniCircle' | 'text';
   disabled?: boolean;
 }
 

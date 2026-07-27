@@ -1,57 +1,135 @@
-// src/pages/PlotEditor/components/History/PlantingHistory.tsx
-import React, { useState, useMemo } from 'react';
+// src/pages/PlotEditor/components/plot/PlantingHistory.tsx
+import React, { useState, useMemo, useEffect } from 'react';
 import styles from './PlantingHistory.module.css';
-
-// ===== ЛОКАЛЬНЫЕ ТИПЫ (временные, пока нет API) =====
-
-interface GridPosition {
-  row: number;
-  col: number;
-}
-
-interface PlantingHistoryItem {
-  id: string;
-  cropId: string;
-  cropName: string;
-  plantedDate: string;
-  harvestDate?: string;
-  cells: GridPosition[];
-  color: string;
-}
-
-interface Bed {
-  id: string;
-  name: string;
-  cells: GridPosition[];
-  plantings: PlantingHistoryItem[];
-  createdAt: string;
-}
+import { useToast } from '../common/Toast';
+import { getBedHistory } from '../../api';
+import type { BedCropHistoryEntry } from '../../api/types/plot.types';
 
 interface PlantingHistoryProps {
   selectedBedId: string | null;
-  beds: Bed[];
+  beds: {
+    id: string;
+    name: string;
+    currentCropName?: string | null;
+    plantDate?: string | null;
+  }[];
 }
-
-// ===== КОМПОНЕНТ =====
 
 export const PlantingHistory: React.FC<PlantingHistoryProps> = ({
   selectedBedId,
   beds,
 }) => {
+  const { showToast } = useToast();
   const [expandedYears, setExpandedYears] = useState<Set<string>>(new Set());
+  const [historyData, setHistoryData] = useState<BedCropHistoryEntry[]>([]);
 
-  // Получаем выбранную грядку
+  // Загружаем историю с сервера при выборе грядки
+useEffect(() => {
+  if (!selectedBedId) {
+    setHistoryData([]);
+    return;
+  }
+
+  const loadHistory = async () => {
+    try {
+      const data = await getBedHistory(selectedBedId);
+      console.log('📜 История с сервера:', data);
+      console.log('📊 Количество записей:', data?.length);
+      if (data && Array.isArray(data)) {
+        setHistoryData(data);
+      } else {
+        setHistoryData([]);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки истории:', error);
+      showToast('Ошибка загрузки истории посадок', 'error');
+      setHistoryData([]);
+    } 
+  };
+
+  loadHistory();
+}, [selectedBedId, showToast]);
+
+  // Находим выбранную грядку
   const selectedBed = useMemo(() => {
     return beds.find(b => b.id === selectedBedId);
   }, [beds, selectedBedId]);
 
-  // Группируем посадки по годам
-  const groupedByYear = useMemo(() => {
-    if (!selectedBed) return {};
+  // Формируем список всех посадок
+const allPlantings = useMemo(() => {
+  const result: {
+    id: string;
+    cropName: string;
+    plantedDate: string;
+    harvestDate?: string;
+    isCurrent: boolean;
+  }[] = [];
 
-    const groups: Record<string, PlantingHistoryItem[]> = {};
+  // Текущая посадка (из структуры участка)
+  if (selectedBed?.currentCropName && selectedBed?.plantDate) {
+    result.push({
+      id: `current-${selectedBed.id}`,
+      cropName: selectedBed.currentCropName,
+      plantedDate: selectedBed.plantDate,
+      harvestDate: undefined,
+      isCurrent: true,
+    });
+  }
+
+  // ✅ Исторические посадки (из API) - НЕ ДУБЛИРУЕМ
+  if (historyData && Array.isArray(historyData) && historyData.length > 0) {
+    // Проверяем, есть ли уже текущая посадка с такими же данными
+    historyData.forEach(entry => {
+      // Проверяем, не дублируется ли текущая посадка
+      const isDuplicate = result.some(
+        r => r.cropName === entry.crop_name && 
+             r.plantedDate === entry.plant_date &&
+             r.isCurrent
+      );
+      
+      if (!isDuplicate) {
+        result.push({
+          id: `history-${entry.crop_id}-${entry.plant_date}`,
+          cropName: entry.crop_name || 'Неизвестная культура',
+          plantedDate: entry.plant_date,
+          harvestDate: entry.harvest_date,
+          isCurrent: false,
+        });
+      }
+    });
+  }
+
+  console.log('📊 Итоговый список посадок:', result);
+  console.log('📊 Количество посадок:', result.length);
+  return result;
+}, [selectedBed, historyData]);
+
+  // Разделяем на активную и завершенные посадки
+  const { activePlantings, historyPlantings } = useMemo(() => {
+    const active: typeof allPlantings = [];
+    const history: typeof allPlantings = [];
+
+    allPlantings.forEach(planting => {
+      if (!planting.harvestDate) {
+        active.push(planting);
+      } else {
+        history.push(planting);
+      }
+    });
+
+    history.sort((a, b) => new Date(b.plantedDate).getTime() - new Date(a.plantedDate).getTime());
+
+    return { activePlantings: active, historyPlantings: history };
+  }, [allPlantings]);
+
+  // Группируем историю по годам
+  const groupedByYear = useMemo(() => {
+    if (!historyPlantings || historyPlantings.length === 0) return {};
+
+    const groups: Record<string, typeof historyPlantings> = {};
     
-    selectedBed.plantings.forEach(planting => {
+    historyPlantings.forEach(planting => {
+      if (!planting.plantedDate) return;
       const year = new Date(planting.plantedDate).getFullYear().toString();
       if (!groups[year]) {
         groups[year] = [];
@@ -59,28 +137,11 @@ export const PlantingHistory: React.FC<PlantingHistoryProps> = ({
       groups[year].push(planting);
     });
 
-    // Сортируем года от новых к старым
     return Object.fromEntries(
       Object.entries(groups).sort((a, b) => Number(b[0]) - Number(a[0]))
     );
-  }, [selectedBed]);
+  }, [historyPlantings]);
 
-  // Группируем по культурам внутри года
-  const getGroupedByCrop = (plantings: PlantingHistoryItem[]) => {
-    const groups: Record<string, PlantingHistoryItem[]> = {};
-    
-    plantings.forEach(planting => {
-      const cropKey = planting.cropName;
-      if (!groups[cropKey]) {
-        groups[cropKey] = [];
-      }
-      groups[cropKey].push(planting);
-    });
-
-    return groups;
-  };
-
-  // Переключение разворачивания года
   const toggleYear = (year: string) => {
     setExpandedYears(prev => {
       const newSet = new Set(prev);
@@ -93,174 +154,106 @@ export const PlantingHistory: React.FC<PlantingHistoryProps> = ({
     });
   };
 
-  // Форматирование даты
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  };
-
-  // Расчет дней до сбора урожая (примерный)
-  const getDaysToHarvest = (planting: PlantingHistoryItem) => {
-    if (planting.harvestDate) {
-      const harvest = new Date(planting.harvestDate);
-      const now = new Date();
-      const diff = harvest.getTime() - now.getTime();
-      const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-      return days;
+    if (!dateString) return '—';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+    } catch {
+      return dateString;
     }
-    return null;
   };
 
-  // Если нет выбранной грядки
-  if (!selectedBed) {
-    return (
-      <div className={styles.empty}>
-        <div className={styles.emptyIcon}>🌱</div>
-        <p className={styles.emptyText}>Выберите грядку на схеме</p>
-        <p className={styles.emptyHint}>Кликните на любую грядку, чтобы увидеть историю посадок</p>
-      </div>
-    );
-  }
-
-  // Если нет посадок
-  if (selectedBed.plantings.length === 0) {
-    return (
-      <div className={styles.empty}>
-        <div className={styles.emptyIcon}>🌿</div>
-        <p className={styles.emptyText}>На этой грядке еще нет посадок</p>
-        <p className={styles.emptyHint}>Переключитесь в режим "Посадка" и начните сажать!</p>
-      </div>
-    );
+  // Если нет никаких посадок - показываем пустое состояние
+  if (allPlantings.length === 0) {
+    return 
   }
 
   const years = Object.keys(groupedByYear);
 
   return (
     <div className={styles.container}>
-      {/* Заголовок */}
-      <div className={styles.header}>
-        <h3 className={styles.title}>{selectedBed.name}</h3>
-        <span className={styles.bedInfo}>
-          {selectedBed.cells.length} клеток • {selectedBed.plantings.length} посадок
-        </span>
-      </div>
+        <span className={styles.header}>История посадок</span>
 
-      {/* Легенда цветов */}
-      <div className={styles.legend}>
-        <span className={styles.legendLabel}>Цвета культур:</span>
-        <div className={styles.legendColors}>
-          {Array.from(new Set(selectedBed.plantings.map(p => p.cropName))).map(cropName => {
-            const color = selectedBed.plantings.find(p => p.cropName === cropName)?.color || '#888';
-            return (
-              <span key={cropName} className={styles.legendItem}>
-                <span className={styles.legendDot} style={{ backgroundColor: color }} />
-                {cropName}
-              </span>
-            );
-          })}
+      {/* ===== ТЕКУЩАЯ ПОСАДКА (показываем только если есть) ===== */}
+      {activePlantings.length > 0 && (
+        <div className={styles.activeSection}>
+          <div className={styles.activePlanting}>
+            {activePlantings.map(planting => (
+              <div key={planting.id} className={styles.activePlantingItem}>
+                <span className={styles.activePlantingName}>{planting.cropName}</span>
+                <span className={styles.activePlantingDate}>{formatDate(planting.plantedDate)}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Список посадок по годам */}
-      <div className={styles.historyList}>
-        {years.map(year => {
-          const plantings = groupedByYear[year];
-          const isExpanded = expandedYears.has(year);
-          const groupedByCrop = getGroupedByCrop(plantings);
+      {/* ===== ИСТОРИЯ ПОСАДОК (показываем только если есть) ===== */}
+      {historyPlantings.length > 0 && (
+        <div className={styles.historySection}>
 
-          return (
-            <div key={year} className={styles.yearGroup}>
-              <button
-                className={styles.yearHeader}
-                onClick={() => toggleYear(year)}
-              >
-                <span className={styles.yearIcon}>
-                  {isExpanded ? '▼' : '▶'}
-                </span>
-                <span className={styles.yearLabel}>{year}</span>
-                <span className={styles.yearCount}>
-                  {plantings.length} посадок
-                </span>
-              </button>
+          <div className={styles.historyList}>
+            {years.map(year => {
+              const plantings = groupedByYear[year];
+              const isExpanded = expandedYears.has(year);
 
-              {isExpanded && (
-                <div className={styles.yearContent}>
-                  {Object.entries(groupedByCrop).map(([cropName, cropPlantings]) => {
-                    const color = cropPlantings[0]?.color || '#888';
-                    
-                    return (
-                      <div key={cropName} className={styles.cropGroup}>
-                        <div className={styles.cropHeader}>
-                          <span className={styles.cropDot} style={{ backgroundColor: color }} />
-                          <span className={styles.cropName}>{cropName}</span>
-                          <span className={styles.cropCount}>
-                            {cropPlantings.length} записей
+              return (
+                <div key={year} className={styles.yearGroup}>
+                  <button
+                    className={styles.yearHeader}
+                    onClick={() => toggleYear(year)}
+                  >
+                    <span className={styles.yearIcon}>
+                      {isExpanded ? '▼' : '▶'}
+                    </span>
+                    <span className={styles.yearLabel}>{year}</span>
+                    <span className={styles.yearCount}>
+                      {plantings.length} посадок
+                    </span>
+                  </button>
+
+                  {isExpanded && (
+                    <div className={styles.yearContent}>
+                      {plantings.map(planting => (
+                        <div key={planting.id} className={styles.historyItem}>
+                          <span className={styles.historyCropName}>{planting.cropName}</span>
+                          <span className={styles.historyDate}>
+                            📅 {formatDate(planting.plantedDate)}
                           </span>
+                          {planting.harvestDate && (
+                            <span className={styles.historyHarvest}>
+                              → Сбор: {formatDate(planting.harvestDate)}
+                            </span>
+                          )}
                         </div>
-
-                        <div className={styles.plantingList}>
-                          {cropPlantings.map(planting => {
-                            const daysToHarvest = getDaysToHarvest(planting);
-                            
-                            return (
-                              <div key={planting.id} className={styles.plantingItem}>
-                                <div className={styles.plantingInfo}>
-                                  <span className={styles.plantingDate}>
-                                    📅 {formatDate(planting.plantedDate)}
-                                  </span>
-                                  {planting.harvestDate && (
-                                    <span className={styles.plantingHarvest}>
-                                      → Сбор: {formatDate(planting.harvestDate)}
-                                    </span>
-                                  )}
-                                  {!planting.harvestDate && daysToHarvest !== null && (
-                                    <span className={styles.plantingDays}>
-                                      {daysToHarvest > 0 
-                                        ? `⏳ ${daysToHarvest} дн. до сбора`
-                                        : daysToHarvest === 0 
-                                          ? '🌾 Готово к сбору!'
-                                          : '⏰ Сбор просрочен'}
-                                    </span>
-                                  )}
-                                  {!planting.harvestDate && daysToHarvest === null && (
-                                    <span className={styles.plantingGrowing}>🌱 Растет</span>
-                                  )}
-                                </div>
-                                <div className={styles.plantingCells}>
-                                  {planting.cells.length} клеток
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
 
-      {/* Кнопка "Развернуть всё" */}
-      {years.length > 1 && (
-        <button
-          className={styles.expandAll}
-          onClick={() => {
-            if (expandedYears.size === years.length) {
-              setExpandedYears(new Set());
-            } else {
-              setExpandedYears(new Set(years));
-            }
-          }}
-        >
-          {expandedYears.size === years.length ? 'Свернуть всё' : 'Развернуть всё'}
-        </button>
+          {years.length > 1 && (
+            <button
+              className={styles.expandAll}
+              onClick={() => {
+                if (expandedYears.size === years.length) {
+                  setExpandedYears(new Set());
+                } else {
+                  setExpandedYears(new Set(years));
+                }
+              }}
+            >
+              {expandedYears.size === years.length ? 'Свернуть всё' : 'Развернуть всё'}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
