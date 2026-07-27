@@ -6,20 +6,20 @@
   align-items: center;
   gap: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
   transition: all 0.2s;
 }
 
 .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border-color: #22C55E;
+  border-color: #22c55e;
 }
 
 .imagePlaceholder {
   width: 80px;
   height: 80px;
-  background-color: #F3F4F6;
+  background-color: #f3f4f6;
   border-radius: 12px;
   flex-shrink: 0;
 }
@@ -32,25 +32,25 @@
 .title {
   font-size: 18px;
   font-weight: 600;
-  color: #1F2937;
+  color: #1f2937;
   text-decoration: none;
   display: block;
   margin-bottom: 4px;
 }
 
 .title:hover {
-  color: #22C55E;
+  color: #22c55e;
   text-decoration: underline;
 }
 
 .info {
   font-size: 14px;
-  color: #6B7280;
+  color: #6b7280;
   margin: 0;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: 8px; 
+  gap: 8px;
 }

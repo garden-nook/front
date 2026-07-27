@@ -1,8 +1,8 @@
 // src/components/plot/ZoomControls.tsx
-import React, { useCallback, useState, useRef, useEffect } from 'react';
-import styles from './ZoomControls.module.css';
-import ActionButton from '../UI/ActionButton';
-import Input from '../UI/Input/Input';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import ActionButton from "../UI/ActionButton";
+import Input from "../UI/Input/Input";
+import styles from "./ZoomControls.module.css";
 
 interface ZoomControlsProps {
   scale: number;
@@ -20,7 +20,7 @@ export const ZoomControls: React.FC<ZoomControlsProps> = ({
   onZoomOut,
   onScaleChange,
   minScale = 0.5, // 50%
-  maxScale = 2,   // 200%
+  maxScale = 2, // 200%
 }) => {
   // Храним предыдущее валидное значение
   const [inputValue, setInputValue] = useState<string>(String(Math.round(scale * 100)));
@@ -38,46 +38,52 @@ export const ZoomControls: React.FC<ZoomControlsProps> = ({
     return !isNaN(value) && value >= 50 && value <= 200;
   };
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value;
-    setInputValue(rawValue);
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const rawValue = e.target.value;
+      setInputValue(rawValue);
 
-    // Если поле пустое — ничего не делаем
-    if (rawValue === '') return;
+      // Если поле пустое — ничего не делаем
+      if (rawValue === "") return;
 
-    const numValue = parseFloat(rawValue);
-    if (!isNaN(numValue) && isValidValue(numValue)) {
-      // Валидное значение — обновляем масштаб
-      lastValidValue.current = numValue;
-      onScaleChange(numValue / 100);
-    }
-    // Если значение невалидное — просто обновляем отображение, но масштаб не меняем
-  }, [onScaleChange]);
+      const numValue = parseFloat(rawValue);
+      if (!isNaN(numValue) && isValidValue(numValue)) {
+        // Валидное значение — обновляем масштаб
+        lastValidValue.current = numValue;
+        onScaleChange(numValue / 100);
+      }
+      // Если значение невалидное — просто обновляем отображение, но масштаб не меняем
+    },
+    [onScaleChange],
+  );
 
-  const handleInputBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value;
-    const numValue = parseFloat(rawValue);
+  const handleInputBlur = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const rawValue = e.target.value;
+      const numValue = parseFloat(rawValue);
 
-    // Если поле пустое или значение не число — возвращаем последнее валидное
-    if (rawValue === '' || isNaN(numValue)) {
-      setInputValue(String(lastValidValue.current));
-      return;
-    }
+      // Если поле пустое или значение не число — возвращаем последнее валидное
+      if (rawValue === "" || isNaN(numValue)) {
+        setInputValue(String(lastValidValue.current));
+        return;
+      }
 
-    // Проверяем валидность
-    if (isValidValue(numValue)) {
-      // Валидное — обновляем
-      lastValidValue.current = numValue;
-      onScaleChange(numValue / 100);
-    } else {
-      // Невалидное — возвращаем последнее валидное
-      setInputValue(String(lastValidValue.current));
-    }
-  }, [onScaleChange]);
+      // Проверяем валидность
+      if (isValidValue(numValue)) {
+        // Валидное — обновляем
+        lastValidValue.current = numValue;
+        onScaleChange(numValue / 100);
+      } else {
+        // Невалидное — возвращаем последнее валидное
+        setInputValue(String(lastValidValue.current));
+      }
+    },
+    [onScaleChange],
+  );
 
   // Обработка Enter
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.currentTarget.blur();
     }
   }, []);

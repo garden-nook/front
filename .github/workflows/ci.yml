@@ -10,11 +10,11 @@ env:
   REGISTRY_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
 
 jobs:
-  build-dev:
-    name: Build & Push (dev)
+  build:
+    name: Build & Push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
-    
+    if: github.event_name == 'push'
+
     steps:
       - uses: actions/checkout@v4
 
@@ -33,8 +33,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY_IMAGE }}
           tags: |
-            type=raw,value=dev-latest
-            type=raw,value=dev-${{ github.sha }}
+            type=raw,value=${{ vars.BRANCH_NAME }}-latest
+            type=raw,value=${{ vars.BRANCH_NAME }}-${{ github.sha }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -43,51 +43,17 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.REGISTRY_IMAGE }}:dev-buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY_IMAGE }}:dev-buildcache,mode=max
+          build-args: |
+            VITE_API_URL=${{ vars.VITE_API_URL }}
+          cache-from: type=registry,ref=${{ env.REGISTRY_IMAGE }}:${{ vars.BRANCH_NAME }}-buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY_IMAGE }}:${{ vars.BRANCH_NAME }}-buildcache,mode=max
 
-  build-stage:
-    name: Build & Push (stage)
+  deploy:
+    name: Deploy
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/stage' && github.event_name == 'push'
-    
-    steps:
-      - uses: actions/checkout@v4
+    needs: build
+    if: github.event_name == 'push'
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY_IMAGE }}
-          tags: |
-            type=raw,value=stage-latest
-            type=raw,value=stage-${{ github.sha }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.REGISTRY_IMAGE }}:stage-buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY_IMAGE }}:stage-buildcache,mode=max
-
-  deploy-dev:
-    name: Deploy to DEV
-    runs-on: ubuntu-latest
-    needs: build-dev
-    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
-    
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
@@ -97,29 +63,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            cd /opt/garden-nook/docker/dev
+            cd /opt/garden-nook/docker/${{ vars.BRANCH_NAME }}
             docker compose pull
-            FRONT_IMAGE_TAG=dev-${{ github.sha }} docker compose up -d --remove-orphans
+            FRONT_IMAGE_TAG=${{ vars.BRANCH_NAME }}-${{ github.sha }} docker compose up -d --remove-orphans
             docker image prune -f
-            echo "Deployed dev-${{ github.sha }}"
-
-  deploy-stage:
-    name: Deploy to STAGE
-    runs-on: ubuntu-latest
-    needs: build-stage
-    if: github.ref == 'refs/heads/stage' && github.event_name == 'push'
-    
-    steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ vars.VPS_HOST }}
-          username: ${{ vars.VPS_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            set -e
-            cd /opt/garden-nook/docker/stage
-            docker compose pull
-            FRONT_IMAGE_TAG=stage-${{ github.sha }} docker compose up -d --remove-orphans
-            docker image prune -f
-            echo "Deployed stage-${{ github.sha }}"
+            echo "Deployed ${{ vars.BRANCH_NAME }}-${{ github.sha }}"

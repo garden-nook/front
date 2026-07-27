@@ -1,35 +1,34 @@
-// src/pages/Login.tsx
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { authApi } from '../api/endpoints/auth';
-import { loginStyles as styles } from '../PageStyles/Login.styles';
-import logoIcon from '../assets/logo.svg';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { authApi } from "../api/endpoints/auth";
+import logoIcon from "../assets/logo.svg";
+import { useAuth } from "../contexts/AuthContext";
+import { loginStyles as styles } from "../PageStyles/Login.styles";
 
-type AuthMode = 'login' | 'register';
+type AuthMode = "login" | "register";
 
 export default function Login() {
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
-  const [mode, setMode] = useState<AuthMode>('login');
-  const [error, setError] = useState('');
+  const [mode, setMode] = useState<AuthMode>("login");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
 
-  const [regEmail, setRegEmail] = useState('');
-  const [regPassword, setRegPassword] = useState('');
-  const [regConfirmPassword, setRegConfirmPassword] = useState('');
-  const [regDisplayName, setRegDisplayName] = useState('');
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regConfirmPassword, setRegConfirmPassword] = useState("");
+  const [regDisplayName, setRegDisplayName] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     if (!loginEmail || !loginPassword) {
-      setError('Заполните все поля');
+      setError("Заполните все поля");
       setLoading(false);
       return;
     }
@@ -44,12 +43,12 @@ export default function Login() {
 
       if (data.success && data.data?.access_token) {
         await authLogin(loginEmail, loginPassword);
-        navigate('/');
+        navigate("/");
       } else {
-        setError(data.error || 'Неверный email или пароль');
+        setError(data.error || "Неверный email или пароль");
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Ошибка соединения с сервером');
+      setError(err.response?.data?.error || "Ошибка соединения с сервером");
     } finally {
       setLoading(false);
     }
@@ -57,23 +56,23 @@ export default function Login() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     if (!regEmail || !regPassword || !regDisplayName) {
-      setError('Заполните все поля');
+      setError("Заполните все поля");
       setLoading(false);
       return;
     }
 
     if (regPassword !== regConfirmPassword) {
-      setError('Пароли не совпадают');
+      setError("Пароли не совпадают");
       setLoading(false);
       return;
     }
 
     if (regPassword.length < 8) {
-      setError('Пароль должен содержать минимум 8 символов');
+      setError("Пароль должен содержать минимум 8 символов");
       setLoading(false);
       return;
     }
@@ -89,51 +88,51 @@ export default function Login() {
 
       if (data.success && data.data?.user_id) {
         await authLogin(regEmail, regPassword);
-        navigate('/');
+        navigate("/");
       } else {
-        setError(data.error || 'Ошибка регистрации');
+        setError(data.error || "Ошибка регистрации");
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Ошибка соединения с сервером');
+      setError(err.response?.data?.error || "Ошибка соединения с сервером");
     } finally {
       setLoading(false);
     }
   };
 
   const inputStyle = {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #E5E7EB',
-    borderRadius: '8px',
-    fontSize: '14px',
-    outline: 'none',
-    boxSizing: 'border-box' as const,
-    transition: 'border-color 0.2s',
-    fontFamily: 'inherit',
+    width: "100%",
+    padding: "12px 16px",
+    border: "1px solid #E5E7EB",
+    borderRadius: "8px",
+    fontSize: "14px",
+    outline: "none",
+    boxSizing: "border-box" as const,
+    transition: "border-color 0.2s",
+    fontFamily: "inherit",
   };
 
   const buttonStyle = {
-    width: '100%',
-    padding: '12px',
-    backgroundColor: loading ? '#9CA3AF' : '#22C55E',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '14px',
+    width: "100%",
+    padding: "12px",
+    backgroundColor: loading ? "#9CA3AF" : "#22C55E",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "14px",
     fontWeight: 500,
-    cursor: loading ? 'default' : 'pointer',
-    transition: 'background-color 0.2s',
+    cursor: loading ? "default" : "pointer",
+    transition: "background-color 0.2s",
   };
 
   const linkButtonStyle = {
-    background: 'none',
-    border: 'none',
-    color: '#22C55E',
-    fontSize: '13px',
-    cursor: loading ? 'default' : 'pointer',
+    background: "none",
+    border: "none",
+    color: "#22C55E",
+    fontSize: "13px",
+    cursor: loading ? "default" : "pointer",
     padding: 0,
-    textDecoration: 'underline',
-    fontFamily: 'inherit',
+    textDecoration: "underline",
+    fontFamily: "inherit",
     opacity: loading ? 0.5 : 1,
   };
 
@@ -142,26 +141,18 @@ export default function Login() {
       <div style={styles.card}>
         <div style={styles.logoWrapper}>
           <div style={styles.logoRow}>
-            <img
-              src={logoIcon}
-              alt="Огородный уголок"
-              style={styles.logoImage}
-            />
+            <img src={logoIcon} alt="Огородный уголок" style={styles.logoImage} />
             <h1 style={styles.title}>Огородный уголок</h1>
           </div>
           <p style={styles.subtitle}>
-            {mode === 'login' && 'Войдите в свой аккаунт'}
-            {mode === 'register' && 'Создайте новый аккаунт'}
+            {mode === "login" && "Войдите в свой аккаунт"}
+            {mode === "register" && "Создайте новый аккаунт"}
           </p>
         </div>
 
-        {error && (
-          <div style={styles.errorBox}>
-            {error}
-          </div>
-        )}
+        {error && <div style={styles.errorBox}>{error}</div>}
 
-        {mode === 'login' && (
+        {mode === "login" && (
           <form onSubmit={handleLogin} style={styles.form}>
             <div>
               <label style={styles.label}>Email</label>
@@ -188,19 +179,24 @@ export default function Login() {
             </div>
 
             <button type="submit" style={buttonStyle} disabled={loading}>
-              {loading ? 'Загрузка...' : 'Войти'}
+              {loading ? "Загрузка..." : "Войти"}
             </button>
 
             <div style={styles.switchMode}>
-              Нет аккаунта?{' '}
-              <button type="button" onClick={() => setMode('register')} style={linkButtonStyle} disabled={loading}>
+              Нет аккаунта?{" "}
+              <button
+                type="button"
+                onClick={() => setMode("register")}
+                style={linkButtonStyle}
+                disabled={loading}
+              >
                 Зарегистрироваться
               </button>
             </div>
           </form>
         )}
 
-        {mode === 'register' && (
+        {mode === "register" && (
           <form onSubmit={handleRegister} style={styles.form}>
             <div>
               <label style={styles.label}>Имя и фамилия</label>
@@ -251,12 +247,17 @@ export default function Login() {
             </div>
 
             <button type="submit" style={buttonStyle} disabled={loading}>
-              {loading ? 'Загрузка...' : 'Зарегистрироваться'}
+              {loading ? "Загрузка..." : "Зарегистрироваться"}
             </button>
 
             <div style={styles.switchMode}>
-              Уже есть аккаунт?{' '}
-              <button type="button" onClick={() => setMode('login')} style={linkButtonStyle} disabled={loading}>
+              Уже есть аккаунт?{" "}
+              <button
+                type="button"
+                onClick={() => setMode("login")}
+                style={linkButtonStyle}
+                disabled={loading}
+              >
                 Войти
               </button>
             </div>

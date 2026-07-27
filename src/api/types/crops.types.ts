@@ -9,9 +9,9 @@ export type ContextType = 1 | 2 | 3;
 
 /** Потребности в солнце (internal_modules_crops.SunNeeds) */
 export const SUN_NEEDS = {
-  FULL_SUN: 1,       // Солнце
-  PARTIAL_SHADE: 2,  // Полутень
-  FULL_SHADE: 3,     // Тень
+  FULL_SUN: 1, // Солнце
+  PARTIAL_SHADE: 2, // Полутень
+  FULL_SHADE: 3, // Тень
 } as const;
 
 export type SunNeeds = (typeof SUN_NEEDS)[keyof typeof SUN_NEEDS]; // 1 | 2 | 3
@@ -47,11 +47,11 @@ export interface Crop {
   id: number;
   name: string;
   description?: string;
-  family_id: number;           // ← НОВОЕ: ID семейства
-  family_name: string;          // ← НОВОЕ: название семейства
-  soil_type_id: number;        // ← НОВОЕ: ID типа почвы
-  soil_name: string;           // ← НОВОЕ: название типа почвы
-  sun_needs: SunNeeds;         // ← переименовано с sunNeeds
+  family_id: number; // ← НОВОЕ: ID семейства
+  family_name: string; // ← НОВОЕ: название семейства
+  soil_type_id: number; // ← НОВОЕ: ID типа почвы
+  soil_name: string; // ← НОВОЕ: название типа почвы
+  sun_needs: SunNeeds; // ← переименовано с sunNeeds
   vegetation_days_avg: number; // ← переименовано с vegetationDaysAvg
 }
 
@@ -73,16 +73,16 @@ export interface FamilyRelation {
 
 /** Все отношения культуры (CropRelations) */
 export interface CropRelations {
-  good_predecessors: CropRelation[];          // Хорошие предшественники
-  bad_predecessors: CropRelation[];           // Плохие предшественники
+  good_predecessors: CropRelation[]; // Хорошие предшественники
+  bad_predecessors: CropRelation[]; // Плохие предшественники
   good_predecessor_families: FamilyRelation[];
   bad_predecessor_families: FamilyRelation[];
-  good_companions: CropRelation[];            // Хорошие соседи
-  bad_companions: CropRelation[];             // Плохие соседи
+  good_companions: CropRelation[]; // Хорошие соседи
+  bad_companions: CropRelation[]; // Плохие соседи
   good_companion_families: FamilyRelation[];
   bad_companion_families: FamilyRelation[];
-  good_successors: CropRelation[];            // Хорошие последователи
-  bad_successors: CropRelation[];             // Плохие последователи
+  good_successors: CropRelation[]; // Хорошие последователи
+  bad_successors: CropRelation[]; // Плохие последователи
   good_successor_families: FamilyRelation[];
   bad_successor_families: FamilyRelation[];
 }
@@ -129,10 +129,10 @@ export interface UpdateFamilyRequest {
 
 /** Создание культуры (internal_modules_crops.CreateCropRequest) */
 export interface CreateCropRequest {
-  family_id: number;           // ← обязательно
+  family_id: number; // ← обязательно
   name: string;
-  soil_type_id: number;        // ← обязательно (НОВОЕ)
-  sun_needs: SunNeeds;         // ← обязательно
+  soil_type_id: number; // ← обязательно (НОВОЕ)
+  sun_needs: SunNeeds; // ← обязательно
   vegetation_days_avg: number; // ← обязательно
 }
 
@@ -140,7 +140,7 @@ export interface CreateCropRequest {
 export interface UpdateCropRequest {
   family_id?: number;
   name?: string;
-  soil_type_id?: number;       // ← НОВОЕ
+  soil_type_id?: number; // ← НОВОЕ
   sun_needs?: SunNeeds;
   vegetation_days_avg?: number;
 }
@@ -178,16 +178,20 @@ export type SoilTypeResponse = ApiResponse<SoilType>;
 /** Преобразовать SunNeeds в читаемый текст */
 export function mapSunNeeds(value: SunNeeds): string {
   switch (value) {
-    case SUN_NEEDS.FULL_SUN: return 'Солнце';
-    case SUN_NEEDS.PARTIAL_SHADE: return 'Полутень';
-    case SUN_NEEDS.FULL_SHADE: return 'Тень';
-    default: return 'Не указано';
+    case SUN_NEEDS.FULL_SUN:
+      return "Солнце";
+    case SUN_NEEDS.PARTIAL_SHADE:
+      return "Полутень";
+    case SUN_NEEDS.FULL_SHADE:
+      return "Тень";
+    default:
+      return "Не указано";
   }
 }
 
 /** Получить все возможные значения SunNeeds для выпадающего списка */
 export const SUN_NEEDS_OPTIONS = [
-  { value: SUN_NEEDS.FULL_SUN, label: 'Солнце' },
-  { value: SUN_NEEDS.PARTIAL_SHADE, label: 'Полутень' },
-  { value: SUN_NEEDS.FULL_SHADE, label: 'Тень' },
+  { value: SUN_NEEDS.FULL_SUN, label: "Солнце" },
+  { value: SUN_NEEDS.PARTIAL_SHADE, label: "Полутень" },
+  { value: SUN_NEEDS.FULL_SHADE, label: "Тень" },
 ];

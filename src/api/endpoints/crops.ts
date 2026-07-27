@@ -1,25 +1,22 @@
 // src/api/endpoints/crops.ts
-import { api } from '../client'; // ← Исправлено: api вместо client
+import { api } from "../client"; // ← Исправлено: api вместо client
 import type {
+  CreateCropRequest,
+  CreateFamilyRequest,
   Crop,
   CropExtended,
   CropFamily,
-  CreateCropRequest,
   UpdateCropRequest,
-  CreateFamilyRequest,
   UpdateFamilyRequest,
-} from '../types/crops.types';
+} from "../types/crops.types";
 
 // ============================================================
 // КУЛЬТУРЫ
 // ============================================================
 
-const BASE_URL = '/api/v1/crops';
+const BASE_URL = "/api/v1/crops";
 
-export async function getCrops(params?: {
-  family_id?: number;
-  search?: string;
-}): Promise<Crop[]> {
+export async function getCrops(params?: { family_id?: number; search?: string }): Promise<Crop[]> {
   const response = await api.get<{ data: Crop[] }>(BASE_URL, { params });
   return response.data.data;
 }
@@ -47,7 +44,7 @@ export async function deleteCrop(id: number): Promise<void> {
 // СЕМЕЙСТВА
 // ============================================================
 
-const FAMILIES_URL = '/api/v1/crop-families';
+const FAMILIES_URL = "/api/v1/crop-families";
 
 export async function getCropFamilies(): Promise<CropFamily[]> {
   const response = await api.get<{ data: CropFamily[] }>(FAMILIES_URL);

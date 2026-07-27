@@ -6,7 +6,7 @@
 .input {
   width: 100%;
   padding: 10px 40px 10px 16px;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
   border-radius: 10px;
   font-size: 14px;
   font-family: inherit;
@@ -17,11 +17,11 @@
 }
 
 .input::placeholder {
-  color: #9CA3AF;
+  color: #9ca3af;
 }
 
 .input:focus {
-  border-color: #22C55E;
+  border-color: #22c55e;
 }
 
 .icon {
@@ -29,6 +29,6 @@
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #6B7280;
+  color: #6b7280;
   pointer-events: none;
 }

@@ -50,6 +50,7 @@
 
 .scaleInputWrapper .scaleInput[type="text"] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .scalePercent {

@@ -1,42 +1,73 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';       
-import { AuthProvider } from './contexts/AuthContext';
-import { ToastProvider } from './components/common/Toast';
-import ProtectedRoute from './components/common/ProtectedRoute';
-import PlotsList from './pages/PlotsList';
-import Catalog from './pages/Catalog';
-import Tasks from './pages/Tasks';
-import PlotEditor from './pages/PlotEditor';
-import Login from './pages/Login';
-import Profile from './pages/Profile';
-import { Test } from './pages/Test';
-import ComponentsShowcase from './pages/ComponentsShowcase';
-
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import { ToastProvider } from "./components/common/Toast";
+import { AuthProvider } from "./contexts/AuthContext";
+import Catalog from "./pages/Catalog";
+import ComponentsShowcase from "./pages/ComponentsShowcase";
+import Login from "./pages/Login";
+import PlotEditor from "./pages/PlotEditor";
+import PlotsList from "./pages/PlotsList";
+import Profile from "./pages/Profile";
+import Tasks from "./pages/Tasks";
+import { Test } from "./pages/Test";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-          <ToastProvider>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={<ProtectedRoute><PlotsList /></ProtectedRoute>} />
-              <Route path="/catalog" element={<ProtectedRoute><Catalog /></ProtectedRoute>} />
-              <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
-              <Route path="/plot/:id" element={<ProtectedRoute><PlotEditor /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              
-              <Route path="/components" element={<ComponentsShowcase />} />
+        <ToastProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <PlotsList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/catalog"
+              element={
+                <ProtectedRoute>
+                  <Catalog />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tasks"
+              element={
+                <ProtectedRoute>
+                  <Tasks />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/plot/:id"
+              element={
+                <ProtectedRoute>
+                  <PlotEditor />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
 
-              <Route path="/test" element={<Test />} />
+            <Route path="/components" element={<ComponentsShowcase />} />
 
-              <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/test" element={<Test />} />
 
-            </Routes>
-          </ToastProvider>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
-
-    
   );
 }
 

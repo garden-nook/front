@@ -1,16 +1,16 @@
 // src/pages/PlotEditor/hooks/useGardenCanvas.ts
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   GardenObject,
-  UIBed,
-  UIStaticObject,
   GridPosition,
   GridRect,
   Rect,
   Tool,
+  UIBed,
+  UIStaticObject,
 } from "../api/types/plot.types";
-import { canvasStyles, staticObjectIcons } from "./canvasStyles";
 import { useToast } from "../components/common/Toast";
+import { canvasStyles, staticObjectIcons } from "./canvasStyles";
 
 interface UseGardenCanvasProps {
   plotSize: GridRect;
@@ -32,9 +32,7 @@ interface UseGardenCanvasProps {
   onRectSelect: (rect: Rect) => void;
   onObjectSelect: (obj: GardenObject | null) => void;
   onObjectDelete: (id: string) => void;
-  onContextMenu: (
-    menu: { x: number; y: number; object: GardenObject } | null,
-  ) => void;
+  onContextMenu: (menu: { x: number; y: number; object: GardenObject } | null) => void;
   onHoverObject: (obj: GardenObject | null) => void;
   resetDrawing: () => void;
   setStartCell: (cell: GridPosition | null) => void;
@@ -83,9 +81,7 @@ export const useGardenCanvas = ({
 
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(
-    null,
-  );
+  const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
   const [isMiddleButtonDown, setIsMiddleButtonDown] = useState(false);
 
   const hasData = plotSize && plotSize.start && plotSize.end;
@@ -113,8 +109,7 @@ export const useGardenCanvas = ({
   // ===== ПОЛУЧЕНИЕ ПОЗИЦИИ УЧАСТКА =====
   const getPlotPosition = useCallback(() => {
     const container = containerRef.current;
-    if (!container)
-      return { startX: 0, startY: 0, totalWidth: 0, totalHeight: 0 };
+    if (!container) return { startX: 0, startY: 0, totalWidth: 0, totalHeight: 0 };
 
     const rect = container.getBoundingClientRect();
     const totalWidth = cols * cellSizePx;
@@ -233,8 +228,7 @@ export const useGardenCanvas = ({
     if (selectedTool === "delete") return "not-allowed";
     if (selectedTool === "view" || selectedTool === "plant") return "default";
     if (selectedTool === "select") return "grab";
-    if (selectedTool === "addBed" || selectedTool === "addStatic")
-      return "crosshair";
+    if (selectedTool === "addBed" || selectedTool === "addStatic") return "crosshair";
     return "default";
   }, [isPanning, isMiddleButtonDown, selectedTool]);
 
@@ -392,9 +386,7 @@ export const useGardenCanvas = ({
 
       if (
         cell &&
-        (selectedTool === "select" ||
-          selectedTool === "view" ||
-          selectedTool === "plant")
+        (selectedTool === "select" || selectedTool === "view" || selectedTool === "plant")
       ) {
         const obj = getObjectAt(cell.row, cell.col);
         if (obj?.id !== hoveredObject?.id) {
@@ -406,13 +398,7 @@ export const useGardenCanvas = ({
         }
       }
 
-      if (
-        isDragging &&
-        selectedObject &&
-        dragOffset &&
-        cell &&
-        selectedTool === "select"
-      ) {
+      if (isDragging && selectedObject && dragOffset && cell && selectedTool === "select") {
         const newRow = cell.row - dragOffset.row;
         const newCol = cell.col - dragOffset.col;
 
@@ -425,9 +411,7 @@ export const useGardenCanvas = ({
           return;
         }
 
-        const otherObjects = objects.filter(
-          (obj) => obj.id !== selectedObject.id,
-        );
+        const otherObjects = objects.filter((obj) => obj.id !== selectedObject.id);
         const hasOverlap = otherObjects.some(
           (obj) =>
             !(
@@ -448,11 +432,7 @@ export const useGardenCanvas = ({
         }
       }
 
-      if (
-        isDrawing &&
-        cell &&
-        (selectedTool === "addBed" || selectedTool === "addStatic")
-      ) {
+      if (isDrawing && cell && (selectedTool === "addBed" || selectedTool === "addStatic")) {
         setEndCell(cell);
       }
     },
@@ -511,11 +491,7 @@ export const useGardenCanvas = ({
         return;
       }
 
-      if (
-        startCell &&
-        endCell &&
-        (selectedTool === "addBed" || selectedTool === "addStatic")
-      ) {
+      if (startCell && endCell && (selectedTool === "addBed" || selectedTool === "addStatic")) {
         const row = Math.min(startCell.row, endCell.row);
         const col = Math.min(startCell.col, endCell.col);
         const width = Math.abs(endCell.col - startCell.col) + 1;
@@ -620,10 +596,8 @@ export const useGardenCanvas = ({
       const newTotalWidth = cols * newCellSize;
       const newTotalHeight = rows * newCellSize;
 
-      let newOffsetX =
-        mouseX - worldX * newCellSize - (rect.width - newTotalWidth) / 2;
-      let newOffsetY =
-        mouseY - worldY * newCellSize - (rect.height - newTotalHeight) / 2;
+      let newOffsetX = mouseX - worldX * newCellSize - (rect.width - newTotalWidth) / 2;
+      let newOffsetY = mouseY - worldY * newCellSize - (rect.height - newTotalHeight) / 2;
 
       const clamped = clampOffset({ x: newOffsetX, y: newOffsetY });
       newOffsetX = clamped.x;
@@ -675,11 +649,7 @@ export const useGardenCanvas = ({
       ctx.font = `${canvasStyles.sizes.fontSize.medium}px ${canvasStyles.text.fontFamily}`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(
-        "Нет данных для отображения",
-        rect.width / 2,
-        rect.height / 2,
-      );
+      ctx.fillText("Нет данных для отображения", rect.width / 2, rect.height / 2);
       return;
     }
 
@@ -758,11 +728,7 @@ export const useGardenCanvas = ({
           ctx.font = `${canvasStyles.sizes.fontSize.small}px ${canvasStyles.text.fontFamily}`;
           ctx.textAlign = "center";
           ctx.textBaseline = "top";
-          ctx.fillText(
-            activePlanting.cropName,
-            x + width / 2,
-            y + height / 2 + 16,
-          );
+          ctx.fillText(activePlanting.cropName, x + width / 2, y + height / 2 + 16);
         } else {
           ctx.fillStyle = canvasStyles.text.colors.light;
           ctx.font = `${canvasStyles.sizes.fontSize.medium}px ${canvasStyles.text.fontFamily}`;

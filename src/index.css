@@ -1,4 +1,4 @@
-@import './styles/variables.module.css';
+@import "./styles/variables.module.css";
 
 *,
 *::before,
@@ -8,12 +8,12 @@
   box-sizing: border-box;
 }
 
-html{
+html {
   font-size: 62.5%;
-  font-family: 'Roboto', system-ui, sans-serif;
+  font-family: "Roboto", system-ui, sans-serif;
   font-weight: 400;
   letter-spacing: 2%;
-  background: #EDEEF0;
+  background: #edeef0;
   color: #000000;
   width: 100%;
   min-height: 100vh;
@@ -21,7 +21,8 @@ html{
   padding: 0;
 }
 
-body, #root{
+body,
+#root {
   font-size: 1.6rem;
   line-height: 1.25;
 }

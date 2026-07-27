@@ -1,6 +1,6 @@
-import React from 'react';
-import styles from './CropDetailModal.module.css';
-import Accordion from '../Accordion/Accordion';
+import React from "react";
+import Accordion from "../Accordion/Accordion";
+import styles from "./CropDetailModal.module.css";
 
 interface CropDetailModalProps {
   crop: {
@@ -20,9 +20,9 @@ interface CropDetailModalProps {
 }
 
 function mapSunNeeds(value: number): string | null {
-  if (value === 1) return 'Солнце';
-  if (value === 2) return 'Полутень';
-  if (value === 3) return 'Тень';
+  if (value === 1) return "Солнце";
+  if (value === 2) return "Полутень";
+  if (value === 3) return "Тень";
   return null;
 }
 
@@ -35,48 +35,55 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
 
   React.useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
   const getSpecs = () => {
     const result: { label: string; value: string }[] = [];
 
-    const addSpec = (label: string, value: any) => {
+    const addSpec = (label: string, value: unknown) => {
       if (value === null || value === undefined) return;
-      if (typeof value === 'string' && value.trim() === '') return;
-      if (value === '00') return;
-      if (value === '0') return;
+      if (typeof value === "string" && value.trim() === "") return;
+      if (value === "00") return;
+      if (value === "0") return;
       if (value === 0) return;
-      if (value === 'Не указано') return;
-      if (value === '') return;
+      if (value === "Не указано") return;
+      if (value === "") return;
       result.push({ label, value: String(value) });
     };
 
-    addSpec('Семейство', crop.family_name);
-    addSpec('Срок вегетации', crop.vegetation_days_avg ? `${crop.vegetation_days_avg} дн.` : null);
-    addSpec('Вид почвы', crop.soil_name);
-    addSpec('Освещённость', mapSunNeeds(crop.sun_needs));
+    addSpec("Семейство", crop.family_name);
+    addSpec("Срок вегетации", crop.vegetation_days_avg ? `${crop.vegetation_days_avg} дн.` : null);
+    addSpec("Вид почвы", crop.soil_name);
+    addSpec("Освещённость", mapSunNeeds(crop.sun_needs));
 
     return result;
   };
 
   const specs = getSpecs();
 
-  const hasPredecessors = (crop.predecessors?.good?.length || 0) > 0 || (crop.predecessors?.bad?.length || 0) > 0;
-  const hasNeighbors = (crop.neighbors?.good?.length || 0) > 0 || (crop.neighbors?.bad?.length || 0) > 0;
+  const hasPredecessors =
+    (crop.predecessors?.good?.length || 0) > 0 || (crop.predecessors?.bad?.length || 0) > 0;
+  const hasNeighbors =
+    (crop.neighbors?.good?.length || 0) > 0 || (crop.neighbors?.bad?.length || 0) > 0;
   const hasFollowing = (crop.following?.length || 0) > 0;
   const hasAccordions = hasPredecessors || hasNeighbors || hasFollowing;
-  const hasDescription = crop.description && crop.description.trim() !== '';
+  const hasDescription = crop.description && crop.description.trim() !== "";
 
   return (
     <div className={styles.backdrop} onClick={handleBackdropClick}>
       <div className={styles.modal}>
         <button className={styles.closeBtn} onClick={onClose}>
           <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
 
@@ -90,9 +97,7 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
               <div className={styles.imagePlaceholder} />
             )}
           </div>
-          {hasDescription && (
-            <p className={styles.description}>{crop.description}</p>
-          )}
+          {hasDescription && <p className={styles.description}>{crop.description}</p>}
         </div>
 
         {specs.length > 0 && (
@@ -117,7 +122,7 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
                       <div className={styles.accordionRow}>
                         <span className={styles.accordionLabel}>Хорошие:</span>
                         <span className={styles.accordionValue}>
-                          {crop.predecessors.good.join(', ')}
+                          {crop.predecessors.good.join(", ")}
                         </span>
                       </div>
                     )}
@@ -125,7 +130,7 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
                       <div className={styles.accordionRow}>
                         <span className={styles.accordionLabel}>Плохие:</span>
                         <span className={styles.accordionValue}>
-                          {crop.predecessors.bad.join(', ')}
+                          {crop.predecessors.bad.join(", ")}
                         </span>
                       </div>
                     )}
@@ -143,7 +148,7 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
                       <div className={styles.accordionRow}>
                         <span className={styles.accordionLabel}>Хорошие:</span>
                         <span className={styles.accordionValue}>
-                          {crop.neighbors.good.join(', ')}
+                          {crop.neighbors.good.join(", ")}
                         </span>
                       </div>
                     )}
@@ -151,7 +156,7 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
                       <div className={styles.accordionRow}>
                         <span className={styles.accordionLabel}>Плохие:</span>
                         <span className={styles.accordionValue}>
-                          {crop.neighbors.bad.join(', ')}
+                          {crop.neighbors.bad.join(", ")}
                         </span>
                       </div>
                     )}
@@ -167,7 +172,7 @@ const CropDetailModal: React.FC<CropDetailModalProps> = ({ crop, onClose }) => {
                   <div className={styles.accordionContent}>
                     <div className={styles.accordionRow}>
                       <span className={styles.accordionValue}>
-                        {crop.following?.join(', ') || ''}
+                        {crop.following?.join(", ") || ""}
                       </span>
                     </div>
                   </div>

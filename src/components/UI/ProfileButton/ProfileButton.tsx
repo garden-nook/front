@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../contexts/AuthContext';
-import Avatar from '../../Avatar';
-import styles from './ProfileButton.module.css';
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../contexts/AuthContext";
+import Avatar from "../../Avatar";
+import styles from "./ProfileButton.module.css";
 
 interface ProfileButtonProps {
   userId: string;
@@ -24,35 +24,31 @@ const ProfileButton: React.FC<ProfileButtonProps> = ({ userId, firstName }) => {
     };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
 
   const handleProfileClick = () => {
     setIsOpen(false);
-    navigate('/profile');
+    navigate("/profile");
   };
 
   const handleLogout = () => {
     logout();
     setIsOpen(false);
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
     <div className={styles.wrapper} ref={menuRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={styles.button}
-      >
+      <button type="button" onClick={() => setIsOpen(!isOpen)} className={styles.button}>
         <Avatar userId={userId} firstName={firstName} size={32} />
         <svg
-          className={`${styles.arrow} ${isOpen ? styles.arrowOpen : ''}`}
+          className={`${styles.arrow} ${isOpen ? styles.arrowOpen : ""}`}
           width="12"
           height="12"
           fill="none"
@@ -65,18 +61,10 @@ const ProfileButton: React.FC<ProfileButtonProps> = ({ userId, firstName }) => {
 
       {isOpen && (
         <div className={styles.menu}>
-          <button
-            type="button"
-            onClick={handleProfileClick}
-            className={styles.menuItem}
-          >
+          <button type="button" onClick={handleProfileClick} className={styles.menuItem}>
             Профиль
           </button>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className={styles.menuItem}
-          >
+          <button type="button" onClick={handleLogout} className={styles.menuItem}>
             Выйти
           </button>
         </div>

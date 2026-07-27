@@ -1,7 +1,7 @@
 // src/contexts/AuthContext.tsx
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { authApi } from '../api/endpoints/auth';
-import type { MeResponse } from '../api/types/auth.types';
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { authApi } from "../api/endpoints/auth";
+import type { MeResponse } from "../api/types/auth.types";
 
 interface AuthContextType {
   user: MeResponse | null;
@@ -20,21 +20,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('access_token');
-      
+      const token = localStorage.getItem("access_token");
+
       if (token) {
         try {
           const response = await authApi.getMe();
           if (response.data?.data) {
             setUser(response.data.data);
           } else {
-            localStorage.removeItem('access_token');
+            localStorage.removeItem("access_token");
           }
         } catch {
-          localStorage.removeItem('access_token');
+          localStorage.removeItem("access_token");
         }
       }
-      
+
       setIsLoading(false);
     };
 
@@ -43,44 +43,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(async (email: string, password: string) => {
     const response = await authApi.login({ email, password });
-    
+
     if (!response.data?.data?.access_token) {
-      throw new Error('Неверный email или пароль');
+      throw new Error("Неверный email или пароль");
     }
 
-    localStorage.setItem('access_token', response.data.data.access_token);
+    localStorage.setItem("access_token", response.data.data.access_token);
 
     const meResponse = await authApi.getMe();
     if (meResponse.data?.data) {
       setUser(meResponse.data.data);
     } else {
-      throw new Error('Не удалось получить профиль');
+      throw new Error("Не удалось получить профиль");
     }
   }, []);
 
-  const register = useCallback(async (displayName: string, email: string, password: string) => {
-    const response = await authApi.register({
-      display_name: displayName,
-      email,
-      password,
-    });
+  const register = useCallback(
+    async (displayName: string, email: string, password: string) => {
+      const response = await authApi.register({
+        display_name: displayName,
+        email,
+        password,
+      });
 
-    if (!response.data?.data?.user_id) {
-      throw new Error('Ошибка регистрации');
-    }
+      if (!response.data?.data?.user_id) {
+        throw new Error("Ошибка регистрации");
+      }
 
-    await login(email, password);
-  }, [login]);
+      await login(email, password);
+    },
+    [login],
+  );
 
   const logout = useCallback(() => {
-    localStorage.removeItem('access_token');
+    localStorage.removeItem("access_token");
     setUser(null);
   }, []);
 
   const value = {
     user,
     isLoading,
-    isAuthenticated: !!user && !!localStorage.getItem('access_token'),
+    isAuthenticated: !!user && !!localStorage.getItem("access_token"),
     login,
     register,
     logout,
@@ -92,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 };
