@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styles from './PlotEditor.module.css';
-import type { UIBed, GardenObject } from '../api/types/plot.types';
+import type { UIBed } from '../api/types/plot.types';
 import Toolbar from '../components/plot/Toolbar';
 import GardenCanvas from '../components/plot/GardenCanvas';
 import ContextMenu from '../components/plot/modals/ContextMenu';
@@ -69,7 +69,6 @@ export const PlotEditor: React.FC = () => {
     isSaving,
     resetDrawing,
     handleToolSelect,
-    handleClosePanel,
     togglePlotInfo,
     handleMenuOpenChange,
     handleBedClick,

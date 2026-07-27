@@ -1,5 +1,4 @@
-// src/pages/PlotEditor/components/plot/Toolbar.tsx
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import styles from './Toolbar.module.css';
 import { type Tool, type Subtype, type GardenObject, type Rect, STATIC_LABELS } from '../../api/types/plot.types';
 import ActionButton from '../UI/ActionButton';
@@ -23,15 +22,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onToolSelect,
   selectedSubtype,
   onSubtypeSelect,
-  selectedObject,
   onClearAll,
   onAddBed,
   pendingBedRect,
-  onPendingBedRectClear,
   onMenuOpenChange,
-  isDrawing = false,
 }) => {
-  const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
   const submenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,14 +42,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       onAddBed(`Грядка ${bedCount + 1}`);
     }
   }, [pendingBedRect, onAddBed]);
-
-  // Обработчик открытия/закрытия подменю
-  const handleSubmenuToggle = useCallback((isOpen: boolean) => {
-    setIsSubmenuOpen(isOpen);
-    if (onMenuOpenChange) {
-      onMenuOpenChange(isOpen);
-    }
-  }, [onMenuOpenChange]);
 
   const isViewOrPlantMode = selectedTool === 'view' || selectedTool === 'plant';
   const isSelectMode = selectedTool === 'select';

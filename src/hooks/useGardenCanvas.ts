@@ -98,8 +98,6 @@ export const useGardenCanvas = ({
       if (!container || !hasData) return newOffset;
 
       const rect = container.getBoundingClientRect();
-      const totalWidth = cols * cellSizePx;
-      const totalHeight = rows * cellSizePx;
 
       const maxOffsetX = rect.width / 2;
       const maxOffsetY = rect.height / 2;
