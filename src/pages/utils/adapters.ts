@@ -113,29 +113,50 @@ export const createBedCreatedEvent = (bed: UIBed): PlotEvent => {
 };
 
 // Обновление грядки
-export const createBedUpdatedEvent = (bed: UIBed, previousBed?: UIBed): PlotEvent => {
+export const createBedUpdatedEvent = (bed: UIBed, previousBed?: UIBed): PlotEvent | null => {
   const payload: BedUpdatedPayload = {
     bed_id: bed.id,
   };
+  let hasNew = false;
 
   if (previousBed) {
-    if (bed.name !== previousBed.name) payload.name = bed.name;
-    if (bed.col !== previousBed.col) payload.x_start = bed.col;
-    if (bed.row !== previousBed.row) payload.y_start = bed.row;
-    if (bed.width !== previousBed.width) payload.width = bed.width;
-    if (bed.height !== previousBed.height) payload.height = bed.height;
+    if (bed.name !== previousBed.name) {
+      payload.name = bed.name;
+      hasNew = true;
+    }
+    if (bed.col !== previousBed.col) {
+      payload.x_start = bed.col;
+      hasNew = true;
+    }
+    if (bed.row !== previousBed.row) {
+      payload.y_start = bed.row;
+      hasNew = true;
+    }
+    if (bed.width !== previousBed.width) {
+      payload.width = bed.width;
+      hasNew = true;
+    }
+    if (bed.height !== previousBed.height) {
+      payload.height = bed.height;
+      hasNew = true;
+    }
   } else {
     payload.name = bed.name;
     payload.x_start = bed.col;
     payload.y_start = bed.row;
     payload.width = bed.width;
     payload.height = bed.height;
+    hasNew = true;
   }
 
-  return {
-    type: EventTypeConst.BedUpdated,
-    payload,
-  };
+  if (hasNew) {
+    return {
+      type: EventTypeConst.BedUpdated,
+      payload,
+    };
+  } else {
+    return null;
+  }
 };
 
 // Удаление грядки
@@ -167,20 +188,37 @@ export const createObjectCreatedEvent = (obj: UIStaticObject): PlotEvent => {
 export const createObjectUpdatedEvent = (
   obj: UIStaticObject,
   previousObj?: UIStaticObject,
-): PlotEvent => {
+): PlotEvent | null => {
   const payload: ObjectUpdatedPayload = {
     object_id: obj.id,
   };
+  let hasNew = false;
 
   if (previousObj) {
-    if (obj.name !== previousObj.name) payload.name = obj.name;
+    if (obj.name !== previousObj.name) {
+      payload.name = obj.name;
+      hasNew = true;
+    }
     if (obj.subtype !== previousObj.subtype) {
       payload.object_type = OBJECT_TYPE_REVERSE_MAP[obj.subtype] || 1;
+      hasNew = true;
     }
-    if (obj.col !== previousObj.col) payload.x_start = obj.col;
-    if (obj.row !== previousObj.row) payload.y_start = obj.row;
-    if (obj.width !== previousObj.width) payload.width = obj.width;
-    if (obj.height !== previousObj.height) payload.height = obj.height;
+    if (obj.col !== previousObj.col) {
+      payload.x_start = obj.col;
+      hasNew = true;
+    }
+    if (obj.row !== previousObj.row) {
+      payload.y_start = obj.row;
+      hasNew = true;
+    }
+    if (obj.width !== previousObj.width) {
+      payload.width = obj.width;
+      hasNew = true;
+    }
+    if (obj.height !== previousObj.height) {
+      payload.height = obj.height;
+      hasNew = true;
+    }
   } else {
     payload.name = obj.name;
     payload.object_type = OBJECT_TYPE_REVERSE_MAP[obj.subtype] || 1;
@@ -188,12 +226,17 @@ export const createObjectUpdatedEvent = (
     payload.y_start = obj.row;
     payload.width = obj.width;
     payload.height = obj.height;
+    hasNew = true;
   }
 
-  return {
-    type: EventTypeConst.ObjectUpdated,
-    payload,
-  };
+  if (hasNew) {
+    return {
+      type: EventTypeConst.ObjectUpdated,
+      payload,
+    };
+  } else {
+    return null;
+  }
 };
 
 // Удаление статического объекта
@@ -250,70 +293,70 @@ export const createCropRemovedEvent = (
 
 // ===== КОНВЕРТАЦИЯ ОБЪЕКТОВ В СОБЫТИЯ =====
 
-export const adaptObjectsToEvents = (
-  currentObjects: GardenObject[],
-  previousObjects: GardenObject[] = [],
-): PlotEvent[] => {
-  const events: PlotEvent[] = [];
+// export const adaptObjectsToEvents = (
+//   currentObjects: GardenObject[],
+//   previousObjects: GardenObject[] = [],
+// ): PlotEvent[] => {
+//   const events: PlotEvent[] = [];
 
-  const created = currentObjects.filter((obj) => !previousObjects.some((p) => p.id === obj.id));
+//   const created = currentObjects.filter((obj) => !previousObjects.some((p) => p.id === obj.id));
 
-  const deleted = previousObjects.filter((obj) => !currentObjects.some((c) => c.id === obj.id));
+//   const deleted = previousObjects.filter((obj) => !currentObjects.some((c) => c.id === obj.id));
 
-  const updated = currentObjects.filter((obj) => {
-    const prev = previousObjects.find((p) => p.id === obj.id);
-    if (!prev) return false;
-    return (
-      prev.row !== obj.row ||
-      prev.col !== obj.col ||
-      prev.width !== obj.width ||
-      prev.height !== obj.height ||
-      prev.name !== obj.name ||
-      (prev.type === "static" &&
-        (prev as UIStaticObject).subtype !== (obj as UIStaticObject).subtype)
-    );
-  });
+//   const updated = currentObjects.filter((obj) => {
+//     const prev = previousObjects.find((p) => p.id === obj.id);
+//     if (!prev) return false;
+//     return (
+//       prev.row !== obj.row ||
+//       prev.col !== obj.col ||
+//       prev.width !== obj.width ||
+//       prev.height !== obj.height ||
+//       prev.name !== obj.name ||
+//       (prev.type === "static" &&
+//         (prev as UIStaticObject).subtype !== (obj as UIStaticObject).subtype)
+//     );
+//   });
 
-  created
-    .filter((obj) => obj.type === "bed")
-    .forEach((bed) => {
-      events.push(createBedCreatedEvent(bed as UIBed));
-    });
+//   created
+//     .filter((obj) => obj.type === "bed")
+//     .forEach((bed) => {
+//       events.push(createBedCreatedEvent(bed as UIBed));
+//     });
 
-  updated
-    .filter((obj) => obj.type === "bed")
-    .forEach((bed) => {
-      const prev = previousObjects.find((p) => p.id === bed.id) as UIBed | undefined;
-      events.push(createBedUpdatedEvent(bed as UIBed, prev));
-    });
+//   updated
+//     .filter((obj) => obj.type === "bed")
+//     .forEach((bed) => {
+//       const prev = previousObjects.find((p) => p.id === bed.id) as UIBed | undefined;
+//       events.push(createBedUpdatedEvent(bed as UIBed, prev));
+//     });
 
-  deleted
-    .filter((obj) => obj.type === "bed")
-    .forEach((bed) => {
-      events.push(createBedDeletedEvent(bed.id));
-    });
+//   deleted
+//     .filter((obj) => obj.type === "bed")
+//     .forEach((bed) => {
+//       events.push(createBedDeletedEvent(bed.id));
+//     });
 
-  created
-    .filter((obj) => obj.type === "static")
-    .forEach((obj) => {
-      events.push(createObjectCreatedEvent(obj as UIStaticObject));
-    });
+//   created
+//     .filter((obj) => obj.type === "static")
+//     .forEach((obj) => {
+//       events.push(createObjectCreatedEvent(obj as UIStaticObject));
+//     });
 
-  updated
-    .filter((obj) => obj.type === "static")
-    .forEach((obj) => {
-      const prev = previousObjects.find((p) => p.id === obj.id) as UIStaticObject | undefined;
-      events.push(createObjectUpdatedEvent(obj as UIStaticObject, prev));
-    });
+//   updated
+//     .filter((obj) => obj.type === "static")
+//     .forEach((obj) => {
+//       const prev = previousObjects.find((p) => p.id === obj.id) as UIStaticObject | undefined;
+//       events.push(createObjectUpdatedEvent(obj as UIStaticObject, prev));
+//     });
 
-  deleted
-    .filter((obj) => obj.type === "static")
-    .forEach((obj) => {
-      events.push(createObjectDeletedEvent(obj.id));
-    });
+//   deleted
+//     .filter((obj) => obj.type === "static")
+//     .forEach((obj) => {
+//       events.push(createObjectDeletedEvent(obj.id));
+//     });
 
-  return events;
-};
+//   return events;
+// };
 
 // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 

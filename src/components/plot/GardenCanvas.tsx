@@ -13,11 +13,11 @@ interface GardenCanvasProps {
   startCell: GridPosition | null;
   endCell: GridPosition | null;
   isDragging: boolean;
-  dragOffset: { row: number; col: number } | null;
   scale: number;
   cols: number;
   rows: number;
   setScale: (scale: number) => void;
+  setObjects: (objects: GardenObject[]) => void;
   onCellClick: (row: number, col: number) => void;
   onRectSelect: (rect: Rect) => void;
   onObjectSelect: (obj: GardenObject | null) => void;
@@ -29,7 +29,6 @@ interface GardenCanvasProps {
   setEndCell: (cell: GridPosition | null) => void;
   setIsDrawing: (drawing: boolean) => void;
   setIsDragging: (dragging: boolean) => void;
-  setDragOffset: (offset: { row: number; col: number } | null) => void;
   onObjectUpdate?: (obj: GardenObject) => void;
   isMenuOpen?: boolean; // Добавляем пропс
 }
@@ -45,7 +44,6 @@ export const GardenCanvas: React.FC<GardenCanvasProps> = ({
   startCell,
   endCell,
   isDragging,
-  dragOffset,
   scale,
   cols,
   rows,
@@ -61,7 +59,6 @@ export const GardenCanvas: React.FC<GardenCanvasProps> = ({
   setEndCell,
   setIsDrawing,
   setIsDragging,
-  setDragOffset,
   onObjectUpdate,
   isMenuOpen = false, // Значение по умолчанию
 }) => {
@@ -85,7 +82,6 @@ export const GardenCanvas: React.FC<GardenCanvasProps> = ({
     startCell,
     endCell,
     isDragging,
-    dragOffset,
     scale,
     cols,
     rows,
@@ -101,7 +97,6 @@ export const GardenCanvas: React.FC<GardenCanvasProps> = ({
     setEndCell,
     setIsDrawing,
     setIsDragging,
-    setDragOffset,
     onObjectUpdate,
     isMenuOpen, // Передаем в хук
   });
