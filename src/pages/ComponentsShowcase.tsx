@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getRecommendations } from "../api";
 import Accordion from "../components/UI/Accordion/Accordion";
 import ActionButton from "../components/UI/ActionButton";
 import CropCard from "../components/UI/CropCard/CropCard";
@@ -8,6 +9,8 @@ import Nav from "../components/UI/Nav/Nav";
 import PlotCard from "../components/UI/PlotCard/PlotCard";
 import SearchBar from "../components/UI/SearchBar/SearchBar";
 import Select from "../components/UI/Select/Select";
+import type { RecommendationModalProps } from "../components/plot/modals/RecommendationModal";
+import RecommendationModal from "../components/plot/modals/RecommendationModal";
 
 export default function ComponentsShowcase() {
   const [searchValue, setSearchValue] = useState("");
@@ -54,6 +57,18 @@ export default function ComponentsShowcase() {
     { label: "Каталог культур", to: "/catalog" },
   ];
 
+  const recomModalProps: RecommendationModalProps = {
+    bed: {
+      id: "a381f213-9828-421b-86e5-88dc57a2fb8e",
+      name: "грядка",
+      width: 10,
+      height: 12,
+    } as any,
+    fetchCultures: getRecommendations,
+    onPlant: () => {},
+    onClose: () => {},
+  };
+
   return (
     <div
       style={{
@@ -63,6 +78,29 @@ export default function ComponentsShowcase() {
       }}
     >
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+        <section
+          style={{
+            backgroundColor: "white",
+            borderRadius: "12px",
+            padding: "32px",
+            marginBottom: "24px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          }}
+        >
+          <h2
+            style={{ fontSize: "20px", fontWeight: "600", marginBottom: "24px", color: "#1F2937" }}
+          >
+            Модалки
+          </h2>
+
+          <div style={{ marginBottom: "24px" }}>
+            <p style={{ fontSize: "14px", color: "#6B7280", marginBottom: "12px" }}>
+              Рекомендации посадки:
+            </p>
+            <RecommendationModal {...recomModalProps} />
+          </div>
+        </section>
+
         {/* Логотип и навигация */}
         <section
           style={{

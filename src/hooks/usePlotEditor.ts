@@ -97,7 +97,7 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
   const [plantingModal, setPlantingModal] = useState<{
     bed: UIBed;
     cropId: number;
-    plantedDate: string;
+    plantedDate: Date;
   } | null>(null);
 
   // ===== ВСПОМОГАТЕЛЬНЫЕ ВЫЧИСЛЕНИЯ =====
@@ -452,7 +452,7 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
       setPlantingModal({
         bed: selectedBed,
         cropId: crops[0].id,
-        plantedDate: new Date().toISOString().split("T")[0],
+        plantedDate: new Date(),
       });
     } else if (!crops.length) {
       showToast("Сначала загрузите список культур", "warning");

@@ -6,13 +6,14 @@ import BedInfo from "../components/plot/BedInfo";
 import GardenCanvas from "../components/plot/GardenCanvas";
 import AddBedModal from "../components/plot/modals/AddBedModal";
 import ContextMenu from "../components/plot/modals/ContextMenu";
-import PlantingModal from "../components/plot/modals/PlantingModal";
 import PlantingHistory from "../components/plot/PlantingHistory";
 import PlotInfo from "../components/plot/PlotInfo";
 import Toolbar from "../components/plot/Toolbar";
 import ZoomControls from "../components/plot/ZoomControls";
 import { usePlotEditor } from "../hooks/usePlotEditor";
 import styles from "./PlotEditor.module.css";
+import RecommendationModal from "../components/plot/modals/RecommendationModal";
+import { getRecommendations } from "../api";
 
 export const PlotEditor: React.FC = () => {
   const navigate = useNavigate();
@@ -31,7 +32,6 @@ export const PlotEditor: React.FC = () => {
     setSelectedBed,
     deleteObject,
     harvestPlanting,
-    crops,
     plotName,
     plotWidth,
     plotHeight,
@@ -275,16 +275,13 @@ export const PlotEditor: React.FC = () => {
       )}
 
       {plantingModal && (
-        <PlantingModal
-          bed={plantingModal.bed}
-          cropId={plantingModal.cropId}
-          plantedDate={plantingModal.plantedDate}
-          crops={crops}
-          onSave={(cropId, plantedDate) => {
-            handlePlantingSave(cropId, plantedDate);
-          }}
+        <RecommendationModal 
+          bed={plantingModal.bed} 
+          initialPlantingDate={plantingModal.plantedDate} 
+          fetchCultures={getRecommendations}
+          onPlant={handlePlantingSave}
           onClose={() => setPlantingModal(null)}
-        />
+          />
       )}
 
       {/* Индикатор сохранения */}
