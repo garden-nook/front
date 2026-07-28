@@ -123,7 +123,6 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
 
   const pros = tooltip?.reasons.filter((r) => r.ispositive) ?? [];
   const cons = tooltip?.reasons.filter((r) => !r.ispositive) ?? [];
-  console.log(searchQuery);
 
   return (
     <div
