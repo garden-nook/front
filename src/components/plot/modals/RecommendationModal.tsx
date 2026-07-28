@@ -6,11 +6,11 @@ import type {
   RecommendationResponse,
   SearchResult,
 } from "../../../api/types/recommendation";
+import filterOffSvg from "../../../assets/filter-off.svg";
+import filterSvg from "../../../assets/filter.svg";
+import ActionButton from "../../UI/ActionButton";
 import modalStyles from "./Modals.module.css";
 import styles from "./RecommendationModal.module.css";
-import ActionButton from "../../UI/ActionButton";
-import filterSvg from "../../../assets/filter.svg"
-import filterOffSvg from "../../../assets/filter-off.svg"
 
 export interface RecommendationModalProps {
   bed: UIBed;
@@ -123,6 +123,7 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
 
   const pros = tooltip?.reasons.filter((r) => r.ispositive) ?? [];
   const cons = tooltip?.reasons.filter((r) => !r.ispositive) ?? [];
+  console.log(searchQuery);
 
   return (
     <div
@@ -134,7 +135,13 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
       <div className={styles.modal}>
         <div className={styles.header}>
           <h2 className={styles.title}>Посадка культуры</h2>
-          <ActionButton color="red" icon="cancel" shape="littleSquare" title="Закрыть" onClick={onClose}/>
+          <ActionButton
+            color="red"
+            icon="cancel"
+            shape="littleSquare"
+            title="Закрыть"
+            onClick={onClose}
+          />
         </div>
 
         <div className={modalStyles.modalSubtitle}>
@@ -192,10 +199,11 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
           </section>
         )}
 
-        {recommendations.length === 0 &&
-          (!searchResults || searchResults.length === 0) && (
-            <div className={styles.empty}>Ничего не найдено</div>
-          )}
+        {(!searchResults || searchResults.length === 0) && (
+          <div className={styles.empty}>
+            {!searchQuery ? "Начните вводить интересующую вас культуру..." : "Ничего не найдено"}
+          </div>
+        )}
 
         {tooltip && (
           <div className={styles.tooltip} style={{ left: tooltip.x, top: tooltip.y }}>
