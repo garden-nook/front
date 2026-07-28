@@ -9,6 +9,8 @@ export interface Plot {
   grid_cell_size: number;
   soil_type: number;
   soil_name: string;
+  bed_count: number;
+  crop_count: number;
 }
 
 export interface CreatePlotRequest {

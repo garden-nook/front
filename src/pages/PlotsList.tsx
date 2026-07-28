@@ -160,12 +160,7 @@ export default function PlotsList() {
             {plots.map((plot) => (
               <PlotCard
                 key={plot.plot_id}
-                id={plot.plot_id}
-                name={plot.name}
-                width={plot.grid_cols || 0}
-                height={plot.grid_rows || 0}
-                bedsCount={0}
-                cropsCount={0}
+                plot={plot}
                 onEdit={() => openEditModal(plot)}
                 onDelete={() => handleDelete(plot.plot_id)}
               />

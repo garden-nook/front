@@ -326,27 +326,16 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
   );
 
   const harvestPlanting = useCallback(
-    async (bedId: string, plantingId: string) => {
-      console.log("🌾 harvestPlanting вызван:", { bedId, plantingId });
-
-      // Создаем событие сбора (harvested: true)
+    async (bedId: string) => {
       const event = createCropRemovedEvent(bedId, true);
-      console.log("📤 Событие сбора:", event);
 
-      // Отправляем событие
       await sendEvent(event);
-      console.log("✅ Событие сбора отправлено");
 
-      // После обновления данных, обновляем selectedBed
-      const updatedBed = objects.find((obj) => obj.id === bedId) as UIBed | undefined;
-      if (updatedBed) {
-        setSelectedElement(updatedBed);
-        refreshHistory();
-      }
+      refreshHistory();
 
-      showToast("🌾 Урожай успешно собран!", "success");
+      showToast("Урожай успешно собран!", "success");
     },
-    [sendEvent, objects, setSelectedElement, showToast],
+    [sendEvent, showToast],
   );
 
   const createBed = useCallback(

@@ -44,7 +44,7 @@ export const plotsListStyles: { [key: string]: CSSProperties } = {
   fab: {
     position: "fixed" as const,
     bottom: "32px",
-    right: "calc(50% - 700px + 40px)",
+    right: "max(40px, calc(50% - 660px))",
     width: "56px",
     height: "56px",
     backgroundColor: "#22C55E",

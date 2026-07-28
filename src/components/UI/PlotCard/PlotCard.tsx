@@ -1,38 +1,26 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import type { Plot } from "../../../api";
 import ActionButton from "../ActionButton";
 import styles from "./PlotCard.module.css";
 
 interface PlotCardProps {
-  id: string;
-  name: string;
-  width: number;
-  height: number;
-  bedsCount: number;
-  cropsCount: number;
+  plot: Plot;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-const PlotCard: React.FC<PlotCardProps> = ({
-  id,
-  name,
-  width,
-  height,
-  bedsCount,
-  cropsCount,
-  onEdit,
-  onDelete,
-}) => {
+const PlotCard: React.FC<PlotCardProps> = ({ plot, onEdit, onDelete }) => {
   return (
     <div className={styles.card}>
       <div className={styles.imagePlaceholder} />
       <div className={styles.content}>
-        <Link to={`/plot/${id}`} className={styles.title}>
-          {name}
+        <Link to={`/plot/${plot.plot_id}`} className={styles.title}>
+          {plot.name}
         </Link>
         <p className={styles.info}>
-          Размер: {width}x{height} · Грядок: {bedsCount} · Культур: {cropsCount}
+          Размер: {plot.grid_cols}x{plot.grid_rows} Грядок: {plot.bed_count} Культур:{" "}
+          {plot.crop_count}
         </p>
       </div>
       <div className={styles.actions}>

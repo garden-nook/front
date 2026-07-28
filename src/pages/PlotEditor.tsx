@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { getRecommendations } from "../api";
 import { useToast } from "../components/common/Toast";
 import BedInfo from "../components/plot/BedInfo";
 import GardenCanvas from "../components/plot/GardenCanvas";
 import AddBedModal from "../components/plot/modals/AddBedModal";
 import ContextMenu from "../components/plot/modals/ContextMenu";
+import RecommendationModal from "../components/plot/modals/RecommendationModal";
 import PlantingHistory from "../components/plot/PlantingHistory";
 import PlotInfo from "../components/plot/PlotInfo";
 import Toolbar from "../components/plot/Toolbar";
 import ZoomControls from "../components/plot/ZoomControls";
 import { usePlotEditor } from "../hooks/usePlotEditor";
 import styles from "./PlotEditor.module.css";
-import RecommendationModal from "../components/plot/modals/RecommendationModal";
-import { getRecommendations } from "../api";
 
 export const PlotEditor: React.FC = () => {
   const navigate = useNavigate();
@@ -93,8 +93,13 @@ export const PlotEditor: React.FC = () => {
         selectedElement.currentCropId !== null && selectedElement.currentCropId !== undefined;
 
       if (hasActivePlanting) {
-        const plantingId = `current-${selectedElement.id}`;
-        harvestPlanting(selectedElement.id, plantingId);
+        harvestPlanting(selectedElement.id);
+        setSelectedElement({
+          ...selectedElement,
+          currentCropId: null,
+          currentCropName: null,
+          plantings: [],
+        });
       } else {
         showToast("Нет активных посадок для сбора", "info");
       }
@@ -269,13 +274,13 @@ export const PlotEditor: React.FC = () => {
       )}
 
       {plantingModal && (
-        <RecommendationModal 
-          bed={plantingModal.bed} 
-          initialPlantingDate={plantingModal.plantedDate} 
+        <RecommendationModal
+          bed={plantingModal.bed}
+          initialPlantingDate={plantingModal.plantedDate}
           fetchCultures={getRecommendations}
           onPlant={handlePlantingSave}
           onClose={() => setPlantingModal(null)}
-          />
+        />
       )}
 
       {/* Индикатор сохранения */}

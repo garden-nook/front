@@ -123,7 +123,6 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
 
   const pros = tooltip?.reasons.filter((r) => r.ispositive) ?? [];
   const cons = tooltip?.reasons.filter((r) => !r.ispositive) ?? [];
-  console.log(searchQuery);
 
   return (
     <div
@@ -167,6 +166,7 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
             onKeyDown={(e) => {
               if (e.key === " " || e.key === "Enter") setFilterEnabled((prev) => !prev);
             }}
+            title="Поиск с учётом типа почвы участка"
           >
             <div className={styles.filterToggleThumb}>
               <img src={filterEnabled ? filterSvg : filterOffSvg} className={styles.filterIcon} />

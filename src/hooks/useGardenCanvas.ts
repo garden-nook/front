@@ -181,18 +181,6 @@ export const useGardenCanvas = ({
     [plotSize, cellSizePx, hasData, getPlotPosition],
   );
 
-  // ===== ЦЕНТРИРОВАНИЕ (только при первой загрузке) =====
-  const centerPlot = useCallback(() => {
-    const container = containerRef.current;
-    if (!container || !hasData) return;
-
-    setOffset({ x: 0, y: 0 });
-  }, [hasData]);
-
-  useEffect(() => {
-    centerPlot();
-  }, [centerPlot]);
-
   useEffect(() => {
     const handleResize = () => {
       render();
@@ -563,8 +551,6 @@ export const useGardenCanvas = ({
   // ===== ЗУМ (колесико мыши) =====
   const handleWheel = useCallback(
     (e: React.WheelEvent) => {
-      e.preventDefault();
-
       if (isMenuOpen) return;
       if (isMiddleButtonDown || isPanning) return;
 
@@ -823,7 +809,6 @@ export const useGardenCanvas = ({
     getObjectAt,
     gridToCanvas,
     getCellFromMouse,
-    centerPlot,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
