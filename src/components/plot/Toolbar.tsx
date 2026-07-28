@@ -44,8 +44,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   // При появлении pendingBedRect открываем модалку
   useEffect(() => {
     if (pendingBedRect) {
-      const bedCount = document.querySelectorAll('[data-type="bed"]').length || 0;
-      onAddBed(`Грядка ${bedCount + 1}`);
+      onAddBed(`Грядка `);
     }
   }, [pendingBedRect, onAddBed]);
 
