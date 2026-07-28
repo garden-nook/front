@@ -6,7 +6,6 @@ import CropCard from "../components/UI/CropCard/CropCard";
 import Input from "../components/UI/Input/Input";
 import Logo from "../components/UI/Logo/Logo";
 import Nav from "../components/UI/Nav/Nav";
-import PlotCard from "../components/UI/PlotCard/PlotCard";
 import SearchBar from "../components/UI/SearchBar/SearchBar";
 import Select from "../components/UI/Select/Select";
 import type { RecommendationModalProps } from "../components/plot/modals/RecommendationModal";
@@ -21,16 +20,16 @@ export default function ComponentsShowcase() {
     alert(`Нажата кнопка: ${action}`);
   };
 
-  const samplePlots = [
-    {
-      id: "1",
-      name: "Пример",
-      width: 30,
-      height: 30,
-      bedsCount: 5,
-      cropsCount: 7,
-    },
-  ];
+  // const samplePlots = [
+  //   {
+  //     id: "1",
+  //     name: "Пример",
+  //     width: 30,
+  //     height: 30,
+  //     bedsCount: 5,
+  //     cropsCount: 7,
+  //   },
+  // ];
 
   const sampleCrops = [
     {
@@ -413,21 +412,16 @@ export default function ComponentsShowcase() {
             >
               PlotCard (Карточка участка)
             </h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {/* <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               {samplePlots.map((plot) => (
                 <PlotCard
                   key={plot.id}
-                  id={plot.id}
-                  name={plot.name}
-                  width={plot.width}
-                  height={plot.height}
-                  bedsCount={plot.bedsCount}
-                  cropsCount={plot.cropsCount}
+                  plot={plot}
                   onEdit={() => alert(`Edit plot: ${plot.name}`)}
                   onDelete={() => alert(`Delete plot: ${plot.name}`)}
                 />
               ))}
-            </div>
+            </div> */}
           </div>
 
           {/* CropCard */}
