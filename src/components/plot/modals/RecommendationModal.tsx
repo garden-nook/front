@@ -166,6 +166,7 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
             onKeyDown={(e) => {
               if (e.key === " " || e.key === "Enter") setFilterEnabled((prev) => !prev);
             }}
+            title="Поиск с учётом типа почвы участка"
           >
             <div className={styles.filterToggleThumb}>
               <img src={filterEnabled ? filterSvg : filterOffSvg} className={styles.filterIcon} />
