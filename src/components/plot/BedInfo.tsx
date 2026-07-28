@@ -23,13 +23,6 @@ export const BedInfo: React.FC<BedInfoProps> = ({
     bed.plantings?.some((p) => !p.harvestDate) ||
     false;
 
-  console.log("BedInfo состояние:", {
-    bedName: bed.name,
-    currentCropId: bed.currentCropId,
-    plantings: bed.plantings,
-    hasActivePlanting,
-  });
-
   return (
     <div className={styles.bedInfoWrapper}>
       <div className={styles.bedInfo}>

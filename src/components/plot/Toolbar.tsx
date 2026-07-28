@@ -1,11 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import {
-  type GardenObject,
-  type Rect,
-  STATIC_LABELS,
-  type Subtype,
-  type Tool,
-} from "../../api/types/plot.types";
+import { type Rect, STATIC_LABELS, type Subtype, type Tool } from "../../api/types/plot.types";
 import ActionButton from "../UI/ActionButton";
 import styles from "./Toolbar.module.css";
 
@@ -14,13 +8,10 @@ interface ToolbarProps {
   onToolSelect: (tool: Tool) => void;
   selectedSubtype: Subtype;
   onSubtypeSelect: (subtype: Subtype) => void;
-  selectedObject: GardenObject | null;
   onClearAll: () => void;
   onAddBed: (defaultName: string) => void; // Изменено: теперь просто открывает модалку
   pendingBedRect: Rect | null;
-  onPendingBedRectClear: () => void;
   onMenuOpenChange?: (isOpen: boolean) => void;
-  isDrawing?: boolean;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({

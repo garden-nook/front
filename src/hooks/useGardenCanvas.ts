@@ -23,7 +23,6 @@ interface UseGardenCanvasProps {
   startCell: GridPosition | null;
   endCell: GridPosition | null;
   isDragging: boolean;
-  dragOffset: { row: number; col: number } | null;
   scale: number;
   cols: number;
   rows: number;
@@ -39,14 +38,12 @@ interface UseGardenCanvasProps {
   setEndCell: (cell: GridPosition | null) => void;
   setIsDrawing: (drawing: boolean) => void;
   setIsDragging: (dragging: boolean) => void;
-  setDragOffset: (offset: { row: number; col: number } | null) => void;
   onObjectUpdate?: (obj: GardenObject) => void;
   isMenuOpen?: boolean;
 }
 
 export const useGardenCanvas = ({
   plotSize,
-  gridSize,
   objects,
   selectedTool,
   selectedObject,
@@ -55,7 +52,6 @@ export const useGardenCanvas = ({
   startCell,
   endCell,
   isDragging,
-  dragOffset,
   scale,
   cols,
   rows,
@@ -71,7 +67,6 @@ export const useGardenCanvas = ({
   setEndCell,
   setIsDrawing,
   setIsDragging,
-  setDragOffset,
   onObjectUpdate,
   isMenuOpen = false,
 }: UseGardenCanvasProps) => {
@@ -83,6 +78,7 @@ export const useGardenCanvas = ({
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
   const [isMiddleButtonDown, setIsMiddleButtonDown] = useState(false);
+  const [dragPrevCell, setDragPrevCell] = useState<GridPosition | null>(null);
 
   const hasData = plotSize && plotSize.start && plotSize.end;
   const cellSizePx = canvasStyles.sizes.cellBaseSize * scale;
@@ -103,7 +99,7 @@ export const useGardenCanvas = ({
         y: Math.max(-maxOffsetY, Math.min(maxOffsetY, newOffset.y)),
       };
     },
-    [cols, rows, cellSizePx, hasData],
+    [hasData],
   );
 
   // ===== ПОЛУЧЕНИЕ ПОЗИЦИИ УЧАСТКА =====
@@ -195,7 +191,7 @@ export const useGardenCanvas = ({
 
   useEffect(() => {
     centerPlot();
-  }, []);
+  }, [centerPlot]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -317,10 +313,7 @@ export const useGardenCanvas = ({
           if (obj) {
             onObjectSelect(obj);
             setIsDragging(true);
-            setDragOffset({
-              row: cell.row - obj.row,
-              col: cell.col - obj.col,
-            });
+            setDragPrevCell(cell);
             return;
           }
           onObjectSelect(null);
@@ -350,7 +343,6 @@ export const useGardenCanvas = ({
       onContextMenu,
       onObjectSelect,
       setIsDragging,
-      setDragOffset,
       onObjectDelete,
       onCellClick,
       setStartCell,
@@ -390,7 +382,7 @@ export const useGardenCanvas = ({
       ) {
         const obj = getObjectAt(cell.row, cell.col);
         if (obj?.id !== hoveredObject?.id) {
-          onHoverObject(obj || null);
+          onHoverObject(obj);
         }
       } else {
         if (hoveredObject) {
@@ -398,9 +390,14 @@ export const useGardenCanvas = ({
         }
       }
 
-      if (isDragging && selectedObject && dragOffset && cell && selectedTool === "select") {
-        const newRow = cell.row - dragOffset.row;
-        const newCol = cell.col - dragOffset.col;
+      if (isDragging && selectedObject && cell && dragPrevCell && selectedTool === "select") {
+        const diffCol = cell.col - dragPrevCell.col,
+          diffRow = cell.row - dragPrevCell.row;
+
+        if (diffCol === 0 && diffRow === 0) return;
+
+        const newRow = selectedObject.row + diffRow,
+          newCol = selectedObject.col + diffCol;
 
         if (
           newRow < 0 ||
@@ -423,13 +420,10 @@ export const useGardenCanvas = ({
         );
 
         if (hasOverlap) return;
+        setDragPrevCell(cell);
 
         const updatedObj = { ...selectedObject, row: newRow, col: newCol };
         onObjectSelect(updatedObj);
-
-        if (onObjectUpdate) {
-          onObjectUpdate(updatedObj);
-        }
       }
 
       if (isDrawing && cell && (selectedTool === "addBed" || selectedTool === "addStatic")) {
@@ -441,7 +435,6 @@ export const useGardenCanvas = ({
       panStart,
       isDragging,
       selectedObject,
-      dragOffset,
       getCellFromMouse,
       getObjectAt,
       selectedTool,
@@ -450,13 +443,13 @@ export const useGardenCanvas = ({
       objects,
       onHoverObject,
       hoveredObject,
-      onObjectSelect,
       setEndCell,
       isDrawing,
-      onObjectUpdate,
       offset,
       clampOffset,
       isMenuOpen,
+      onObjectSelect,
+      dragPrevCell,
     ],
   );
 
@@ -479,15 +472,14 @@ export const useGardenCanvas = ({
 
       if (isDragging) {
         setIsDragging(false);
-        setDragOffset(null);
         if (selectedObject && onObjectUpdate) {
           onObjectUpdate(selectedObject);
+          const o = objects.find((o) => o.id === selectedObject.id);
+          if (o) {
+            o.col = selectedObject.col;
+            o.row = selectedObject.row;
+          }
         }
-        return;
-      }
-
-      if (!isDrawing) {
-        resetDrawing();
         return;
       }
 
@@ -536,14 +528,12 @@ export const useGardenCanvas = ({
         }
 
         onRectSelect(rect);
+        resetDrawing();
       }
-
-      resetDrawing();
     },
     [
       isPanning,
       isDragging,
-      isDrawing,
       startCell,
       endCell,
       objects,
@@ -553,7 +543,6 @@ export const useGardenCanvas = ({
       onRectSelect,
       selectedObject,
       setIsDragging,
-      setDragOffset,
       onObjectUpdate,
       selectedTool,
       isMenuOpen,
@@ -675,12 +664,21 @@ export const useGardenCanvas = ({
 
     // ОБЪЕКТЫ
     objects.forEach((obj) => {
-      const x = startX + obj.col * cellSizePx;
-      const y = startY + obj.row * cellSizePx;
-      const width = obj.width * cellSizePx;
-      const height = obj.height * cellSizePx;
-
       const isSelected = selectedObject?.id === obj.id;
+
+      let x: number, y: number, width: number, height: number;
+      if (isDragging && isSelected) {
+        x = startX + selectedObject.col * cellSizePx;
+        y = startY + selectedObject.row * cellSizePx;
+        width = selectedObject.width * cellSizePx;
+        height = selectedObject.height * cellSizePx;
+      } else {
+        x = startX + obj.col * cellSizePx;
+        y = startY + obj.row * cellSizePx;
+        width = obj.width * cellSizePx;
+        height = obj.height * cellSizePx;
+      }
+
       const isHovered = hoveredObject?.id === obj.id;
 
       ctx.fillStyle = obj.color;
@@ -776,21 +774,19 @@ export const useGardenCanvas = ({
       ctx.setLineDash([]);
     }
   }, [
-    plotSize,
     objects,
     selectedObject,
     hoveredObject,
     isDrawing,
     startCell,
     endCell,
-    scale,
     cols,
     rows,
     cellSizePx,
-    gridSize,
     hasData,
     getPlotPosition,
     selectedTool,
+    isDragging,
   ]);
 
   // ===== РЕСАЙЗ =====

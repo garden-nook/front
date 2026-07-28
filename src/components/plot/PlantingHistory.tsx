@@ -6,51 +6,37 @@ import { useToast } from "../common/Toast";
 import styles from "./PlantingHistory.module.css";
 
 interface PlantingHistoryProps {
-  selectedBedId: string | null;
-  beds: {
+  bed: {
     id: string;
     name: string;
     currentCropName?: string | null;
     plantDate?: string | null;
-  }[];
+  };
+  refreshTrigger?: boolean;
 }
 
-export const PlantingHistory: React.FC<PlantingHistoryProps> = ({ selectedBedId, beds }) => {
+export const PlantingHistory: React.FC<PlantingHistoryProps> = ({ bed, refreshTrigger }) => {
   const { showToast } = useToast();
   const [expandedYears, setExpandedYears] = useState<Set<string>>(new Set());
   const [historyData, setHistoryData] = useState<BedCropHistoryEntry[]>([]);
 
-  // Загружаем историю с сервера при выборе грядки
   useEffect(() => {
-    if (!selectedBedId) {
-      setHistoryData([]);
-      return;
-    }
-
     const loadHistory = async () => {
       try {
-        const data = await getBedHistory(selectedBedId);
-        console.log("📜 История с сервера:", data);
-        console.log("📊 Количество записей:", data?.length);
+        const data = await getBedHistory(bed.id);
         if (data && Array.isArray(data)) {
           setHistoryData(data);
         } else {
           setHistoryData([]);
         }
-      } catch (error) {
-        console.error("Ошибка загрузки истории:", error);
+      } catch {
         showToast("Ошибка загрузки истории посадок", "error");
         setHistoryData([]);
       }
     };
 
     loadHistory();
-  }, [selectedBedId, showToast]);
-
-  // Находим выбранную грядку
-  const selectedBed = useMemo(() => {
-    return beds.find((b) => b.id === selectedBedId);
-  }, [beds, selectedBedId]);
+  }, [bed.id, showToast, refreshTrigger]);
 
   // Формируем список всех посадок
   const allPlantings = useMemo(() => {
@@ -63,11 +49,11 @@ export const PlantingHistory: React.FC<PlantingHistoryProps> = ({ selectedBedId,
     }[] = [];
 
     // Текущая посадка (из структуры участка)
-    if (selectedBed?.currentCropName && selectedBed?.plantDate) {
+    if (bed.currentCropName && bed.plantDate) {
       result.push({
-        id: `current-${selectedBed.id}`,
-        cropName: selectedBed.currentCropName,
-        plantedDate: selectedBed.plantDate,
+        id: `current-${bed.id}`,
+        cropName: bed.currentCropName,
+        plantedDate: bed.plantDate,
         harvestDate: undefined,
         isCurrent: true,
       });
@@ -94,11 +80,8 @@ export const PlantingHistory: React.FC<PlantingHistoryProps> = ({ selectedBedId,
         }
       });
     }
-
-    console.log("📊 Итоговый список посадок:", result);
-    console.log("📊 Количество посадок:", result.length);
     return result;
-  }, [selectedBed, historyData]);
+  }, [bed.id, bed.currentCropName, bed.plantDate, historyData]);
 
   // Разделяем на активную и завершенные посадки
   const { activePlantings, historyPlantings } = useMemo(() => {

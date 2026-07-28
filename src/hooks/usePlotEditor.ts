@@ -52,13 +52,14 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
 
   // ===== ОСНОВНЫЕ СОСТОЯНИЯ =====
   const [objects, setObjects] = useState<GardenObject[]>([]);
-  const [selectedObject, setSelectedObject] = useState<GardenObject | null>(null);
-  const [selectedBed, setSelectedBed] = useState<UIBed | null>(null);
+  const [selectedElement, setSelectedElement] = useState<GardenObject | null>(null);
   const [crops, setCrops] = useState<UICrop[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const refreshHistory = () => setRefreshTrigger((p) => !p);
 
   // ===== ДАННЫЕ УЧАСТКА ИЗ БД =====
   const [plotName, setPlotName] = useState<string>("");
@@ -84,10 +85,6 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
   } | null>(null);
   const [endCell, setEndCell] = useState<{ row: number; col: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState<{
-    row: number;
-    col: number;
-  } | null>(null);
   const [hoveredObject, setHoveredObject] = useState<GardenObject | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -107,13 +104,6 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
 
   const beds = objects.filter(isBed) as UIBed[];
   const staticObjects = objects.filter((obj): obj is UIStaticObject => obj.type === "static");
-
-  const bedsForHistory = beds.map((bed) => ({
-    id: bed.id,
-    name: bed.name,
-    currentCropName: bed.currentCropName || null,
-    plantDate: bed.plantDate || null,
-  }));
 
   const bedsCount = beds.length;
 
@@ -203,8 +193,7 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
     try {
       const structure = await getPlotStructure(plotId);
 
-      const selectedId = selectedObject?.id;
-      const selectedBedId = selectedBed?.id;
+      const selectedId = selectedElement?.id;
 
       if (structure.plot) {
         setPlotName(structure.plot.name);
@@ -237,28 +226,15 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
       if (selectedId) {
         const restored = uiObjects.find((obj) => obj.id === selectedId);
         if (restored) {
-          setSelectedObject(restored);
-          if (restored.type === "bed") {
-            setSelectedBed(restored as UIBed);
-          }
+          setSelectedElement(restored);
         } else {
-          setSelectedObject(null);
-          setSelectedBed(null);
-        }
-      } else if (selectedBedId) {
-        const restored = uiObjects.find((obj) => obj.id === selectedBedId);
-        if (restored && restored.type === "bed") {
-          setSelectedBed(restored as UIBed);
-          setSelectedObject(restored);
-        } else {
-          setSelectedBed(null);
-          setSelectedObject(null);
+          setSelectedElement(null);
         }
       }
     } catch (err) {
       console.error("Ошибка обновления данных:", err);
     }
-  }, [plotId, selectedObject?.id, selectedBed?.id, crops]);
+  }, [plotId, selectedElement?.id, crops]);
 
   // ===== ФУНКЦИЯ ОТПРАВКИ СОБЫТИЯ =====
   const sendEvent = useCallback(
@@ -318,7 +294,9 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
       } else {
         event = createObjectUpdatedEvent(updatedObj as UIStaticObject, prevObj as UIStaticObject);
       }
-      await sendEvent(event);
+      if (event) {
+        await sendEvent(event);
+      }
     },
     [objects, sendEvent],
   );
@@ -362,13 +340,13 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
       // После обновления данных, обновляем selectedBed
       const updatedBed = objects.find((obj) => obj.id === bedId) as UIBed | undefined;
       if (updatedBed) {
-        setSelectedBed(updatedBed);
-        setSelectedObject(updatedBed);
+        setSelectedElement(updatedBed);
+        refreshHistory();
       }
 
       showToast("🌾 Урожай успешно собран!", "success");
     },
-    [sendEvent, objects, setSelectedBed, setSelectedObject, showToast],
+    [sendEvent, objects, setSelectedElement, showToast],
   );
 
   const createBed = useCallback(
@@ -402,20 +380,18 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
     setStartCell(null);
     setEndCell(null);
     setIsDragging(false);
-    setSelectedObject(null);
-    setDragOffset(null);
+    setSelectedElement(null);
   }, []);
 
   const handleToolSelect = useCallback((tool: Tool) => {
     setSelectedTool(tool);
     if (!["view", "plant"].includes(tool)) {
-      setSelectedBed(null);
+      setSelectedElement(null);
     }
   }, []);
 
   const handleClosePanel = useCallback(() => {
-    setSelectedBed(null);
-    setSelectedObject(null);
+    setSelectedElement(null);
   }, []);
 
   const togglePlotInfo = useCallback(() => {
@@ -438,19 +414,19 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
       );
 
       if (bed) {
-        setSelectedBed(bed);
+        setSelectedElement(bed);
         setIsPlotInfoCollapsed(true);
       } else {
-        setSelectedBed(null);
+        setSelectedElement(null);
       }
     },
     [objects],
   );
 
   const handlePlant = useCallback(() => {
-    if (selectedBed && crops.length > 0) {
+    if (selectedElement && selectedElement.type === "bed" && crops.length > 0) {
       setPlantingModal({
-        bed: selectedBed,
+        bed: selectedElement,
         cropId: crops[0].id,
         plantedDate: new Date().toISOString().split("T")[0],
       });
@@ -459,7 +435,7 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
     } else {
       showToast("Выберите грядку для посадки", "info");
     }
-  }, [selectedBed, crops, showToast]);
+  }, [selectedElement, crops, showToast]);
 
   const handlePlantingSave = useCallback(
     async (cropId: number, plantedDate: string) => {
@@ -534,8 +510,7 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
       }
 
       setObjects([]);
-      setSelectedObject(null);
-      setSelectedBed(null);
+      setSelectedElement(null);
     } catch (err: any) {
       console.error("❌ Ошибка удаления объектов:", err);
       const message = err.response?.data?.error || "Ошибка удаления объектов";
@@ -576,10 +551,8 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
   return {
     objects,
     setObjects,
-    selectedObject,
-    setSelectedObject,
-    selectedBed,
-    setSelectedBed,
+    selectedElement,
+    setSelectedElement,
     crops,
     loading,
     error,
@@ -614,8 +587,6 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
     setEndCell,
     isDragging,
     setIsDragging,
-    dragOffset,
-    setDragOffset,
     hoveredObject,
     setHoveredObject,
     contextMenu,
@@ -624,7 +595,6 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
     setPlantingModal,
     beds,
     staticObjects,
-    bedsForHistory,
     bedsCount,
     loadPlotData,
     loadCrops,
@@ -654,6 +624,7 @@ export const usePlotEditor = ({ plotId }: UsePlotEditorProps = {}) => {
     handleZoomOut,
     handleZoomReset,
     handleScaleChange,
+    refreshTrigger,
   };
 };
 

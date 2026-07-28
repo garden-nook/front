@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import type { UIBed } from "../api/types/plot.types";
 import { useToast } from "../components/common/Toast";
 import BedInfo from "../components/plot/BedInfo";
 import GardenCanvas from "../components/plot/GardenCanvas";
@@ -25,10 +24,9 @@ export const PlotEditor: React.FC = () => {
 
   const {
     objects,
-    selectedObject,
-    setSelectedObject,
-    selectedBed,
-    setSelectedBed,
+    setObjects,
+    selectedElement,
+    setSelectedElement,
     deleteObject,
     harvestPlanting,
     crops,
@@ -54,18 +52,15 @@ export const PlotEditor: React.FC = () => {
     setEndCell,
     isDragging,
     setIsDragging,
-    dragOffset,
-    setDragOffset,
     hoveredObject,
     setHoveredObject,
     contextMenu,
     setContextMenu,
     plantingModal,
     setPlantingModal,
-    bedsForHistory,
     bedsCount,
     loading,
-    isSaving,
+    // isSaving,
     resetDrawing,
     handleToolSelect,
     togglePlotInfo,
@@ -82,6 +77,7 @@ export const PlotEditor: React.FC = () => {
     handleZoomIn,
     handleZoomOut,
     handleScaleChange,
+    refreshTrigger,
   } = usePlotEditor({
     plotId,
   });
@@ -92,13 +88,13 @@ export const PlotEditor: React.FC = () => {
 
   // Обработчик сбора урожая
   const handleHarvest = () => {
-    if (selectedBed) {
+    if (selectedElement && selectedElement.type === "bed") {
       const hasActivePlanting =
-        selectedBed.currentCropId !== null && selectedBed.currentCropId !== undefined;
+        selectedElement.currentCropId !== null && selectedElement.currentCropId !== undefined;
 
       if (hasActivePlanting) {
-        const plantingId = `current-${selectedBed.id}`;
-        harvestPlanting(selectedBed.id, plantingId);
+        const plantingId = `current-${selectedElement.id}`;
+        harvestPlanting(selectedElement.id, plantingId);
       } else {
         showToast("Нет активных посадок для сбора", "info");
       }
@@ -134,14 +130,14 @@ export const PlotEditor: React.FC = () => {
   }, [pendingBedRect, objects]);
 
   // Обновляем selectedBed при изменении объектов
-  useEffect(() => {
-    if (selectedBed?.id) {
-      const updated = objects.find(
-        (obj): obj is UIBed => obj.type === "bed" && obj.id === selectedBed.id,
-      );
-      setSelectedBed(updated || null);
-    }
-  }, [objects, selectedBed?.id, setSelectedBed]);
+  // useEffect(() => {
+  //   if (selectedElement?.id && selectedElement.type === "bed") {
+  //     const updated = objects.find(
+  //       (obj): obj is UIBed => obj.type === "bed" && obj.id === selectedElement.id,
+  //     );
+  //     setSelectedElement(updated || null);
+  //   }
+  // }, [objects, selectedElement, setSelectedElement]);
 
   if (loading) {
     return (
@@ -160,13 +156,10 @@ export const PlotEditor: React.FC = () => {
           onToolSelect={handleToolSelect}
           selectedSubtype={selectedSubtype}
           onSubtypeSelect={setSelectedSubtype}
-          selectedObject={selectedObject}
           onClearAll={handleClearAll}
           onAddBed={handleAddBedModalOpen}
           pendingBedRect={pendingBedRect}
-          onPendingBedRectClear={handlePendingBedRectClear}
           onMenuOpenChange={handleMenuOpenChange}
-          isDrawing={isDrawing}
         />
       </div>
 
@@ -185,16 +178,18 @@ export const PlotEditor: React.FC = () => {
             onToggle={togglePlotInfo}
           />
 
-          {selectedBed && (
+          {selectedElement && selectedElement.type === "bed" && (
             <BedInfo
-              bed={selectedBed}
+              bed={selectedElement}
               showPlantButton={selectedTool === "view" || selectedTool === "plant"}
               onPlant={handlePlant}
               onHarvest={handleHarvest}
             />
           )}
 
-          {selectedBed && <PlantingHistory selectedBedId={selectedBed.id} beds={bedsForHistory} />}
+          {selectedElement && selectedElement.type === "bed" && (
+            <PlantingHistory bed={selectedElement} refreshTrigger={refreshTrigger} />
+          )}
         </div>
 
         <div className={styles.canvasWrapper}>
@@ -202,14 +197,14 @@ export const PlotEditor: React.FC = () => {
             plotSize={{ start: { row: 0, col: 0 }, end: { row: rows - 1, col: cols - 1 } }}
             gridSize={cellSizeMeters}
             objects={objects}
+            setObjects={setObjects}
             selectedTool={selectedTool}
-            selectedObject={selectedObject}
+            selectedObject={selectedElement}
             hoveredObject={hoveredObject}
             isDrawing={isDrawing}
             startCell={startCell}
             endCell={endCell}
             isDragging={isDragging}
-            dragOffset={dragOffset}
             scale={scale}
             cols={cols}
             rows={rows}
@@ -217,7 +212,7 @@ export const PlotEditor: React.FC = () => {
             isMenuOpen={isMenuOpen}
             onCellClick={handleBedClick}
             onRectSelect={handleRectSelect}
-            onObjectSelect={setSelectedObject}
+            onObjectSelect={setSelectedElement}
             onObjectDelete={deleteObject}
             onContextMenu={setContextMenu}
             onHoverObject={setHoveredObject}
@@ -226,7 +221,6 @@ export const PlotEditor: React.FC = () => {
             setEndCell={setEndCell}
             setIsDrawing={setIsDrawing}
             setIsDragging={setIsDragging}
-            setDragOffset={setDragOffset}
             onObjectUpdate={handleObjectUpdate}
           />
 
@@ -288,7 +282,7 @@ export const PlotEditor: React.FC = () => {
       )}
 
       {/* Индикатор сохранения */}
-      {isSaving && <div className={styles.savingIndicator}>Сохранение...</div>}
+      {/* {isSaving && <div className={styles.savingIndicator}>Сохранение...</div>} */}
     </div>
   );
 };
