@@ -358,20 +358,3 @@ const buttonStyle = (color: string): React.CSSProperties => ({
   fontWeight: "500",
   transition: "all 0.2s",
 });
-
-const style = document.createElement("style");
-style.textContent = `
-  button:hover:not(:disabled) {
-    opacity: 0.9;
-    transform: scale(1.02);
-  }
-  button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
-  button:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-`;
-document.head.appendChild(style);
