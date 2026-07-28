@@ -19,6 +19,12 @@
   }
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .title {
   margin: 0 0 4px 0;
   font-size: 2.4rem;
@@ -77,11 +83,12 @@
 }
 
 .filterIcon {
-  font-size: 20px;
-  line-height: 1;
-  color: #fff;
   display: block;
-  text-decoration: none;
+  flex-shrink: 0;
+  pointer-events: none;
+  object-fit: contain;
+  width: 18px;
+  height: 18px;
 }
 
 .filterToggle:not(.filterToggleOn) .filterIcon {
@@ -94,7 +101,7 @@
 }
 
 .sectionTitle {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 500;
   margin: 0 0 8px 0;
 }
@@ -155,7 +162,7 @@
 
 .cultureName {
   font-weight: 600;
-  font-size: 2rem;
+  font-size: 1.8rem;
 }
 
 .tooltip {

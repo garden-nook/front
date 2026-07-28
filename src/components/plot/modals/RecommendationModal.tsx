@@ -8,6 +8,9 @@ import type {
 } from "../../../api/types/recommendation";
 import modalStyles from "./Modals.module.css";
 import styles from "./RecommendationModal.module.css";
+import ActionButton from "../../UI/ActionButton";
+import filterSvg from "../../../assets/filter.svg"
+import filterOffSvg from "../../../assets/filter-off.svg"
 
 export interface RecommendationModalProps {
   bed: UIBed;
@@ -38,7 +41,6 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [searchResults, setSearchResults] = useState<SearchResult[] | undefined>([]);
   const [selectedCropId, setSelectedCropId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const [tooltip, setTooltip] = useState<{
     cropId: number;
@@ -50,9 +52,6 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(0);
 
   const loadData = useCallback(async () => {
-    setLoading(true);
-    setRecommendations([]);
-    setSearchResults([]);
     try {
       const data = await fetchCultures(bed.id, searchQuery, 10, 15, !filterEnabled);
       setRecommendations(data.recommendations);
@@ -60,8 +59,6 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
     } catch {
       setRecommendations([]);
       setSearchResults([]);
-    } finally {
-      setLoading(false);
     }
   }, [bed, searchQuery, filterEnabled, fetchCultures]);
 
@@ -135,7 +132,10 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
       }}
     >
       <div className={styles.modal}>
-        <h2 className={styles.title}>Посадка культуры</h2>
+        <div className={styles.header}>
+          <h2 className={styles.title}>Посадка культуры</h2>
+          <ActionButton color="red" icon="cancel" shape="littleSquare" title="Закрыть" onClick={onClose}/>
+        </div>
 
         <div className={modalStyles.modalSubtitle}>
           {bed.name} ({bed.width}×{bed.height})
@@ -162,7 +162,7 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
             }}
           >
             <div className={styles.filterToggleThumb}>
-              <span className={styles.filterIcon}>▼</span>
+              <img src={filterEnabled ? filterSvg : filterOffSvg} className={styles.filterIcon} />
             </div>
           </div>
 
@@ -175,8 +175,6 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
             />
           </div>
         </div>
-
-        {loading && <div className={styles.loader}>Загрузка...</div>}
 
         {recommendations.length > 0 && (
           <section className={styles.section}>
@@ -194,8 +192,7 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
           </section>
         )}
 
-        {!loading &&
-          recommendations.length === 0 &&
+        {recommendations.length === 0 &&
           (!searchResults || searchResults.length === 0) && (
             <div className={styles.empty}>Ничего не найдено</div>
           )}
@@ -232,9 +229,6 @@ const RecommendationModal: React.FC<RecommendationModalProps> = ({
         )}
 
         <div className={modalStyles.modalActions}>
-          <button type="button" onClick={onClose}>
-            Отмена
-          </button>
           <button type="submit" onClick={handlePlant} className={modalStyles.primary}>
             Посадить
           </button>
